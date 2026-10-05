@@ -1,0 +1,91 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile, balance, and credentials",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "phone": { "type": "string" },
+        "fullName": { "type": "string" },
+        "email": { "type": "string" },
+        "walletBalance": { "type": "number" },
+        "cashbackBalance": { "type": "number" },
+        "accountTier": { "type": "string" },
+        "virtualAccounts": { "type": "array" },
+        "role": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "phone", "fullName", "walletBalance"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Financial and VTU transaction records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "type": { "type": "string" },
+        "title": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string" },
+        "reference": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "type", "amount", "status", "reference"]
+    },
+    "VtuPlan": {
+      "title": "VtuPlan",
+      "description": "Cached VTU data plan synchronized with wholesale telecom gateways",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "provider_id": { "type": "string" },
+        "network": { "type": "string", "enum": ["MTN", "GLO", "AIRTEL", "9MOBILE"] },
+        "plan_name": { "type": "string" },
+        "original_wholesale_price": { "type": "number" },
+        "custom_retail_price": { "type": "number" },
+        "api_plan_id": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive"] },
+        "category": { "type": "string" },
+        "size": { "type": "string" },
+        "validity": { "type": "string" },
+        "created_at": { "type": "string" },
+        "updated_at": { "type": "string" },
+        "last_synced_at": { "type": "string" }
+      },
+      "required": ["id", "provider_id", "network", "plan_name", "original_wholesale_price", "custom_retail_price", "api_plan_id", "status"]
+    },
+    "PlatformSettings": {
+      "title": "PlatformSettings",
+      "description": "Global settings and broadcast advisories",
+      "type": "object",
+      "properties": {
+        "maintenanceMode": { "type": "boolean" },
+        "broadcastText": { "type": "string" },
+        "broadcastActive": { "type": "boolean" },
+        "broadcastType": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "users": {
+      "entity": "User",
+      "description": "User accounts and wallet balances"
+    },
+    "transactions": {
+      "entity": "Transaction",
+      "description": "All VTU top-up and wallet transactions"
+    },
+    "vtu_plans": {
+      "entity": "VtuPlan",
+      "description": "Live data packages and pricing"
+    },
+    "settings": {
+      "entity": "PlatformSettings",
+      "description": "Platform settings and maintenance notices"
+    }
+  }
+}

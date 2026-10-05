@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#0047cc" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="JagoraData" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>Al'amin Jagora Data</title>
+    <meta name="description" content="Premium utility and telecom data management app for bill payments, airtime recharge, and data bundles." />
+    <meta property="og:title" content="Al'amin Jagora Data" />
+    <meta property="og:description" content="Premium utility and telecom data management app for bill payments, airtime recharge, and data bundles." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="apple-touch-icon" href="/logo.png" />
+    <script>
+      // Register PWA service worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').catch(function() {});
+        });
+      }
+    </script>
+    <script>
+      // Immediate theme initialization to prevent flash of wrong theme and align premount loader
+      (function() {
+        try {
+          var saved = localStorage.getItem('jagora_theme');
+          var isDark = saved !== null
+            ? saved === 'dark'
+            : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.style.colorScheme = 'dark';
+          } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.style.colorScheme = 'light';
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script type="module" crossorigin src="/assets/index-gLZUSgT_.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-B2Em1R1T.css">
+  </head>
+  <body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 antialiased selection:bg-indigo-600 selection:text-white">
+    <div id="root">
+      <style>
+        :root {
+          --loader-bg: #f8fafc;
+          --loader-title: #0f172a;
+          --loader-subtitle: #64748b;
+          --loader-status: #64748b;
+          --loader-track: rgba(0, 71, 204, 0.09);
+          --loader-avatar-border: linear-gradient(135deg, rgba(0, 71, 204, 0.2), rgba(56, 189, 248, 0.3));
+          --loader-avatar-shadow: 0 8px 24px rgba(0, 71, 204, 0.16);
+          --loader-ripple-1: rgba(0, 71, 204, 0.22);
+          --loader-ripple-2: rgba(56, 189, 248, 0.22);
+          --loader-orbit-track: rgba(0, 0, 0, 0.06);
+        }
+        html.dark {
+          --loader-bg: #020617;
+          --loader-title: #ffffff;
+          --loader-subtitle: #94a3b8;
+          --loader-status: #64748b;
+          --loader-track: rgba(255, 255, 255, 0.08);
+          --loader-avatar-border: linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(0, 71, 204, 0.35));
+          --loader-avatar-shadow: 0 8px 24px rgba(0, 71, 204, 0.45);
+          --loader-ripple-1: rgba(0, 71, 204, 0.45);
+          --loader-ripple-2: rgba(56, 189, 248, 0.35);
+          --loader-orbit-track: rgba(255, 255, 255, 0.06);
+        }
+        @keyframes orbital-spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes pulse-glow {
+          0%, 100% { transform: scale(1); opacity: 0.94; }
+          50% { transform: scale(1.04); opacity: 1; }
+        }
+        @keyframes radar-ripple {
+          0% { transform: scale(0.85); opacity: 0.8; }
+          50% { transform: scale(1.28); opacity: 0.25; }
+          100% { transform: scale(1.6); opacity: 0; }
+        }
+        @keyframes progress-slide {
+          0% { transform: translateX(-100%); }
+          50% { transform: translateX(25%); }
+          100% { transform: translateX(220%); }
+        }
+        @keyframes text-fade {
+          0%, 100% { opacity: 0.65; }
+          50% { opacity: 1; }
+        }
+      </style>
+      <div style="min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--loader-bg); color: var(--loader-title); font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; padding: 24px; box-sizing: border-box; overflow: hidden; position: relative; transition: background-color 0.2s ease;">
+        <!-- Radar Ripple & Orbital Ring Container -->
+        <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 104px; height: 104px; margin-bottom: 22px;">
+          <!-- Concentric Radar Waves -->
+          <div style="position: absolute; width: 92px; height: 92px; border-radius: 50%; border: 1.5px solid var(--loader-ripple-1); animation: radar-ripple 2.4s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;"></div>
+          <div style="position: absolute; width: 92px; height: 92px; border-radius: 50%; border: 1.5px solid var(--loader-ripple-2); animation: radar-ripple 2.4s cubic-bezier(0.2, 0.8, 0.2, 1) infinite 0.8s;"></div>
+          
+          <!-- Rotating Orbital Ring -->
+          <svg style="position: absolute; width: 92px; height: 92px; animation: orbital-spin 2s linear infinite; pointer-events: none;" viewBox="0 0 100 100">
+            <defs>
+              <linearGradient id="orbital-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0047cc" stop-opacity="1" />
+                <stop offset="55%" stop-color="#38bdf8" stop-opacity="0.85" />
+                <stop offset="100%" stop-color="#10b981" stop-opacity="0.2" />
+              </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="44" fill="none" stroke="var(--loader-orbit-track)" stroke-width="2.5" />
+            <circle cx="50" cy="50" r="44" fill="none" stroke="url(#orbital-grad)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="140 140" />
+          </svg>
+
+          <!-- Centered Brand Logo Avatar -->
+          <div style="width: 58px; height: 58px; border-radius: 14px; padding: 2px; background: #0055ff; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0, 85, 255, 0.35); border: 1.5px solid rgba(255, 255, 255, 0.3); z-index: 2; animation: pulse-glow 3s ease-in-out infinite; overflow: hidden;">
+            <img src="/logo.png" alt="Al'amin Jagora Data" style="width: 100%; height: 100%; border-radius: 12px; object-fit: contain; display: block;" />
+          </div>
+        </div>
+
+        <!-- Brand Title & Tagline -->
+        <h1 style="font-size: 17px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; margin: 0 0 5px 0; color: var(--loader-title); text-align: center;">
+          Al'amin Jagora Data
+        </h1>
+        <p style="font-size: 11.5px; color: var(--loader-subtitle); font-weight: 600; letter-spacing: 0.2px; margin: 0 0 22px 0; text-align: center;">
+          Automated VTU & Telecom Switch
+        </p>
+
+        <!-- Fintech Micro-Progress Bar -->
+        <div style="width: 160px; height: 3px; border-radius: 3px; background: var(--loader-track); overflow: hidden; position: relative; margin-bottom: 12px;">
+          <div style="position: absolute; height: 100%; width: 45%; background: linear-gradient(90deg, #0047cc, #38bdf8); border-radius: 3px; animation: progress-slide 1.4s ease-in-out infinite;"></div>
+        </div>
+
+        <!-- Connection Status Indicator -->
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--loader-status); font-family: 'JetBrains Mono', monospace; font-weight: 500; animation: text-fade 2s ease-in-out infinite;">
+          <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);"></span>
+          <span>Connecting to Telecom Gateway...</span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+

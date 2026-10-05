@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <rect width="100" height="100" rx="22" fill="#008837" />
+  <circle cx="50" cy="50" r="30" fill="none" stroke="#FFFFFF" stroke-width="4.5" />
+  <text x="50" y="58" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="-1">glo</text>
+</svg>

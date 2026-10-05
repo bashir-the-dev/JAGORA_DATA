@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default Deny Catch-All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'bashirabubakar650@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Users Collection - Owner Read/Update, Admin Read/Write, Privilege Escalation Guard
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && 
+        (!request.resource.data.keys().hasAny(['role']) || request.resource.data.role == 'user');
+      allow update: if (isOwner(userId) && 
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'balance', 'bonusBalance', 'accountTier']))
+        || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Transactions Collection - User can only read and create their own transactions, Admin can read all
+    match /transactions/{transactionId} {
+      allow get: if (isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.userPhone == request.auth.token.phone_number)) || isAdmin();
+      allow list: if (isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.userPhone == request.auth.token.phone_number)) || isAdmin();
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || isAdmin());
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // VTU Plans Collection - Public Read, Admin Write
+    match /vtu_plans/{planId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Platform Settings Collection - Public Read, Admin Write
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Admin Floats Collection - Admin Read & Write Only
+    match /admin_floats/{floatId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
+

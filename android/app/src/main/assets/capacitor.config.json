@@ -1,0 +1,13 @@
+{
+	"appId": "com.alaminjagora.data",
+	"appName": "Al'amin Jagora Data",
+	"webDir": "dist",
+	"server": {
+		"androidScheme": "https",
+		"cleartext": true
+	},
+	"android": {
+		"allowMixedContent": true,
+		"backgroundColor": "#070b16"
+	}
+}
