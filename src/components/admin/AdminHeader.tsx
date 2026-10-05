@@ -46,7 +46,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
     { id: 'users' as const, label: 'Customer Accounts', icon: Users },
     { id: 'referrals' as const, label: 'Referral Controls', icon: Gift },
     { id: 'staff' as const, label: 'CEO & Staff Agents', icon: UserCheck },
-    { id: 'broadcast' as const, label: 'Broadcast & Controls', icon: Megaphone },
+    { id: 'broadcast' as const, label: 'Bulk Push Notifications', icon: Megaphone },
   ];
 
   const adminName = adminProfile?.name || 'Bashir Abubakar';

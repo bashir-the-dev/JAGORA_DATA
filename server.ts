@@ -2037,7 +2037,7 @@ app.post(
  * ----------------------------------------------------------------------------
  */
 app.post(
-  '/api/admin/broadcast-notification',
+  ['/api/admin/notifications/broadcast', '/api/admin/broadcast-notification', '/api/admin/notifications/bulk'],
   requireAdmin,
   rateLimit(30, 60000, { prefix: 'admin:broadcast:notif' }),
   (req: Request, res: Response) => {
@@ -2071,7 +2071,7 @@ app.post(
 );
 
 app.get(
-  '/api/admin/broadcast-notifications',
+  ['/api/admin/notifications/broadcast', '/api/admin/broadcast-notifications', '/api/admin/notifications/history'],
   requireAdmin,
   (_req: Request, res: Response) => {
     const list = getBroadcastNotificationHistory();
@@ -2084,7 +2084,7 @@ app.get(
 );
 
 app.delete(
-  '/api/admin/broadcast-notifications/:id',
+  ['/api/admin/notifications/broadcast/:id', '/api/admin/broadcast-notifications/:id'],
   requireAdmin,
   (req: Request, res: Response) => {
     const adminUser = (req as any).user as ServerUser;

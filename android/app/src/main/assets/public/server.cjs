@@ -507,6 +507,7 @@ function loadStore() {
       const parsed = JSON.parse(raw);
       if (parsed && parsed.users) {
         if (!parsed.auditLogs) parsed.auditLogs = [];
+        if (!parsed.notifications) parsed.notifications = [];
         if (!parsed.settings) {
           parsed.settings = {
             maintenanceMode: false,
@@ -572,6 +573,23 @@ function loadStore() {
         if (!parsed.vtu_plans || !Array.isArray(parsed.vtu_plans) || parsed.vtu_plans.length === 0) {
           parsed.vtu_plans = [...INITIAL_VTU_PLANS];
           storeNeedsSync = true;
+        } else {
+          const seenIds = /* @__PURE__ */ new Set();
+          for (const p of parsed.vtu_plans) {
+            if (!p.id || seenIds.has(p.id)) {
+              const apiId = String(p.api_plan_id || "").toLowerCase().replace(/[^a-z0-9]/g, "-");
+              const net = String(p.network || "net").toLowerCase();
+              const size = String(p.size || "plan").toLowerCase().replace(/[^a-z0-9]/g, "");
+              let newId = `${net}-${(p.category || "sme").toLowerCase().replace(/\s+/g, "-")}-${size || "bundle"}-${apiId || Math.random().toString(36).slice(2, 6)}`;
+              let counter = 1;
+              while (seenIds.has(newId)) {
+                newId = `${newId}-${counter++}`;
+              }
+              p.id = newId;
+              storeNeedsSync = true;
+            }
+            seenIds.add(p.id);
+          }
         }
         if (storeNeedsSync) {
           saveStore(parsed);
@@ -1266,6 +1284,12 @@ function updateTransactionStatus(txId, status, refunded) {
   }
   saveStore(store);
   return true;
+}
+function findTransactionByRef(ref) {
+  if (!ref) return null;
+  store = loadStore();
+  const cleanRef = String(ref).trim();
+  return store.transactions.find((t) => t.reference === cleanRef || t.id === cleanRef || t.upstream_reference === cleanRef) || null;
 }
 function getPlatformSettings() {
   store = loadStore();
@@ -2558,7 +2582,9 @@ function upsertVtuPlansBatch(plans) {
       };
       updated++;
     } else {
-      const generatedId = `${plan.network.toLowerCase()}-${(plan.category || "sme").toLowerCase().replace(/\s+/g, "-")}-${(plan.size || plan.api_plan_id).toLowerCase().replace(/[^a-z0-9]/g, "")}`;
+      const cleanApiId = String(plan.api_plan_id || "").toLowerCase().replace(/[^a-z0-9]/g, "-");
+      const cleanSize = String(plan.size || "").toLowerCase().replace(/\./g, "p").replace(/[^a-z0-9]/g, "");
+      const generatedId = `${plan.network.toLowerCase()}-${(plan.category || "sme").toLowerCase().replace(/\s+/g, "-")}-${cleanSize || "bundle"}-${cleanApiId}`;
       const defaultRetail = plan.custom_retail_price || Math.ceil((plan.original_wholesale_price || 100) * 1.07);
       store2.vtu_plans.push({
         id: plan.id || generatedId,
@@ -2612,6 +2638,175 @@ function getVtuSyncStatus() {
     count: plans.length,
     status: store2.vtuSyncMeta?.status || "synced"
   };
+}
+function createBroadcastNotification(payload) {
+  const title = (payload.title || "").trim();
+  const message = (payload.message || "").trim();
+  if (!title) {
+    throw new Error("Notification headline/title is required.");
+  }
+  if (!message) {
+    throw new Error("Notification body message is required.");
+  }
+  const store2 = loadStore();
+  if (!store2.notifications) store2.notifications = [];
+  const type = payload.type || "system";
+  const typeAccents = {
+    system: "#0047cc",
+    promo: "#d97706",
+    wallet: "#059669",
+    security: "#e11d48",
+    data: "#2563eb"
+  };
+  const usersCount = Object.keys(store2.users || {}).length;
+  const now = /* @__PURE__ */ new Date();
+  const newNotif = {
+    id: "notif_" + Date.now() + "_" + import_crypto.default.randomBytes(3).toString("hex"),
+    title,
+    message,
+    type,
+    time: "Just now",
+    group: "TODAY",
+    read: false,
+    accentColor: typeAccents[type] || "#0047cc",
+    target: payload.target || "all",
+    readBy: [],
+    created_at: now.toISOString(),
+    created_by: payload.adminPhone || "admin",
+    recipients_count: usersCount
+  };
+  store2.notifications.unshift(newNotif);
+  saveStore(store2);
+  addAdminAuditLog({
+    adminPhone: payload.adminPhone || "admin",
+    action: "BROADCAST_NOTIFICATION_SENT",
+    details: `Custom broadcast notification "${title}" (${type}) pushed to ${usersCount} users.`,
+    ip: "127.0.0.1"
+  });
+  return {
+    success: true,
+    notification: newNotif,
+    recipientsCount: usersCount,
+    message: `Broadcast notification successfully delivered to ${usersCount} users!`
+  };
+}
+function getUserNotifications(phoneOrEmail) {
+  const store2 = loadStore();
+  const cleanP = cleanPhone(phoneOrEmail);
+  const notifs = store2.notifications || [];
+  const now = /* @__PURE__ */ new Date();
+  const relevant = notifs.filter((n) => {
+    if (!n.target || n.target === "all") return true;
+    return cleanPhone(n.target) === cleanP;
+  });
+  const typeAccents = {
+    system: "#0047cc",
+    promo: "#d97706",
+    wallet: "#059669",
+    security: "#e11d48",
+    data: "#2563eb"
+  };
+  return relevant.map((n) => {
+    const isRead = Array.isArray(n.readBy) && n.readBy.includes(cleanP);
+    const notifDate = n.created_at ? new Date(n.created_at) : now;
+    const diffMs = now.getTime() - notifDate.getTime();
+    const diffMins = Math.floor(diffMs / (1e3 * 60));
+    const diffHours = Math.floor(diffMs / (1e3 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1e3 * 60 * 60 * 24));
+    let timeStr = n.time || "Today";
+    if (diffMins < 1) {
+      timeStr = "Just now";
+    } else if (diffMins < 60) {
+      timeStr = `${diffMins}m ago`;
+    } else if (diffHours < 24 && now.getDate() === notifDate.getDate()) {
+      timeStr = notifDate.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+    } else if (diffDays <= 1) {
+      timeStr = "Yesterday";
+    } else {
+      timeStr = notifDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    }
+    const isToday = now.toDateString() === notifDate.toDateString();
+    const group = isToday ? "TODAY" : "YESTERDAY";
+    return {
+      id: n.id,
+      title: n.title,
+      message: n.message,
+      time: timeStr,
+      group,
+      read: isRead,
+      type: n.type || "system",
+      accentColor: n.accentColor || typeAccents[n.type] || "#0047cc",
+      created_at: n.created_at
+    };
+  });
+}
+function markNotificationRead(notifId, phoneOrEmail) {
+  const store2 = loadStore();
+  const cleanP = cleanPhone(phoneOrEmail);
+  if (!cleanP) return false;
+  if (!store2.notifications) return false;
+  let modified = false;
+  for (const n of store2.notifications) {
+    if (n.id === notifId) {
+      if (!Array.isArray(n.readBy)) n.readBy = [];
+      if (!n.readBy.includes(cleanP)) {
+        n.readBy.push(cleanP);
+        modified = true;
+      }
+      break;
+    }
+  }
+  if (modified) {
+    saveStore(store2);
+  }
+  return true;
+}
+function markAllNotificationsRead(phoneOrEmail) {
+  const store2 = loadStore();
+  const cleanP = cleanPhone(phoneOrEmail);
+  if (!cleanP) return false;
+  if (!store2.notifications) return false;
+  let modified = false;
+  for (const n of store2.notifications) {
+    if (!n.target || n.target === "all" || cleanPhone(n.target) === cleanP) {
+      if (!Array.isArray(n.readBy)) n.readBy = [];
+      if (!n.readBy.includes(cleanP)) {
+        n.readBy.push(cleanP);
+        modified = true;
+      }
+    }
+  }
+  if (modified) {
+    saveStore(store2);
+  }
+  return true;
+}
+function getBroadcastNotificationHistory() {
+  const store2 = loadStore();
+  const notifs = store2.notifications || [];
+  const totalUsers = Object.keys(store2.users || {}).length;
+  return notifs.filter((n) => !n.target || n.target === "all").map((n) => ({
+    ...n,
+    readCount: Array.isArray(n.readBy) ? n.readBy.length : 0,
+    totalUsers: n.recipients_count || totalUsers
+  }));
+}
+function deleteBroadcastNotification(notifId, adminPhone) {
+  const store2 = loadStore();
+  if (!store2.notifications) return false;
+  const before = store2.notifications.length;
+  store2.notifications = store2.notifications.filter((n) => n.id !== notifId);
+  if (store2.notifications.length !== before) {
+    saveStore(store2);
+    addAdminAuditLog({
+      adminPhone: adminPhone || "admin",
+      action: "BROADCAST_NOTIFICATION_DELETED",
+      details: `Broadcast notification ID ${notifId} was deleted.`,
+      ip: "127.0.0.1"
+    });
+    return true;
+  }
+  return false;
 }
 
 // src/services/vtuSyncService.ts
@@ -4665,6 +4860,117 @@ app.post(
     });
   }
 );
+app.post(
+  ["/api/admin/notifications/broadcast", "/api/admin/broadcast-notification", "/api/admin/notifications/bulk"],
+  requireAdmin,
+  rateLimit(30, 6e4, { prefix: "admin:broadcast:notif" }),
+  (req, res) => {
+    try {
+      const { title, message, type, target } = req.body || {};
+      const adminUser = req.user;
+      const result = createBroadcastNotification({
+        title,
+        message,
+        type: type || "system",
+        adminPhone: adminUser?.phone || "admin",
+        target: target || "all"
+      });
+      return res.json({
+        status: "success",
+        success: true,
+        message: result.message,
+        recipientsCount: result.recipientsCount,
+        data: result.notification
+      });
+    } catch (err) {
+      return res.status(400).json({
+        status: "error",
+        success: false,
+        message: err.message || "Failed to dispatch broadcast notification."
+      });
+    }
+  }
+);
+app.get(
+  ["/api/admin/notifications/broadcast", "/api/admin/broadcast-notifications", "/api/admin/notifications/history"],
+  requireAdmin,
+  (_req, res) => {
+    const list = getBroadcastNotificationHistory();
+    return res.json({
+      status: "success",
+      success: true,
+      data: list
+    });
+  }
+);
+app.delete(
+  ["/api/admin/notifications/broadcast/:id", "/api/admin/broadcast-notifications/:id"],
+  requireAdmin,
+  (req, res) => {
+    const adminUser = req.user;
+    const deleted = deleteBroadcastNotification(req.params.id, adminUser?.phone || "admin");
+    if (!deleted) {
+      return res.status(404).json({
+        status: "error",
+        success: false,
+        message: "Notification not found or already deleted."
+      });
+    }
+    return res.json({
+      status: "success",
+      success: true,
+      message: "Broadcast notification deleted successfully."
+    });
+  }
+);
+app.get("/api/notifications", (req, res) => {
+  const token = req.headers.authorization?.replace(/^Bearer\s+/i, "") || "";
+  let phone = req.query.phone?.toString() || "";
+  if (token) {
+    const authUser = getUserByToken(token);
+    if (authUser) {
+      phone = authUser.phone;
+    }
+  }
+  const notifs = getUserNotifications(phone);
+  return res.json({
+    status: "success",
+    success: true,
+    data: notifs,
+    unreadCount: notifs.filter((n) => !n.read).length
+  });
+});
+app.post("/api/notifications/mark-read", (req, res) => {
+  const token = req.headers.authorization?.replace(/^Bearer\s+/i, "") || "";
+  let phone = req.body?.phone?.toString() || "";
+  if (token) {
+    const authUser = getUserByToken(token);
+    if (authUser) {
+      phone = authUser.phone;
+    }
+  }
+  const notifId = req.body?.id;
+  if (!notifId || !phone) {
+    return res.status(400).json({ status: "error", message: "Missing notification id or user phone" });
+  }
+  markNotificationRead(notifId, phone);
+  return res.json({ status: "success", success: true });
+});
+app.post("/api/notifications/mark-all-read", (req, res) => {
+  const token = req.headers.authorization?.replace(/^Bearer\s+/i, "") || "";
+  let phone = req.body?.phone?.toString() || "";
+  if (token) {
+    const authUser = getUserByToken(token);
+    if (authUser) {
+      phone = authUser.phone;
+    }
+  }
+  if (!phone) {
+    return res.status(400).json({ status: "error", message: "Missing user phone" });
+  }
+  markAllNotificationsRead(phone);
+  return res.json({ status: "success", success: true });
+});
 app.get("/api/admin/users", requireAdmin, (req, res) => {
   const includeAdmins = req.query.include_admins === "true";
   const allUsers = getAllUsers();
@@ -5140,6 +5446,73 @@ app.post("/api/webhooks/monnify", async (req, res) => {
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
+});
+app.all(
+  ["/api/vtu/callback", "/api/webhooks/vtu", "/api/webhooks/payflex", "/webhook/vtu.php", "/webhook/payflex.php"],
+  async (req, res) => {
+    try {
+      const payload = req.body && Object.keys(req.body).length > 0 ? req.body : req.query;
+      const ref = payload.reference || payload.order_id || payload.orderid || payload.ident || payload.requestId || payload.id;
+      const rawStatus = String(payload.status || payload.Status || payload.statuscode || "").toUpperCase();
+      if (!ref) {
+        return res.status(400).json({ success: false, message: "Missing transaction reference in callback payload" });
+      }
+      const tx = findTransactionByRef(ref);
+      if (!tx) {
+        return res.status(404).json({ success: false, message: `Transaction ${ref} not found` });
+      }
+      const isSuccess = ["SUCCESS", "SUCCESSFUL", "DELIVERED", "COMPLETED", "100", "200"].includes(rawStatus);
+      const isFailed = ["FAILED", "FAIL", "DECLINED", "REJECTED", "CANCELLED"].includes(rawStatus);
+      if (isSuccess && tx.status === "PENDING") {
+        updateTransactionStatus(tx.reference, "SUCCESS");
+        return res.json({ success: true, message: "Transaction confirmed SUCCESS via async callback", status: "SUCCESS" });
+      } else if (isFailed && tx.status !== "FAILED") {
+        if (!tx.refunded && tx.amount > 0) {
+          creditUserBalance(tx.user_id, tx.amount);
+          recordServerTransaction({
+            reference: `REF-${tx.reference}`,
+            user_id: tx.user_id,
+            type: "WALLET_FUNDING",
+            title: `Auto Refund: ${tx.title}`,
+            description: `Auto-refund for failed transaction ${tx.reference}`,
+            recipient: tx.recipient || tx.user_id,
+            amount: tx.amount,
+            charged: tx.amount,
+            balance_before: 0,
+            balance_after: 0,
+            status: "SUCCESS",
+            provider: "Auto-Refund"
+          });
+        }
+        updateTransactionStatus(tx.reference, "FAILED", true);
+        return res.json({ success: true, message: "Transaction marked FAILED and refunded via async callback", status: "FAILED" });
+      }
+      return res.json({ success: true, message: "Callback processed idempotently", status: tx.status });
+    } catch (e) {
+      return res.status(500).json({ success: false, error: e.message });
+    }
+  }
+);
+app.get(["/api/vtu/status", "/api/vtu/requery", "/api/transactions/requery"], async (req, res) => {
+  const ref = req.query.reference || req.query.id || req.query.txId;
+  if (!ref) {
+    return res.status(400).json({ success: false, message: "Reference or ID required" });
+  }
+  const tx = findTransactionByRef(ref);
+  if (!tx) {
+    return res.status(404).json({ success: false, message: "Transaction not found" });
+  }
+  return res.json({
+    success: true,
+    data: {
+      reference: tx.reference,
+      status: tx.status,
+      amount: tx.amount,
+      recipient: tx.recipient,
+      title: tx.title,
+      date: tx.created_at || tx.date
+    }
+  });
 });
 app.post(
   ["/api/vtu/buy", "/api/vtu/buy-data", "/vtu/buy_data.php", "/api/vtu/buy_data.php"],

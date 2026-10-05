@@ -24,6 +24,7 @@ import { TransactionTrackerTab } from '../admin/TransactionTrackerTab';
 import { ApiProviderSwitchTab } from '../admin/ApiProviderSwitchTab';
 import { PricingPlansTab } from '../admin/PricingPlansTab';
 import { PlatformSettingsTab } from '../admin/PlatformSettingsTab';
+import { BulkPushNotificationsTab } from '../admin/BulkPushNotificationsTab';
 import { StaffManagementTab } from '../admin/StaffManagementTab';
 import { ReferralControlsTab } from '../admin/ReferralControlsTab';
 import { AdminProfileModal } from '../admin/AdminProfileModal';
@@ -44,6 +45,7 @@ interface AdminDashboardScreenProps {
   onLogoutAdmin: () => void;
   showToast: (msg: string) => void;
   isLightMode?: boolean;
+  onToggleTheme?: () => void;
   adminProfile?: any;
   onUpdateAdminProfile?: (updatedProfile: any) => void;
 }
@@ -53,6 +55,7 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
   onLogoutAdmin,
   showToast,
   isLightMode,
+  onToggleTheme,
   adminProfile,
   onUpdateAdminProfile,
 }) => {
@@ -598,6 +601,8 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
         isOpenMobile={isSidebarOpenMobile}
         onCloseMobile={() => setIsSidebarOpenMobile(false)}
         onLogout={onLogoutAdmin}
+        isLightMode={isLightMode}
+        onToggleTheme={onToggleTheme}
       />
 
       {/* 2. Main Executive Content Column (Offset on desktop for sidebar) */}
@@ -610,6 +615,7 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
           onExitAdmin={onExitAdmin}
           onLogoutAdmin={onLogoutAdmin}
           onOpenProfile={() => setIsProfileModalOpen(true)}
+          onToggleTheme={onToggleTheme}
           adminProfile={currentAdmin}
           users={users}
           onSelectCustomer={(u) => {
@@ -728,7 +734,7 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
           )}
 
           {activeTab === 'broadcast' && (
-            <PlatformSettingsTab
+            <BulkPushNotificationsTab
               isLightMode={isLightMode}
               showToast={showToast}
             />

@@ -15,6 +15,8 @@ import {
   TrendingUp,
   Gift,
   LogOut,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { AdminTabType } from './AdminHeader';
 
@@ -29,6 +31,8 @@ interface AdminSidebarProps {
   isOpenMobile: boolean;
   onCloseMobile: () => void;
   onLogout?: () => void;
+  isLightMode?: boolean;
+  onToggleTheme?: () => void;
 }
 
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({
@@ -38,6 +42,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   isOpenMobile,
   onCloseMobile,
   onLogout,
+  isLightMode = true,
+  onToggleTheme,
 }) => {
   const adminName = adminProfile?.name || 'Bashir Abubakar';
   const adminEmail = adminProfile?.email || 'bashirabubakar650@gmail.com';
@@ -52,7 +58,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: 'users' as const, label: 'Customer Accounts', icon: Users },
     { id: 'referrals' as const, label: 'Referral Controls', icon: Gift },
     { id: 'staff' as const, label: 'CEO & Staff Agents', icon: UserCheck },
-    { id: 'broadcast' as const, label: 'Broadcast & Controls', icon: Megaphone },
+    { id: 'broadcast' as const, label: 'Bulk Push Notifications', icon: Megaphone },
   ];
 
   const handleTabClick = (tab: AdminTabType) => {
@@ -159,6 +165,28 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Theme Switcher Toggle */}
+          {onToggleTheme && (
+            <button
+              type="button"
+              onClick={onToggleTheme}
+              className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 hover:border-slate-700 text-slate-300 text-xs font-semibold transition-all cursor-pointer shadow-2xs group"
+              title="Toggle Light / Dark mode"
+            >
+              <span className="flex items-center gap-2">
+                {isLightMode ? (
+                  <Sun className="w-4 h-4 text-amber-400" />
+                ) : (
+                  <Moon className="w-4 h-4 text-indigo-400" />
+                )}
+                <span>{isLightMode ? 'Light Mode' : 'Dark Mode'}</span>
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-bold group-hover:text-white transition-colors">
+                Switch
+              </span>
+            </button>
+          )}
 
           {/* Sub Footer */}
           <div className="flex items-center gap-2 text-[11px] font-mono text-slate-500 px-1">

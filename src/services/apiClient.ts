@@ -939,5 +939,29 @@ export async function apiGetTransactionStatus(reference: string): Promise<ApiRes
   return request(`/api/vtu/status?reference=${encodeURIComponent(reference)}`, { method: 'GET' });
 }
 
+/**
+ * Admin: Broadcast push notification to all users
+ */
+export async function apiAdminBroadcastNotification(payload: {
+  title: string;
+  message: string;
+  type?: string;
+  target?: string;
+}): Promise<ApiResponse<any>> {
+  return request('/api/admin/notifications/broadcast', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+/**
+ * Admin: Fetch broadcast push notification history
+ */
+export async function apiGetAdminBroadcastNotifications(): Promise<ApiResponse<any[]>> {
+  return request('/api/admin/notifications/broadcast', {
+    method: 'GET',
+  });
+}
+
 
 

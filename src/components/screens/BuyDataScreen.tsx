@@ -494,13 +494,14 @@ export const BuyDataScreen: React.FC<BuyDataScreenProps> = ({
 
         {/* Plan List */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-          {availablePlans.map((plan) => {
+          {availablePlans.map((plan, idx) => {
             const isSelected = selectedPlanId === plan.id;
             const canAfford = user.balance >= plan.price;
+            const uniquePlanKey = `${plan.id}-${(plan as any).api_plan_id || (plan as any).plan_id || plan.size || 'plan'}-${idx}`;
 
             return (
               <div
-                key={plan.id}
+                key={uniquePlanKey}
                 id={`plan-card-${plan.id}`}
                 onClick={() => {
                   playTapSound();

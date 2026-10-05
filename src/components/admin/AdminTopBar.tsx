@@ -14,6 +14,8 @@ import {
   AlertTriangle,
   X,
   ExternalLink,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { PlatformUserAccount } from '../../types';
 
@@ -24,6 +26,7 @@ interface AdminTopBarProps {
   onExitAdmin: () => void;
   onLogoutAdmin: () => void;
   onOpenProfile?: () => void;
+  onToggleTheme?: () => void;
   adminProfile?: {
     name?: string;
     email?: string;
@@ -41,6 +44,7 @@ export const AdminTopBar: React.FC<AdminTopBarProps> = ({
   onExitAdmin,
   onLogoutAdmin,
   onOpenProfile,
+  onToggleTheme,
   adminProfile,
   users,
   onSelectCustomer,
@@ -247,6 +251,22 @@ export const AdminTopBar: React.FC<AdminTopBarProps> = ({
             </>
           )}
         </div>
+
+        {/* Admin Theme Switcher */}
+        {onToggleTheme && (
+          <button
+            onClick={onToggleTheme}
+            className="w-9 h-9 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-2xs group"
+            title={isLightMode ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+            aria-label="Toggle admin color scheme"
+          >
+            {isLightMode ? (
+              <Moon className="w-4 h-4 text-indigo-600 transition-transform group-hover:rotate-12" />
+            ) : (
+              <Sun className="w-4 h-4 text-amber-400 transition-transform group-hover:rotate-45" />
+            )}
+          </button>
+        )}
 
         {/* Sync Button */}
         <button

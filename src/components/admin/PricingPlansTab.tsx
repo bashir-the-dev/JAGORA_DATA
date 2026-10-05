@@ -1245,7 +1245,7 @@ export const PricingPlansTab: React.FC<PricingPlansTabProps> = ({ isLightMode: _
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 font-sans">
-              {filteredPlans.map((plan) => {
+              {filteredPlans.map((plan, idx) => {
                 const isEditing = editingPlanId === plan.id;
                 const activeSellingPrice = isEditing ? editPrice : plan.sellingPrice;
                 const activeCostPrice = isEditing ? (editCostPrice > 0 ? editCostPrice : plan.costPrice) : plan.costPrice;
@@ -1261,7 +1261,7 @@ export const PricingPlansTab: React.FC<PricingPlansTabProps> = ({ isLightMode: _
                 const markupPct = activeCostPrice > 0 ? (profit / activeCostPrice) * 100 : 0;
 
                 return (
-                  <tr key={plan.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                  <tr key={`${plan.id}-${plan.network}-${idx}`} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
                         <span

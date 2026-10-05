@@ -1391,6 +1391,8 @@ switch ($normalizedRoute) {
         break;
 
     // 27b. Admin: Broadcast Customized Notification to All Users
+    case 'admin/notifications/broadcast':
+    case 'admin/notifications/bulk':
     case 'admin/broadcast-notification':
     case 'admin/broadcast_notification':
         $admin = requireAdminUser($pdo);

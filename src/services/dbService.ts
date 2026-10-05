@@ -932,7 +932,7 @@ export async function sendAdminBroadcastNotification(data: {
   target?: string;
 }): Promise<{ success: boolean; message: string; count?: number; data?: any }> {
   try {
-    const res = await apiCall<any>('/api/admin/broadcast-notification', {
+    const res = await apiCall<any>('/api/admin/notifications/broadcast', {
       method: 'POST',
       body: JSON.stringify(data)
     });
@@ -965,7 +965,7 @@ export async function sendAdminBroadcastNotification(data: {
  */
 export async function loadAdminBroadcastHistory(): Promise<any[]> {
   try {
-    const res = await apiCall<any>('/api/admin/broadcast-notifications');
+    const res = await apiCall<any>('/api/admin/notifications/broadcast');
     if (Array.isArray(res)) return res;
     if (Array.isArray(res?.data)) return res.data;
     return [];

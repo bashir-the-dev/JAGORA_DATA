@@ -1687,6 +1687,7 @@ export default function App() {
           onLogoutAdmin={() => requestLogout('admin')}
           showToast={showToast}
           isLightMode={isLightMode}
+          onToggleTheme={() => setIsLightMode((prev) => !prev)}
         />
         {/* Logout Confirmation Dialog for Admin Console */}
         <ActionConfirmModal
@@ -1803,8 +1804,10 @@ export default function App() {
                 initialServiceType="data"
                 onBuyData={handleBuyData}
                 onAirtimeSuccess={handleAirtimeSuccess}
+                onPaymentSuccess={handleUtilityOrPinSuccess}
                 onNavigateBack={() => setCurrentScreen('home')}
                 isLightMode={isLightMode}
+                isMaintenanceMode={platformSettings.maintenanceMode}
               />
             )}
 
@@ -1814,42 +1817,65 @@ export default function App() {
                 initialServiceType="airtime"
                 onBuyData={handleBuyData}
                 onAirtimeSuccess={handleAirtimeSuccess}
-                onNavigateBack={() => setCurrentScreen('home')}
-                isLightMode={isLightMode}
-              />
-            )}
-
-            {(currentScreen === 'cable' || currentScreen === 'electricity' || currentScreen === 'exam-pin') && (
-              <BillsScreen
-                user={user}
-                initialTab={
-                  currentScreen === 'electricity'
-                    ? 'electricity'
-                    : currentScreen === 'exam-pin'
-                    ? 'exam'
-                    : 'cable'
-                }
                 onPaymentSuccess={handleUtilityOrPinSuccess}
                 onNavigateBack={() => setCurrentScreen('home')}
                 isLightMode={isLightMode}
+                isMaintenanceMode={platformSettings.maintenanceMode}
+              />
+            )}
+
+            {currentScreen === 'cable' && (
+              <VtuTransactionWizard
+                user={user}
+                initialServiceType="cable"
+                onPaymentSuccess={handleUtilityOrPinSuccess}
+                onNavigateBack={() => setCurrentScreen('home')}
+                isLightMode={isLightMode}
+                isMaintenanceMode={platformSettings.maintenanceMode}
+              />
+            )}
+
+            {currentScreen === 'electricity' && (
+              <VtuTransactionWizard
+                user={user}
+                initialServiceType="electricity"
+                onPaymentSuccess={handleUtilityOrPinSuccess}
+                onNavigateBack={() => setCurrentScreen('home')}
+                isLightMode={isLightMode}
+                isMaintenanceMode={platformSettings.maintenanceMode}
+              />
+            )}
+
+            {currentScreen === 'exam-pin' && (
+              <VtuTransactionWizard
+                user={user}
+                initialServiceType="exam"
+                onPaymentSuccess={handleUtilityOrPinSuccess}
+                onNavigateBack={() => setCurrentScreen('home')}
+                isLightMode={isLightMode}
+                isMaintenanceMode={platformSettings.maintenanceMode}
               />
             )}
 
             {currentScreen === 'recharge-pin' && (
-              <RechargePinScreen
+              <VtuTransactionWizard
                 user={user}
-                onGenerateSuccess={handleUtilityOrPinSuccess}
+                initialServiceType="recharge-pin"
+                onPaymentSuccess={handleUtilityOrPinSuccess}
                 onNavigateBack={() => setCurrentScreen('home')}
                 isLightMode={isLightMode}
+                isMaintenanceMode={platformSettings.maintenanceMode}
               />
             )}
 
             {currentScreen === 'data-card' && (
-              <DataCardScreen
+              <VtuTransactionWizard
                 user={user}
-                onGenerateSuccess={handleUtilityOrPinSuccess}
+                initialServiceType="data-card"
+                onPaymentSuccess={handleUtilityOrPinSuccess}
                 onNavigateBack={() => setCurrentScreen('home')}
                 isLightMode={isLightMode}
+                isMaintenanceMode={platformSettings.maintenanceMode}
               />
             )}
 

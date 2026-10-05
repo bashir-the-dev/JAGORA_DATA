@@ -395,6 +395,24 @@ function loadStore(): StoreData {
         if (!parsed.vtu_plans || !Array.isArray(parsed.vtu_plans) || parsed.vtu_plans.length === 0) {
           parsed.vtu_plans = [...INITIAL_VTU_PLANS];
           storeNeedsSync = true;
+        } else {
+          // Ensure all plans have strictly unique IDs
+          const seenIds = new Set<string>();
+          for (const p of parsed.vtu_plans) {
+            if (!p.id || seenIds.has(p.id)) {
+              const apiId = String(p.api_plan_id || '').toLowerCase().replace(/[^a-z0-9]/g, '-');
+              const net = String(p.network || 'net').toLowerCase();
+              const size = String(p.size || 'plan').toLowerCase().replace(/[^a-z0-9]/g, '');
+              let newId = `${net}-${(p.category || 'sme').toLowerCase().replace(/\s+/g, '-')}-${size || 'bundle'}-${apiId || Math.random().toString(36).slice(2, 6)}`;
+              let counter = 1;
+              while (seenIds.has(newId)) {
+                newId = `${newId}-${counter++}`;
+              }
+              p.id = newId;
+              storeNeedsSync = true;
+            }
+            seenIds.add(p.id);
+          }
         }
 
         if (storeNeedsSync) {
@@ -3099,7 +3117,9 @@ export function upsertVtuPlan(
     };
     store.vtu_plans[existingIdx] = resultPlan;
   } else {
-    const generatedId = `${plan.network.toLowerCase()}-${(plan.category || 'sme').toLowerCase().replace(/\s+/g, '-')}-${(plan.size || plan.api_plan_id).toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+    const cleanApiId = String(plan.api_plan_id || '').toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const cleanSize = String(plan.size || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const generatedId = `${plan.network.toLowerCase()}-${(plan.category || 'sme').toLowerCase().replace(/\s+/g, '-')}-${cleanSize || 'bundle'}-${cleanApiId}`;
     resultPlan = {
       id: plan.id || generatedId,
       provider_id: plan.provider_id,
@@ -3165,7 +3185,9 @@ export function upsertVtuPlansBatch(
       };
       updated++;
     } else {
-      const generatedId = `${plan.network.toLowerCase()}-${(plan.category || 'sme').toLowerCase().replace(/\s+/g, '-')}-${(plan.size || plan.api_plan_id).toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+      const cleanApiId = String(plan.api_plan_id || '').toLowerCase().replace(/[^a-z0-9]/g, '-');
+      const cleanSize = String(plan.size || '').toLowerCase().replace(/\./g, 'p').replace(/[^a-z0-9]/g, '');
+      const generatedId = `${plan.network.toLowerCase()}-${(plan.category || 'sme').toLowerCase().replace(/\s+/g, '-')}-${cleanSize || 'bundle'}-${cleanApiId}`;
       const defaultRetail =
         plan.custom_retail_price ||
         Math.ceil((plan.original_wholesale_price || 100) * 1.07);
