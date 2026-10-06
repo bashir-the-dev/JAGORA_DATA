@@ -62,6 +62,7 @@ export const ApiProviderSwitchTab: React.FC<ApiProviderSwitchTabProps> = ({
 
   // Master Gateway Switches state with optimistic updates
   const [localGatewaySwitches, setLocalGatewaySwitches] = useState<Record<string, boolean>>({
+    xixapay: true,
     payflex: true,
     clubkonnect: true,
     payvessel: true,
@@ -175,6 +176,17 @@ export const ApiProviderSwitchTab: React.FC<ApiProviderSwitchTabProps> = ({
       description:
         'Secondary failover gateway for Airtime VTU, Cable TV renewals, and Electricity payments when Payflex is in maintenance.',
       endpoint: 'https://www.clubkonnect.com/API',
+    },
+    {
+      key: 'xixapay',
+      name: 'XIXAPAY Virtual Accounts Gateway',
+      badge: 'XP',
+      role: 'PRIMARY VIRTUAL ACCOUNTS PROVIDER',
+      isPrimary: true,
+      color: 'emerald',
+      description:
+        'Official virtual account provider. Generates dedicated PalmPay (20867), Kolomoni MFB (20987), Safehaven MFB (29007), and OPay accounts for instant automated wallet funding 24/7.',
+      endpoint: 'https://api.xixapay.com',
     },
     {
       key: 'payvessel',

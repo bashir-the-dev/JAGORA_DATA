@@ -44,6 +44,18 @@ function ensureUserColumns(PDO $pdo): void {
     try {
         $pdo->exec("ALTER TABLE `users` ADD COLUMN `bonus_balance` DECIMAL(10,2) DEFAULT 0.00 AFTER `balance`");
     } catch (Exception $e) {}
+    try {
+        $pdo->exec("ALTER TABLE `users` ADD COLUMN `xixapay_customer_id` VARCHAR(100) NULL");
+    } catch (Exception $e) {}
+    try {
+        $pdo->exec("ALTER TABLE `users` ADD COLUMN `bvn` VARCHAR(20) NULL");
+    } catch (Exception $e) {}
+    try {
+        $pdo->exec("ALTER TABLE `users` ADD COLUMN `nin` VARCHAR(20) NULL");
+    } catch (Exception $e) {}
+    try {
+        $pdo->exec("ALTER TABLE `virtual_accounts` ADD COLUMN `reference` VARCHAR(100) NULL AFTER `account_name`");
+    } catch (Exception $e) {}
 }
 
 /**
@@ -460,9 +472,9 @@ function atomicCreditBalance(PDO $pdo, string $phone, float $amount): array {
 }
 
 /**
- * Helper for admin manual wallet credit with row locking
+ * Helper for wallet credit with row locking (Admin adjustments or Automated Webhooks)
  */
-function creditWalletWithLock(PDO $pdo, int $userId, float $amount, string $type, string $title, string $ref, string $desc = ''): array {
+function creditWalletWithLock(PDO $pdo, int $userId, float $amount, string $type, string $title, string $ref, string $desc = '', string $provider = 'ADMIN_ADJUSTMENT', float $fee = 0.00): array {
     $stmt = $pdo->prepare("SELECT id, phone, balance FROM users WHERE id = ? FOR UPDATE");
     $stmt->execute([$userId]);
     $user = $stmt->fetch();
@@ -478,11 +490,26 @@ function creditWalletWithLock(PDO $pdo, int $userId, float $amount, string $type
 
     $ins = $pdo->prepare("
         INSERT INTO transactions (reference, user_id, user_phone, type, title, description, recipient, amount, charged, balance_before, balance_after, status, provider, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'SUCCESS', 'ADMIN_ADJUSTMENT', NOW())
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'SUCCESS', ?, NOW())
     ");
-    $ins->execute([$ref, $userId, $user['phone'], strtoupper($type), $title, $desc, $user['phone'], $amount, $amount, $oldBal, $newBal]);
+    $ins->execute([$ref, $userId, $user['phone'], strtoupper($type), $title, $desc, $user['phone'], $amount, $fee > 0 ? $fee : $amount, $oldBal, $newBal, $provider]);
 
     return ['old_balance' => $oldBal, 'new_balance' => $newBal];
+}
+
+/**
+ * Dispatch an in-app notification to a user safely without throwing fatal errors
+ */
+function sendUserNotification(PDO $pdo, int $userId, string $userPhone, string $title, string $message, string $type = 'success', string $accent = '#10b981'): void {
+    try {
+        $stmt = $pdo->prepare("
+            INSERT INTO notifications (user_id, user_phone, title, message, type, accent_color, read_users, created_by, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, '[]', 'SYSTEM', NOW())
+        ");
+        $stmt->execute([$userId, $userPhone, $title, $message, $type, $accent]);
+    } catch (\Throwable $t) {
+        error_log('sendUserNotification error: ' . $t->getMessage());
+    }
 }
 
 /**
@@ -696,7 +723,19 @@ function generateMultiBankVirtualAccounts(string $fullName, string $phone, strin
     $cleanPhone = normalizePhone($phone);
     $displayName = !empty($fullName) ? "Al'amin Jagora - {$fullName}" : "Al'amin Jagora Customer";
 
-    // 1. If Monnify API is configured with live credentials, attempt live reservation
+    // 1. PRIMARY: If XIXAPAY API is configured, attempt live virtual account reservation
+    if (defined('XIXAPAY_API_KEY') && !empty(XIXAPAY_API_KEY) && !str_starts_with(XIXAPAY_API_KEY, 'YOUR_')) {
+        try {
+            $xixaAccounts = requestXixapayVirtualAccount(0, $fullName, $email, $phone, null);
+            if (!empty($xixaAccounts)) {
+                return $xixaAccounts;
+            }
+        } catch (\Throwable $xe) {
+            error_log('XIXAPAY multi-bank account reservation notice: ' . $xe->getMessage());
+        }
+    }
+
+    // 2. SECONDARY: If Monnify API is configured with live credentials, attempt live reservation
     if (defined('MONNIFY_API_KEY') && !empty(MONNIFY_API_KEY) && !str_starts_with(MONNIFY_API_KEY, 'YOUR_')) {
         try {
             $credentials = base64_encode(MONNIFY_API_KEY . ':' . MONNIFY_SECRET_KEY);
@@ -1609,6 +1648,287 @@ function queryUpstreamVtuStatus(PDO $pdo, string $reference): array {
         'transaction' => $tx,
         'message'     => 'Transaction is currently processing with carrier switch.'
     ];
+}
+
+/**
+ * Request Dedicated Virtual Accounts from XIXAPAY (PRIMARY GATEWAY)
+ * Supports PalmPay (20867), Kolomoni MFB (20987), Safehaven MFB (29007).
+ * Saves to virtual_accounts table and updates user's virtual_accounts JSON column.
+ *
+ * @param int $userId
+ * @param string $fullName
+ * @param string $email
+ * @param string $phone
+ * @param PDO|null $pdo
+ * @param array $options Optional configuration: 'accountType' ('static'|'dynamic'), 'amount', 'id_type', 'id_number'
+ * @return array|null Returns array of account objects or null on failure
+ */
+function requestXixapayVirtualAccount(int $userId, string $fullName, string $email, string $phone, ?PDO $pdo = null, array $options = []): ?array {
+    if (!defined('XIXAPAY_API_KEY') || empty(XIXAPAY_API_KEY) || str_starts_with(XIXAPAY_API_KEY, 'YOUR_')) {
+        error_log('XIXAPAY VA: API key not configured.');
+        return null;
+    }
+
+    $cleanPhone = normalizePhone($phone);
+    if (empty($cleanPhone)) {
+        $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+    }
+    // Ensure Nigerian format: e.g. 080... (11 digits)
+    if (strlen($cleanPhone) === 10 && !str_starts_with($cleanPhone, '0')) {
+        $cleanPhone = '0' . $cleanPhone;
+    } elseif (strlen($cleanPhone) === 13 && str_starts_with($cleanPhone, '234')) {
+        $cleanPhone = '0' . substr($cleanPhone, 3);
+    }
+
+    $customerEmail = !empty($email) ? $email : "{$cleanPhone}@alaminjagoradata.com.ng";
+    $customerName = !empty($fullName) ? trim($fullName) : "Al'amin Jagora Customer";
+
+    // Partner bank codes for XIXAPAY (20867 PalmPay, 20987 Kolomoni MFB, 29007 Safehaven MFB)
+    $bankCodes = defined('XIXAPAY_BANK_CODES') && is_array(XIXAPAY_BANK_CODES) 
+        ? XIXAPAY_BANK_CODES 
+        : ['20867', '20987', '29007'];
+
+    $businessId = defined('XIXAPAY_BUSINESS_ID') ? XIXAPAY_BUSINESS_ID : '';
+    $accountType = $options['accountType'] ?? 'static';
+
+    $payload = [
+        'email'       => $customerEmail,
+        'name'        => $customerName,
+        'phoneNumber' => $cleanPhone,
+        'bankCode'    => $bankCodes,
+        'businessId'  => $businessId,
+        'accountType' => $accountType
+    ];
+
+    if (!empty($options['id_type']) && !empty($options['id_number'])) {
+        $payload['id_type'] = strtolower(trim($options['id_type']));
+        $payload['id_number'] = trim($options['id_number']);
+    }
+
+    if ($accountType === 'dynamic' && isset($options['amount']) && (float)$options['amount'] > 0) {
+        $payload['amount'] = (float)$options['amount'];
+    }
+
+    try {
+        $baseUrl = defined('XIXAPAY_BASE_URL') ? rtrim(XIXAPAY_BASE_URL, '/') : 'https://api.xixapay.com';
+        $url = $baseUrl . '/api/v1/createVirtualAccount';
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . (defined('XIXAPAY_SECRET_KEY') ? XIXAPAY_SECRET_KEY : ''),
+            'api-key: ' . XIXAPAY_API_KEY,
+            'Content-Type: application/json'
+        ]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+
+        $res = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr = curl_error($ch);
+        curl_close($ch);
+
+        if ($curlErr) {
+            error_log('XIXAPAY VA curl error: ' . $curlErr);
+            return null;
+        }
+
+        $data = json_decode($res, true);
+        if (!$data || !is_array($data)) {
+            error_log('XIXAPAY VA invalid JSON response: ' . substr($res, 0, 300));
+            return null;
+        }
+
+        // Check success status
+        $isSuccess = (!empty($data['status']) && (strtolower($data['status']) === 'success' || $data['status'] === true))
+            || (!empty($data['bankAccounts']));
+
+        if (!$isSuccess) {
+            error_log('XIXAPAY VA API returned non-success: ' . ($data['message'] ?? json_encode($data)));
+            return null;
+        }
+
+        $bankAccounts = $data['bankAccounts'] ?? ($data['bank_accounts'] ?? ($data['data']['bankAccounts'] ?? []));
+        $xixaCustomerId = $data['customer']['customer_id'] ?? ($data['customer_id'] ?? null);
+
+        if (empty($bankAccounts)) {
+            error_log('XIXAPAY VA returned empty bankAccounts array: ' . json_encode($data));
+            return null;
+        }
+
+        $accounts = [];
+        $bankNameMap = [
+            '20867'  => 'PalmPay',
+            '20987'  => 'Kolomoni MFB',
+            '29007'  => 'Safehaven MFB',
+            '100004' => 'OPay'
+        ];
+
+        if ($pdo && $userId > 0) {
+            $insStmt = $pdo->prepare('
+                INSERT INTO virtual_accounts (user_id, bank_name, account_number, account_name, reference, provider, created_at)
+                VALUES (?, ?, ?, ?, ?, "XIXAPAY", NOW())
+            ');
+
+            foreach ($bankAccounts as $b) {
+                $code = (string)($b['bankCode'] ?? ($b['bank_code'] ?? ''));
+                $bName = $b['bankName'] ?? ($b['bank_name'] ?? ($bankNameMap[$code] ?? 'XIXAPAY Bank'));
+                $accNum = trim((string)($b['accountNumber'] ?? ($b['account_number'] ?? '')));
+                $accName = trim((string)($b['accountName'] ?? ($b['account_name'] ?? $customerName)));
+                $ref = $b['Reserved_Account_Id'] ?? ($b['reserved_account_id'] ?? ($b['reference'] ?? null));
+
+                if (!empty($accNum)) {
+                    $accounts[] = [
+                        'bank_name'      => $bName,
+                        'account_number' => $accNum,
+                        'account_name'   => $accName,
+                        'bank_code'      => $code,
+                        'provider'       => 'XIXAPAY',
+                        'reference'      => $ref
+                    ];
+
+                    try {
+                        $insStmt->execute([$userId, $bName, $accNum, $accName, $ref]);
+                    } catch (\Throwable $t) {
+                        error_log('Virtual account insert error: ' . $t->getMessage());
+                    }
+                }
+            }
+
+            if (!empty($accounts)) {
+                try {
+                    $upUser = $pdo->prepare('UPDATE users SET virtual_accounts = ?, xixapay_customer_id = COALESCE(?, xixapay_customer_id) WHERE id = ?');
+                    $upUser->execute([json_encode($accounts), $xixaCustomerId, $userId]);
+                } catch (\Throwable $t) {
+                    try {
+                        $upUser = $pdo->prepare('UPDATE users SET virtual_accounts = ? WHERE id = ?');
+                        $upUser->execute([json_encode($accounts), $userId]);
+                    } catch (\Throwable $t2) {}
+                }
+            }
+        } else {
+            // Return formatted accounts if user ID not yet assigned
+            foreach ($bankAccounts as $b) {
+                $code = (string)($b['bankCode'] ?? ($b['bank_code'] ?? ''));
+                $bName = $b['bankName'] ?? ($b['bank_name'] ?? ($bankNameMap[$code] ?? 'XIXAPAY Bank'));
+                $accNum = trim((string)($b['accountNumber'] ?? ($b['account_number'] ?? '')));
+                $accName = trim((string)($b['accountName'] ?? ($b['account_name'] ?? $customerName)));
+                if (!empty($accNum)) {
+                    $accounts[] = [
+                        'bank_name'      => $bName,
+                        'account_number' => $accNum,
+                        'account_name'   => $accName,
+                        'bank_code'      => $code,
+                        'provider'       => 'XIXAPAY'
+                    ];
+                }
+            }
+        }
+
+        return !empty($accounts) ? $accounts : null;
+
+    } catch (\Throwable $e) {
+        error_log('XIXAPAY VA Exception: ' . $e->getMessage());
+        return null;
+    }
+}
+
+/**
+ * Generate a dynamic one-time payment virtual account via XIXAPAY
+ * Useful for instant one-off checkout without BVN/NIN requirement
+ */
+function requestXixapayDynamicAccount(int $userId, float $amount, string $fullName, string $email, string $phone, ?PDO $pdo = null): ?array {
+    return requestXixapayVirtualAccount($userId, $fullName, $email, $phone, $pdo, [
+        'accountType' => 'dynamic',
+        'amount'      => $amount
+    ]);
+}
+
+/**
+ * Verify a recipient Nigerian bank account using XIXAPAY API
+ * Endpoint: POST https://api.xixapay.com/api/verify/bank
+ */
+function verifyXixapayBankAccount(string $bankCode, string $accountNumber): ?array {
+    if (!defined('XIXAPAY_API_KEY') || empty(XIXAPAY_API_KEY) || str_starts_with(XIXAPAY_API_KEY, 'YOUR_')) {
+        return null;
+    }
+
+    try {
+        $baseUrl = defined('XIXAPAY_BASE_URL') ? rtrim(XIXAPAY_BASE_URL, '/') : 'https://api.xixapay.com';
+        $url = $baseUrl . '/api/verify/bank';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+            'bank'          => $bankCode,
+            'accountNumber' => trim($accountNumber)
+        ]));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . (defined('XIXAPAY_SECRET_KEY') ? XIXAPAY_SECRET_KEY : ''),
+            'api-key: ' . XIXAPAY_API_KEY,
+            'Content-Type: application/json'
+        ]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        $res = curl_exec($ch);
+        curl_close($ch);
+
+        $data = json_decode($res, true);
+        if ($data && !empty($data['status']) && strtolower($data['status']) === 'success') {
+            return [
+                'status'         => 'success',
+                'account_name'   => $data['AccountName'] ?? ($data['account_name'] ?? ($data['data']['account_name'] ?? '')),
+                'bank_name'      => $data['BankName'] ?? ($data['bank_name'] ?? ($data['data']['bank_name'] ?? '')),
+                'account_number' => $accountNumber,
+                'bank_code'      => $bankCode
+            ];
+        }
+    } catch (\Throwable $t) {
+        error_log('XIXAPAY Bank Verification Error: ' . $t->getMessage());
+    }
+    return null;
+}
+
+/**
+ * Payout (Transfer) from XIXAPAY Wallet to any Nigerian Bank Account
+ * Endpoint: POST https://api.xixapay.com/api/v1/transfer
+ */
+function transferXixapayPayout(float $amount, string $bankCode, string $accountNumber, string $narration = 'Wallet withdrawal'): array {
+    if (!defined('XIXAPAY_API_KEY') || empty(XIXAPAY_API_KEY) || str_starts_with(XIXAPAY_API_KEY, 'YOUR_')) {
+        return ['status' => 'failed', 'message' => 'XIXAPAY API credentials not configured'];
+    }
+
+    try {
+        $baseUrl = defined('XIXAPAY_BASE_URL') ? rtrim(XIXAPAY_BASE_URL, '/') : 'https://api.xixapay.com';
+        $url = $baseUrl . '/api/v1/transfer';
+        $payload = [
+            'businessId'    => defined('XIXAPAY_BUSINESS_ID') ? XIXAPAY_BUSINESS_ID : '',
+            'amount'        => $amount,
+            'bank'          => $bankCode,
+            'accountNumber' => trim($accountNumber),
+            'narration'     => $narration
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . (defined('XIXAPAY_SECRET_KEY') ? XIXAPAY_SECRET_KEY : ''),
+            'api-key: ' . XIXAPAY_API_KEY,
+            'Content-Type: application/json'
+        ]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 25);
+        $res = curl_exec($ch);
+        curl_close($ch);
+
+        $data = json_decode($res, true);
+        return is_array($data) ? $data : ['status' => 'failed', 'message' => 'Invalid response from XIXAPAY payout server'];
+    } catch (\Throwable $t) {
+        error_log('XIXAPAY Payout Exception: ' . $t->getMessage());
+        return ['status' => 'failed', 'message' => $t->getMessage()];
+    }
 }
 
 /**

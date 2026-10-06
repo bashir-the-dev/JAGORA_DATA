@@ -91,6 +91,7 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
 
   // Master Gateway & Service Switches state
   const [gatewaySwitches, setGatewaySwitches] = useState<Record<string, boolean>>({
+    xixapay: true,
     payflex: true,
     clubkonnect: true,
     payvessel: true,

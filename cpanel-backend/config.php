@@ -33,7 +33,18 @@ define('CLUBKONNECT_USER_ID', getenv('CLUBKONNECT_USER_ID') ?: 'YOUR_CLUBKONNECT
 define('CLUBKONNECT_API_KEY', getenv('CLUBKONNECT_API_KEY') ?: 'YOUR_CLUBKONNECT_API_KEY');
 define('CLUBKONNECT_BASE_URL', 'https://www.clubkonnect.com/API');
 
-// PayVessel Virtual Accounts Gateway (Automated Wallet Funding)
+// XIXAPAY Virtual Accounts & Automated Wallet Funding Gateway (PRIMARY PROVIDER)
+define('XIXAPAY_API_KEY', getenv('XIXAPAY_API_KEY') ?: 'YOUR_XIXAPAY_API_KEY');
+define('XIXAPAY_SECRET_KEY', getenv('XIXAPAY_SECRET_KEY') ?: 'YOUR_XIXAPAY_SECRET_KEY');
+define('XIXAPAY_BUSINESS_ID', getenv('XIXAPAY_BUSINESS_ID') ?: 'YOUR_XIXAPAY_BUSINESS_ID');
+define('XIXAPAY_BASE_URL', getenv('XIXAPAY_BASE_URL') ?: 'https://api.xixapay.com');
+// Partner Banks: 20867 = PalmPay, 20987 = Kolomoni MFB, 29007 = Safehaven MFB
+define('XIXAPAY_BANK_CODES', ['20867', '20987', '29007']);
+
+// Primary Payment Gateway: 'XIXAPAY' (Default), 'PAYVESSEL', or 'MONNIFY'
+define('PAYMENT_GATEWAY', getenv('PAYMENT_GATEWAY') ?: 'XIXAPAY');
+
+// PayVessel Virtual Accounts Gateway (Automated Wallet Funding - Secondary/Backup)
 define('PAYVESSEL_API_KEY', getenv('PAYVESSEL_API_KEY') ?: 'YOUR_PAYVESSEL_API_KEY');
 define('PAYVESSEL_SECRET', getenv('PAYVESSEL_SECRET') ?: 'YOUR_PAYVESSEL_SECRET_KEY');
 define('PAYVESSEL_SECRET_KEY', PAYVESSEL_SECRET); // Alias for backwards compatibility

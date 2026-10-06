@@ -603,7 +603,8 @@ export const VtuTransactionWizard: React.FC<VtuTransactionWizardProps> = ({
               group: 'Today',
               status: 'SUCCESS',
               category: 'utility',
-              iconType: 'cable',
+              iconType: 'tv',
+              isCredit: false,
             });
           }
           break;
@@ -627,7 +628,8 @@ export const VtuTransactionWizard: React.FC<VtuTransactionWizardProps> = ({
               group: 'Today',
               status: 'SUCCESS',
               category: 'utility',
-              iconType: 'electricity',
+              iconType: 'bolt',
+              isCredit: false,
             });
           }
           break;
@@ -649,7 +651,8 @@ export const VtuTransactionWizard: React.FC<VtuTransactionWizardProps> = ({
               group: 'Today',
               status: 'SUCCESS',
               category: 'utility',
-              iconType: 'exam',
+              iconType: 'pin',
+              isCredit: false,
             });
           }
           break;
@@ -671,7 +674,8 @@ export const VtuTransactionWizard: React.FC<VtuTransactionWizardProps> = ({
               group: 'Today',
               status: 'SUCCESS',
               category: 'utility',
-              iconType: 'airtime',
+              iconType: 'pin',
+              isCredit: false,
             });
           }
           break;
@@ -693,7 +697,8 @@ export const VtuTransactionWizard: React.FC<VtuTransactionWizardProps> = ({
               group: 'Today',
               status: 'SUCCESS',
               category: 'utility',
-              iconType: 'data',
+              iconType: 'wifi',
+              isCredit: false,
             });
           }
           break;

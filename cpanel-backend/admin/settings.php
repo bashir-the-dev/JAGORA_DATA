@@ -44,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'termsNotice'          => $settings['referral_terms_notice'] ?? 'Earn instant referral bonus when your referred friend completes their first qualifying purchase within 30 days.'
             ],
             'gatewaySwitches' => [
+                'xixapay'     => ($settings['gateway_xixapay_active'] ?? '1') === '1',
                 'payflex'     => ($settings['gateway_payflex_active'] ?? '1') === '1',
                 'clubkonnect' => ($settings['gateway_clubkonnect_active'] ?? '1') === '1',
                 'payvessel'   => ($settings['gateway_payvessel_active'] ?? '1') === '1',

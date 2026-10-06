@@ -67,9 +67,15 @@ switch ($normalizedRoute) {
                 'credentialScrubbing' => 'enabled'
             ],
             'providers' => [
+                'xixapay' => [
+                    'active' => defined('XIXAPAY_API_KEY') && !empty(XIXAPAY_API_KEY) && !str_starts_with(XIXAPAY_API_KEY, 'YOUR_'),
+                    'primary' => true,
+                    'supported_banks' => ['PalmPay (20867)', 'Kolomoni MFB (20987)', 'Safehaven MFB (29007)', 'OPay (100004)']
+                ],
                 'payflex' => ['active' => defined('PAYFLEX_API_KEY') && !empty(PAYFLEX_API_KEY) && !str_starts_with(PAYFLEX_API_KEY, 'YOUR_'), 'primary' => true],
                 'clubkonnect' => ['active' => defined('CLUBKONNECT_API_KEY') && CLUBKONNECT_API_KEY !== 'YOUR_CLUBKONNECT_API_KEY'],
-                'payvessel' => ['active' => defined('PAYVESSEL_API_KEY') && PAYVESSEL_API_KEY !== 'YOUR_PAYVESSEL_API_KEY']
+                'payvessel' => ['active' => defined('PAYVESSEL_API_KEY') && PAYVESSEL_API_KEY !== 'YOUR_PAYVESSEL_API_KEY'],
+                'monnify' => ['active' => defined('MONNIFY_API_KEY') && !empty(MONNIFY_API_KEY) && !str_starts_with(MONNIFY_API_KEY, 'YOUR_')]
             ]
         ]);
         break;
@@ -1157,7 +1163,18 @@ switch ($normalizedRoute) {
         ]);
         break;
 
-    // 14. Automated Payment Webhook (PayVessel)
+    // 14a. Automated Payment Webhook (XIXAPAY - PRIMARY VIRTUAL ACCOUNT PROVIDER)
+    case 'webhooks/xixapay':
+    case 'webhook/xixapay':
+        if (file_exists(__DIR__ . '/../webhook/xixapay.php')) {
+            require __DIR__ . '/../webhook/xixapay.php';
+            exit;
+        } else {
+            jsonResponse(['status' => false, 'message' => 'XIXAPAY webhook handler file missing'], 500);
+        }
+        break;
+
+    // 14b. Automated Payment Webhook (PayVessel - Secondary/Backup)
     case 'webhooks/payvessel':
         $signature = $_SERVER['HTTP_PAYVESSEL_HTTP_SIGNATURE'] ?? '';
         $customerPhone = normalizePhone($body['customer']['phone'] ?? $body['phone'] ?? '');
@@ -1226,6 +1243,148 @@ switch ($normalizedRoute) {
             }
         }
         jsonResponse(['status' => 'success', 'message' => 'Monnify webhook processed']);
+        break;
+
+    // 14c. User Virtual Accounts (Fetch or Lazy-Provision via XIXAPAY)
+    case 'virtual-accounts':
+    case 'user/virtual-accounts':
+        $user = requireAuthUser($pdo);
+        $userId = (int)$user['id'];
+
+        $vaStmt = $pdo->prepare("SELECT bank_name, account_number, account_name, provider FROM virtual_accounts WHERE user_id = ?");
+        $vaStmt->execute([$userId]);
+        $existingAccs = $vaStmt->fetchAll() ?: [];
+
+        if (empty($existingAccs)) {
+            // Lazy-provision via XIXAPAY as primary provider
+            $newAccs = requestXixapayVirtualAccount(
+                $userId,
+                $user['name'] ?? ($user['full_name'] ?? ''),
+                $user['email'] ?? '',
+                $user['phone'] ?? '',
+                $pdo
+            );
+
+            if (!empty($newAccs)) {
+                $existingAccs = $newAccs;
+            } else {
+                // Check if user has virtual_accounts JSON column in users table
+                $uStmt = $pdo->prepare("SELECT virtual_accounts FROM users WHERE id = ?");
+                $uStmt->execute([$userId]);
+                $rawJson = $uStmt->fetchColumn();
+                if ($rawJson) {
+                    $decoded = json_decode($rawJson, true);
+                    if (is_array($decoded) && !empty($decoded)) {
+                        $existingAccs = $decoded;
+                    }
+                }
+            }
+        }
+
+        jsonResponse([
+            'status'          => 'success',
+            'success'         => true,
+            'provider'        => 'XIXAPAY',
+            'virtualAccounts' => $existingAccs,
+            'data'            => $existingAccs
+        ]);
+        break;
+
+    // 14d. Generate or Refresh XIXAPAY Virtual Accounts with optional KYC (NIN/BVN)
+    case 'virtual-accounts/generate':
+    case 'virtual-accounts/xixapay':
+        $user = requireAuthUser($pdo);
+        $userId = (int)$user['id'];
+
+        $idType = !empty($body['id_type']) ? strtolower(trim($body['id_type'])) : (!empty($user['bvn']) ? 'bvn' : (!empty($user['nin']) ? 'nin' : ''));
+        $idNumber = !empty($body['id_number']) ? trim($body['id_number']) : (!empty($user['bvn']) ? $user['bvn'] : ($user['nin'] ?? ''));
+        $accountType = $body['accountType'] ?? 'static';
+        $amount = (float)($body['amount'] ?? 0);
+
+        $options = [
+            'accountType' => $accountType,
+            'id_type'     => $idType,
+            'id_number'   => $idNumber,
+            'amount'      => $amount
+        ];
+
+        $freshAccounts = requestXixapayVirtualAccount(
+            $userId,
+            $user['name'] ?? ($user['full_name'] ?? ''),
+            $user['email'] ?? '',
+            $user['phone'] ?? '',
+            $pdo,
+            $options
+        );
+
+        if (!$freshAccounts) {
+            jsonResponse([
+                'status'  => 'error',
+                'success' => false,
+                'message' => 'Unable to generate XIXAPAY virtual accounts at this time. Please check your credentials or network status.'
+            ], 502);
+        }
+
+        jsonResponse([
+            'status'          => 'success',
+            'success'         => true,
+            'message'         => 'Dedicated XIXAPAY virtual accounts created successfully.',
+            'provider'        => 'XIXAPAY',
+            'virtualAccounts' => $freshAccounts,
+            'data'            => $freshAccounts
+        ]);
+        break;
+
+    // 14e. Generate Dynamic One-Time Funding Account via XIXAPAY
+    case 'virtual-accounts/dynamic':
+        $user = requireAuthUser($pdo);
+        $amount = (float)($body['amount'] ?? 0);
+
+        if ($amount < 50) {
+            jsonResponse(['status' => 'error', 'message' => 'Minimum dynamic account funding amount is ₦50.00'], 400);
+        }
+
+        $dynamicAcc = requestXixapayDynamicAccount(
+            (int)$user['id'],
+            $amount,
+            $user['name'] ?? '',
+            $user['email'] ?? '',
+            $user['phone'] ?? '',
+            $pdo
+        );
+
+        if (!$dynamicAcc) {
+            jsonResponse(['status' => 'error', 'message' => 'Failed to generate dynamic virtual account via XIXAPAY.'], 502);
+        }
+
+        jsonResponse([
+            'status'  => 'success',
+            'success' => true,
+            'amount'  => $amount,
+            'data'    => $dynamicAcc
+        ]);
+        break;
+
+    // 14f. Bank Account Name Verification via XIXAPAY
+    case 'bank/verify':
+        $user = requireAuthUser($pdo);
+        $bankCode = trim((string)($body['bankCode'] ?? ($body['bank'] ?? '')));
+        $accountNumber = trim((string)($body['accountNumber'] ?? ($body['account_number'] ?? '')));
+
+        if (empty($bankCode) || strlen($accountNumber) !== 10) {
+            jsonResponse(['status' => 'error', 'message' => 'Valid 10-digit account number and bank code required'], 400);
+        }
+
+        $verified = verifyXixapayBankAccount($bankCode, $accountNumber);
+        if (!$verified) {
+            jsonResponse(['status' => 'error', 'message' => 'Account verification failed or account not found'], 404);
+        }
+
+        jsonResponse([
+            'status'  => 'success',
+            'success' => true,
+            'data'    => $verified
+        ]);
         break;
 
     // 15. Platform Settings (Vulnerability 3 Remediated - POST requires Admin)

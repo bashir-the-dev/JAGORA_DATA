@@ -128,6 +128,34 @@ for out_path in OUTPUT_PATHS:
 if os.path.exists(temp_zip):
     os.remove(temp_zip)
 
+# 7. Synchronize fresh compiled assets directly into android/app/src/main/assets/public/
+android_public = os.path.join(ROOT_DIR, 'android', 'app', 'src', 'main', 'assets', 'public')
+if os.path.exists(android_public):
+    android_assets = os.path.join(android_public, 'assets')
+    os.makedirs(android_assets, exist_ok=True)
+    for item in os.listdir(android_assets):
+        ipath = os.path.join(android_assets, item)
+        if os.path.isfile(ipath):
+            os.remove(ipath)
+        elif os.path.isdir(ipath) and item not in ['aistudio']:
+            shutil.rmtree(ipath)
+    for item in os.listdir(dist_assets):
+        src_path = os.path.join(dist_assets, item)
+        dst_path = os.path.join(android_assets, item)
+        if os.path.isfile(src_path):
+            shutil.copy2(src_path, dst_path)
+        elif os.path.isdir(src_path):
+            shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
+    shutil.copy2(dist_index, os.path.join(android_public, 'index.html'))
+    for asset_file in ['logo.png', 'logo.svg', 'favicon.ico', 'sw.js', 'manifest.json', 'pwa-192.png', 'pwa-512.png']:
+        src_asset = os.path.join(DIST_DIR, asset_file)
+        dst_asset = os.path.join(android_public, asset_file)
+        if os.path.exists(src_asset):
+            shutil.copy2(src_asset, dst_asset)
+    if os.path.exists(dist_telecom):
+        shutil.copytree(dist_telecom, os.path.join(android_public, 'telecom'), dirs_exist_ok=True)
+    print(f"-> Successfully synchronized fresh compiled assets into Android assets: {android_public}")
+
 print("==================================================================")
 print("SUCCESS: cPanel deployment package is 100% in sync with the app!")
 print("==================================================================")

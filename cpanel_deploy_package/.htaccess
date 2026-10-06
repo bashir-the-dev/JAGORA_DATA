@@ -30,6 +30,12 @@ DirectoryIndex index.html index.php
   RewriteRule .* - [e=HTTP_X_AUTH_TOKEN:%1]
   RewriteCond %{HTTP:X-Authorization} ^(.*)
   RewriteRule .* - [e=HTTP_X_AUTHORIZATION:%1]
+  RewriteCond %{HTTP:xixapay} ^(.*)
+  RewriteRule .* - [e=HTTP_XIXAPAY:%1]
+  RewriteCond %{HTTP:Xixapay} ^(.*)
+  RewriteRule .* - [e=HTTP_XIXAPAY:%1]
+  RewriteCond %{HTTP:Payvessel-Http-Signature} ^(.*)
+  RewriteRule .* - [e=HTTP_PAYVESSEL_HTTP_SIGNATURE:%1]
 
   # 1. Block access to sensitive database and configuration files
   <FilesMatch "\.(sql|env|ini|log|sh)$">

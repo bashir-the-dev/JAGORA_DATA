@@ -201,9 +201,9 @@ let memoryData: StoreData = {
       role: 'user',
       created_at: new Date().toISOString(),
       virtualAccounts: [
-        { bank_name: 'Wema Bank (Monnify)', account_number: '7829104928', account_name: "Al'amin Jagora - Al'amin Nura Sani" },
-        { bank_name: 'Sterling Bank (Monnify)', account_number: '8103948291', account_name: "Al'amin Jagora - Al'amin Nura Sani" },
-        { bank_name: 'Fidelity Bank (Monnify)', account_number: '6201948271', account_name: "Al'amin Jagora - Al'amin Nura Sani" },
+        { bank_name: 'PalmPay (XIXAPAY)', account_number: '8029104928', account_name: "Al'amin Jagora - Al'amin Nura Sani" },
+        { bank_name: 'Kolomoni MFB (XIXAPAY)', account_number: '6103948291', account_name: "Al'amin Jagora - Al'amin Nura Sani" },
+        { bank_name: 'Safehaven MFB (XIXAPAY)', account_number: '2901948271', account_name: "Al'amin Jagora - Al'amin Nura Sani" },
       ]
     },
     '08123456789': {
@@ -218,8 +218,9 @@ let memoryData: StoreData = {
       role: 'admin',
       created_at: new Date().toISOString(),
       virtualAccounts: [
-        { bank_name: 'Wema Bank (Monnify)', account_number: '7891029384', account_name: "Al'amin Jagora - Bashir Abubakar" },
-        { bank_name: 'Sterling Bank (Monnify)', account_number: '8192837461', account_name: "Al'amin Jagora - Bashir Abubakar" },
+        { bank_name: 'PalmPay (XIXAPAY)', account_number: '8891029384', account_name: "Al'amin Jagora - Bashir Abubakar" },
+        { bank_name: 'Kolomoni MFB (XIXAPAY)', account_number: '6192837461', account_name: "Al'amin Jagora - Bashir Abubakar" },
+        { bank_name: 'Safehaven MFB (XIXAPAY)', account_number: '2910293847', account_name: "Al'amin Jagora - Bashir Abubakar" },
       ]
     }
   },
@@ -1362,6 +1363,7 @@ export function getPlatformSettings() {
     whatsappGroup: 'https://chat.whatsapp.com/JagoraOfficialGroup',
   };
   const defaultGatewaySwitches = {
+    xixapay: true,
     payflex: true,
     clubkonnect: true,
     payvessel: true,

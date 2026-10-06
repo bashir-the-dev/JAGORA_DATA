@@ -102,7 +102,9 @@ try {
     // Safely generate or fetch virtual accounts
     $accounts = [];
     try {
-        if (defined('PAYMENT_GATEWAY') && strtoupper(PAYMENT_GATEWAY) === 'MONNIFY') {
+        if (!defined('PAYMENT_GATEWAY') || strtoupper(PAYMENT_GATEWAY) === 'XIXAPAY') {
+            requestXixapayVirtualAccount($userId, $fullName, $email, $phone, $pdo);
+        } else if (strtoupper(PAYMENT_GATEWAY) === 'MONNIFY') {
             requestMonnifyVirtualAccount($userId, $fullName, $email, $phone, $pdo);
         } else {
             requestPayvesselVirtualAccount($userId, $fullName, $email, $phone, $pdo);

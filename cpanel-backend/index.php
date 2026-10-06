@@ -78,6 +78,7 @@ if ($wantsJson) {
             'vtu_buy_data' => '/vtu/buy-data.php',
             'vtu_buy_airtime' => '/vtu/buy-airtime.php',
             'admin_stats' => '/admin/stats.php',
+            'webhook_xixapay' => '/webhook/xixapay.php',
             'webhook_payvessel' => '/webhook/payvessel.php'
         ]
     ]);
@@ -380,6 +381,14 @@ if ($wantsJson) {
                     <span>/admin/stats.php</span>
                 </div>
                 <span style="font-size: 11px; color: var(--text-sub);">Requires Admin Token</span>
+            </div>
+
+            <div class="endpoint-row">
+                <div class="endpoint-left">
+                    <span class="method method-post">POST</span>
+                    <span>/webhook/xixapay.php</span>
+                </div>
+                <span style="font-size: 11px; color: #10b981; font-weight: 600;">XIXAPAY Automated Funding (Primary)</span>
             </div>
 
             <div class="endpoint-row">

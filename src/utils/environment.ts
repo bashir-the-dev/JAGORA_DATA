@@ -8,7 +8,7 @@
  */
 
 // Memory cache for runtime server environment response
-import { resolveApiUrl } from '../services/apiClient';
+import { resolveApiUrl, isNativeMobileApp } from '../services/apiClient';
 
 let serverModeCache: { isProduction: boolean; allowSimulation: boolean; vtuLive: boolean } | null = null;
 
@@ -17,6 +17,9 @@ let serverModeCache: { isProduction: boolean; allowSimulation: boolean; vtuLive:
  */
 export function isProductionEnvironment(): boolean {
   if (typeof window === 'undefined') return false;
+
+  // Real native Android/iOS mobile app is ALWAYS production
+  if (isNativeMobileApp()) return true;
 
   // Check Vite build flag
   const metaEnv = (import.meta as any)?.env;
@@ -35,9 +38,13 @@ export function isProductionEnvironment(): boolean {
 
 /**
  * Checks if simulation is permitted.
- * Returns false as soon as the app is deployed to production.
+ * Returns false on native mobile apps and as soon as the app is deployed to production.
  */
 export function isSimulationAllowed(): boolean {
+  // Real native Android/iOS mobile app must NEVER run in simulation mode
+  if (isNativeMobileApp()) {
+    return false;
+  }
   if (serverModeCache) {
     return serverModeCache.allowSimulation;
   }

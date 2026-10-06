@@ -65,10 +65,25 @@ export const DEFAULT_API_BASE_URL =
 export function isNativeMobileApp(): boolean {
   if (typeof window === 'undefined') return false;
   try {
-    if (Capacitor.isNativePlatform()) return true;
-    if (window.location.protocol === 'capacitor:') return true;
+    if (typeof Capacitor !== 'undefined' && typeof Capacitor.isNativePlatform === 'function' && Capacitor.isNativePlatform()) {
+      return true;
+    }
+    if (typeof (window as any).Capacitor !== 'undefined' && typeof (window as any).Capacitor.isNativePlatform === 'function' && (window as any).Capacitor.isNativePlatform()) {
+      return true;
+    }
+    if (window.location.protocol === 'capacitor:' || window.location.protocol === 'ionic:') {
+      return true;
+    }
     // Android WebView running on localhost inside Capacitor wrapper
-    if (window.location.hostname === 'localhost' && Boolean((window as any).Capacitor || (window as any).androidBridge)) {
+    // (Notice: dev server on desktop/browser always runs on port :3000, while native Capacitor runs with no port)
+    if (
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
+      !window.location.port &&
+      (Boolean((window as any).Capacitor) || Boolean((window as any).androidBridge) || /Android.*Version\/[0-9]/.test(navigator.userAgent))
+    ) {
+      return true;
+    }
+    if (Boolean((window as any).androidBridge)) {
       return true;
     }
   } catch {

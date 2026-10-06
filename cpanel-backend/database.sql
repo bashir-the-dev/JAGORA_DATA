@@ -31,6 +31,9 @@ CREATE TABLE IF NOT EXISTS `users` (
   `account_tier` VARCHAR(30) NOT NULL DEFAULT 'Standard',
   `bvn_verified` TINYINT(1) NOT NULL DEFAULT 0,
   `nin_verified` TINYINT(1) NOT NULL DEFAULT 0,
+  `bvn` VARCHAR(20) NULL,
+  `nin` VARCHAR(20) NULL,
+  `xixapay_customer_id` VARCHAR(100) NULL,
   `virtual_accounts` JSON NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -346,7 +349,9 @@ INSERT INTO `system_settings` (`setting_key`, `setting_value`) VALUES
 ('airtime_discount_mtn', '2.5'),
 ('airtime_discount_airtel', '2.0'),
 ('airtime_discount_glo', '3.0'),
-('airtime_discount_9mobile', '3.0')
+('airtime_discount_9mobile', '3.0'),
+('gateway_xixapay_active', '1'),
+('primary_virtual_account_gateway', 'xixapay')
 ON DUPLICATE KEY UPDATE `setting_key`=`setting_key`;
 
 -- Seed Platform Settings (JSON settings)

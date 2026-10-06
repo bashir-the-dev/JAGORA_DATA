@@ -87,7 +87,15 @@ define('VTU_PROVIDER_NAME', 'HUSMODATA');
 define('VTU_API_TOKEN', 'YOUR_WHOLESALE_API_TOKEN_HERE');
 define('VTU_BASE_URL', 'https://husmodata.com/api');
 
-// Automated Virtual Account Funding (Payvessel)
+// Automated Virtual Account Funding (XIXAPAY - PRIMARY GATEWAY)
+define('XIXAPAY_API_KEY', 'xixa_live_xxxxxxxx');
+define('XIXAPAY_SECRET_KEY', 'xixa_sec_xxxxxxxx');
+define('XIXAPAY_BUSINESS_ID', 'xixa_biz_xxxxxxxx');
+// Partner Bank Codes: 20867 = PalmPay, 20987 = Kolomoni MFB, 29007 = Safehaven MFB
+define('XIXAPAY_BANK_CODES', ['20867', '20987', '29007']);
+
+// Optional Secondary/Backup Gateways (Payvessel, Monnify)
+define('PAYMENT_GATEWAY', 'XIXAPAY'); // 'XIXAPAY' (Default), 'PAYVESSEL', or 'MONNIFY'
 define('PAYVESSEL_API_KEY', 'pv_live_xxxxxxxx');
 define('PAYVESSEL_SECRET_KEY', 'pv_sec_xxxxxxxx');
 define('PAYVESSEL_BUSINESS_ID', 'pv_biz_xxxxxxxx');
@@ -95,14 +103,16 @@ define('PAYVESSEL_BUSINESS_ID', 'pv_biz_xxxxxxxx');
 
 ---
 
-### Step 5: Configure Payvessel Webhook
-1. Log into your account at [payvessel.com](https://payvessel.com).
-2. Go to **Developer Settings** -> **Webhook URL**.
+### Step 5: Configure XIXAPAY Webhook
+1. Log into your merchant dashboard at [xixapay.com](https://xixapay.com).
+2. Navigate to **Settings** -> **Developer / Webhooks**.
 3. Set your Webhook URL to:
    ```
-   https://yourdomain.com/api/webhook/payvessel.php
+   https://yourdomain.com/api/webhook/xixapay.php
    ```
-4. Save changes. When any customer makes a bank transfer to their dedicated account, Payvessel will ping this URL and credit their wallet automatically in seconds.
+   *(Or if using direct API route: `https://yourdomain.com/api/webhooks/xixapay`)*
+4. Ensure your **XIXAPAY Secret Key** matches `XIXAPAY_SECRET_KEY` in `config.php`.
+5. Save changes. When any customer makes a bank transfer to their PalmPay, Kolomoni, or Safehaven dedicated account, XIXAPAY sends a real-time notification with HMAC-SHA256 signature verification to this webhook, and their wallet balance is instantly credited 24/7 without manual intervention.
 
 ---
 
