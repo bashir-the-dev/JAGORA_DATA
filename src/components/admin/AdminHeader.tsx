@@ -1,8 +1,8 @@
 import React from 'react';
-import { ShieldCheck, RefreshCw, ArrowLeft, Activity, Layers, Server, Tag, Megaphone, Users, LogOut, FileDown, UserCheck, Crown, Headphones, DollarSign, UserCog, Home, Gift } from 'lucide-react';
+import { ShieldCheck, RefreshCw, ArrowLeft, Activity, Layers, Server, Tag, Megaphone, Users, LogOut, FileDown, UserCheck, Crown, Headphones, DollarSign, UserCog, Home, Gift, Sliders } from 'lucide-react';
 import { AdminRole } from '../../types';
 
-export type AdminTabType = 'dashboard' | 'wallets' | 'transactions' | 'providers' | 'users' | 'pricing' | 'staff' | 'broadcast' | 'referrals';
+export type AdminTabType = 'dashboard' | 'wallets' | 'transactions' | 'providers' | 'users' | 'pricing' | 'staff' | 'broadcast' | 'referrals' | 'settings';
 
 interface AdminHeaderProps {
   activeTab: AdminTabType;
@@ -47,6 +47,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
     { id: 'referrals' as const, label: 'Referral Controls', icon: Gift },
     { id: 'staff' as const, label: 'CEO & Staff Agents', icon: UserCheck },
     { id: 'broadcast' as const, label: 'Bulk Push Notifications', icon: Megaphone },
+    { id: 'settings' as const, label: 'Platform Settings', icon: Sliders },
   ];
 
   const adminName = adminProfile?.name || 'Bashir Abubakar';

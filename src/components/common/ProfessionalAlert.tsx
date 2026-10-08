@@ -29,7 +29,7 @@ export const ProfessionalToastContainer: React.FC<ProfessionalToastProps> = ({
     <div
       aria-live="polite"
       aria-atomic="true"
-      className="fixed top-3 sm:top-5 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-2 w-full max-w-sm px-3 pointer-events-none"
+      className="fixed top-3 sm:top-5 left-1/2 -translate-x-1/2 z-[999999] flex flex-col items-center gap-2 w-full max-w-sm px-3 pointer-events-none"
     >
       <AnimatePresence mode="sync">
         {alerts.map((alert) => (

@@ -69,6 +69,7 @@ import {
   markAllNotificationsRead,
   getBroadcastNotificationHistory,
   deleteBroadcastNotification,
+  resetPlatformStatsAndTransactions,
 } from './src/serverStore';
 import {
   syncVtuPlansFromGateway,
@@ -643,6 +644,44 @@ app.get(['/api/docs/api-guide.pdf', '/download/api-guide.pdf'], (_req: Request, 
     return res.sendFile(pdfPath);
   }
   return res.status(404).json({ success: false, message: 'PDF manual not found. Please regenerate.' });
+});
+
+// Serve Complete cPanel Deployment ZIP Archive (alaminjagora_cpanel_files.zip)
+app.get([
+  '/alaminjagora_cpanel_files.zip',
+  '/download/alaminjagora_cpanel_files.zip',
+  '/api/download/cpanel-zip',
+  '/api/download/alaminjagora_cpanel_files.zip',
+  '/public/alaminjagora_cpanel_files.zip'
+], (_req: Request, res: Response) => {
+  const rootZip = path.resolve(process.cwd(), 'alaminjagora_cpanel_files.zip');
+  const pubZip = path.resolve(process.cwd(), 'public', 'alaminjagora_cpanel_files.zip');
+  const distZip = path.resolve(process.cwd(), 'dist', 'alaminjagora_cpanel_files.zip');
+
+  let chosenPath = '';
+  if (fs.existsSync(rootZip) && fs.statSync(rootZip).size > 1000) {
+    chosenPath = rootZip;
+  } else if (fs.existsSync(pubZip) && fs.statSync(pubZip).size > 1000) {
+    chosenPath = pubZip;
+  } else if (fs.existsSync(distZip) && fs.statSync(distZip).size > 1000) {
+    chosenPath = distZip;
+  }
+
+  if (chosenPath) {
+    const stat = fs.statSync(chosenPath);
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Length', stat.size);
+    res.setHeader('Content-Disposition', 'attachment; filename="alaminjagora_cpanel_files.zip"');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    return res.sendFile(chosenPath);
+  }
+
+  return res.status(404).json({
+    success: false,
+    message: 'cPanel deployment zip file is being re-indexed. Please try again in 5 seconds.'
+  });
 });
 
 /**
@@ -2272,6 +2311,106 @@ app.post(
       message: `User account is now ${updated.status}.`,
       data: toPublicUser(updated)
     });
+  }
+);
+
+/**
+ * Admin Manual Wallet Adjustment (Credit / Debit Customer Account)
+ */
+app.post(
+  ['/api/admin/fund-user', '/api/admin/users/fund', '/api/admin/users/adjust-balance'],
+  requireAdmin,
+  rateLimit(40, 60000, { prefix: 'admin:fund-user' }),
+  (req: Request, res: Response) => {
+    try {
+      const { phone, amount, type, reason } = req.body || {};
+      const numAmount = parseFloat(String(amount || 0));
+      const adjType = String(type || 'credit').toLowerCase();
+
+      if (!phone || isNaN(numAmount) || numAmount <= 0) {
+        return res.status(400).json({
+          status: 'error',
+          success: false,
+          message: 'Valid customer phone number and adjustment amount are required.'
+        });
+      }
+
+      const cleanP = cleanPhone(phone);
+      const targetUser = findUser(cleanP);
+      if (!targetUser) {
+        return res.status(404).json({
+          status: 'error',
+          success: false,
+          message: `User not found with phone ${phone}.`
+        });
+      }
+
+      const adminUser = (req as any).user as ServerUser;
+      let newBalance = targetUser.balance;
+
+      if (adjType === 'debit') {
+        const deducted = deductUserBalance(cleanP, numAmount);
+        if (!deducted) {
+          return res.status(400).json({
+            status: 'error',
+            success: false,
+            message: `Insufficient balance to debit ₦${numAmount.toLocaleString()} (current balance: ₦${targetUser.balance.toLocaleString()}).`
+          });
+        }
+        const updatedUser = findUser(cleanP);
+        newBalance = updatedUser ? updatedUser.balance : Math.max(0, targetUser.balance - numAmount);
+      } else {
+        const credited = creditUserBalance(cleanP, numAmount);
+        const updatedUser = findUser(cleanP);
+        newBalance = updatedUser ? updatedUser.balance : (targetUser.balance + numAmount);
+      }
+
+      // Record transaction ledger entry
+      const txRef = 'AJD-ADJ-' + Date.now().toString().slice(-6);
+      recordServerTransaction({
+        reference: txRef,
+        user_id: cleanP,
+        type: 'WALLET_FUNDING',
+        title: `Admin Manual ${adjType === 'credit' ? 'Credit' : 'Debit'}`,
+        description: `${targetUser.name} • ${reason || 'Administrative Balance Adjustment'}`,
+        recipient: targetUser.phone,
+        amount: numAmount,
+        charged: numAmount,
+        balance_before: targetUser.balance,
+        balance_after: newBalance,
+        status: 'SUCCESS',
+        provider: 'Jagora Admin Ledger'
+      });
+
+      // Record audit log
+      addAdminAuditLog({
+        adminPhone: adminUser?.phone || 'admin',
+        adminName: adminUser?.name || 'Super Admin',
+        action: adjType === 'credit' ? 'MANUAL_USER_CREDIT' : 'MANUAL_USER_DEBIT',
+        targetPhone: cleanP,
+        details: `${adjType === 'credit' ? 'Credited' : 'Debited'} ₦${numAmount.toLocaleString()} to ${targetUser.name} (${cleanP}). Reason: ${reason || 'Direct settlement'}`,
+        ip: req.ip || req.headers['x-forwarded-for']?.toString() || '127.0.0.1'
+      });
+
+      return res.json({
+        status: 'success',
+        success: true,
+        message: `Successfully ${adjType === 'credit' ? 'credited' : 'debited'} ₦${numAmount.toLocaleString()} to ${targetUser.name}.`,
+        data: {
+          phone: cleanP,
+          name: targetUser.name,
+          balance: newBalance,
+          amount: numAmount,
+          type: adjType
+        }
+      });
+    } catch (err: any) {
+      return res.status(500).json({
+        status: 'error',
+        success: false,
+        message: err.message || 'Failed to adjust user wallet balance.'
+      });
+    }
   }
 );
 
@@ -5233,6 +5372,21 @@ app.get(['/api/admin/stats', '/admin/stats.php', '/api/admin/stats.php'], requir
       serverTime: new Date().toISOString()
     },
     recentTransactions: metrics.recentTransactions
+  });
+});
+
+app.post(['/api/admin/reset-stats', '/admin/reset-stats.php', '/api/admin/reset-stats.php'], requireAdmin, (req: Request, res: Response) => {
+  const resetBalances = Boolean(req.body?.resetBalances);
+  resetPlatformStatsAndTransactions({ resetBalances });
+  return res.json({
+    status: 'success',
+    success: true,
+    message: 'Platform statistics and transaction records have been reset to zeros for a fresh start.',
+    data: {
+      transactionsCleared: true,
+      balancesReset: resetBalances,
+      resetAt: new Date().toISOString()
+    }
   });
 });
 

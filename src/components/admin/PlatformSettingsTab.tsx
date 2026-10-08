@@ -40,9 +40,27 @@ import { NotificationItem } from '../../types';
 interface PlatformSettingsTabProps {
   isLightMode?: boolean;
   showToast: (msg: string) => void;
+  onResetStatistics?: (resetBalances: boolean) => Promise<void>;
 }
 
-export const PlatformSettingsTab: React.FC<PlatformSettingsTabProps> = ({ isLightMode, showToast }) => {
+export const PlatformSettingsTab: React.FC<PlatformSettingsTabProps> = ({ isLightMode, showToast, onResetStatistics }) => {
+  // Fresh Start / Reset Stats Modal State
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [resetBalancesOption, setResetBalancesOption] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+
+  const handleExecuteReset = async () => {
+    if (!onResetStatistics) return;
+    setIsResetting(true);
+    try {
+      await onResetStatistics(resetBalancesOption);
+      setIsResetModalOpen(false);
+    } catch {
+      // Handled by parent toast
+    } finally {
+      setIsResetting(false);
+    }
+  };
   // Broadcast Announcement State
   const [announcementText, setAnnouncementText] = useState('');
   const [isAnnouncementActive, setIsAnnouncementActive] = useState(false);
@@ -983,6 +1001,125 @@ export const PlatformSettingsTab: React.FC<PlatformSettingsTabProps> = ({ isLigh
           <span>Download PDF Guide</span>
         </a>
       </div>
+
+      {/* Fresh Start & Statistics Reset Tool */}
+      <div className="p-5 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5 sm:mt-0">
+            <RotateCcw size={20} />
+          </div>
+          <div>
+            <h4 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2 font-heading">
+              Platform Analytics &amp; Statistics Reset (Fresh Start)
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-200 dark:bg-amber-900/60 text-amber-900 dark:text-amber-300 font-bold">
+                Admin Tool
+              </span>
+            </h4>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+              Zero out lifetime turnover, today's sales volume, profit, order counts and clear test transaction logs for a brand new live launch.
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsResetModalOpen(true)}
+          className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer shrink-0"
+        >
+          <RotateCcw size={15} />
+          <span>Reset Statistics to Zeros</span>
+        </button>
+      </div>
+
+      {/* FRESH START MODAL */}
+      {isResetModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200"
+        >
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-5 text-left">
+            <div className="flex items-start justify-between gap-3">
+              <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                <AlertOctagon className="w-6 h-6" />
+              </div>
+              <button
+                onClick={() => !isResetting && setIsResetModalOpen(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <XCircle className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white font-heading">
+                Confirm Platform Reset (Fresh Start)
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                This will wipe recorded test transactions and reset sales volume, lifetime turnover, daily profit, and transaction counts back to zero.
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 space-y-2 text-xs">
+              <div className="font-bold text-amber-900 dark:text-amber-300">
+                ⚠️ Metrics to be zeroed out:
+              </div>
+              <ul className="list-disc list-inside space-y-1 text-amber-800 dark:text-amber-300/90 text-[11px] font-medium">
+                <li><strong>Lifetime Turnover:</strong> ₦0.00</li>
+                <li><strong>Today's Sales Volume:</strong> ₦0.00</li>
+                <li><strong>Today's Gross Profit:</strong> ₦0.00</li>
+                <li><strong>Today's Orders / Tx Count:</strong> 0 orders</li>
+                <li><strong>Transaction Logs:</strong> Cleared completely</li>
+              </ul>
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-start gap-3">
+              <input
+                id="ps-reset-customer-wallets"
+                type="checkbox"
+                checked={resetBalancesOption}
+                onChange={(e) => setResetBalancesOption(e.target.checked)}
+                className="mt-0.5 rounded text-amber-600 focus:ring-amber-500 cursor-pointer"
+              />
+              <label htmlFor="ps-reset-customer-wallets" className="text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer">
+                <strong>Also reset customer wallet balances to ₦0.00</strong>
+                <span className="block text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Resets Customer Liabilities to zero. (Admin accounts are preserved).
+                </span>
+              </label>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                disabled={isResetting}
+                onClick={() => setIsResetModalOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isResetting}
+                onClick={handleExecuteReset}
+                className="flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 active:scale-95 transition-all shadow-md shadow-amber-600/30 cursor-pointer disabled:opacity-50"
+              >
+                {isResetting ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Resetting to Zeros...</span>
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Confirm &amp; Reset to Zeros</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

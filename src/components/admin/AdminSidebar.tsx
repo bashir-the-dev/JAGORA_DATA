@@ -17,6 +17,7 @@ import {
   LogOut,
   Sun,
   Moon,
+  Sliders,
 } from 'lucide-react';
 import { AdminTabType } from './AdminHeader';
 
@@ -59,6 +60,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: 'referrals' as const, label: 'Referral Controls', icon: Gift },
     { id: 'staff' as const, label: 'CEO & Staff Agents', icon: UserCheck },
     { id: 'broadcast' as const, label: 'Bulk Push Notifications', icon: Megaphone },
+    { id: 'settings' as const, label: 'Platform Settings', icon: Sliders },
   ];
 
   const handleTabClick = (tab: AdminTabType) => {

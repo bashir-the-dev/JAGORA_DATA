@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   PhoneCall,
   Check,
+  AlertTriangle,
 } from 'lucide-react';
 import { TelecomLogo } from '../common/TelecomLogo';
 import { PinVerificationModal } from '../modals/PinVerificationModal';
@@ -93,8 +94,13 @@ export const BuyAirtimeScreen: React.FC<BuyAirtimeScreenProps> = ({
     setErrorMessage('');
     setSuccessMessage('');
     const norm = normalizeNigerianPhone(val);
-    if (norm.detectedNetwork && norm.detectedNetwork !== selectedNetwork) {
-      setSelectedNetwork(norm.detectedNetwork);
+    // When the phone number is changed or typed, dynamically switch to the detected carrier
+    if (norm.detectedNetwork) {
+      if (norm.detectedNetwork !== selectedNetwork) {
+        setSelectedNetwork(norm.detectedNetwork);
+        setIsManualNetworkOverride(false);
+      }
+    } else {
       setIsManualNetworkOverride(false);
     }
   };
@@ -104,7 +110,7 @@ export const BuyAirtimeScreen: React.FC<BuyAirtimeScreenProps> = ({
     triggerHaptic('light');
     setPhone(b.phone);
     setSelectedNetwork(b.network);
-    setIsManualNetworkOverride(true);
+    setIsManualNetworkOverride(false);
     setErrorMessage('');
     setSuccessMessage('');
   };
@@ -339,6 +345,32 @@ export const BuyAirtimeScreen: React.FC<BuyAirtimeScreenProps> = ({
             )}
           </div>
         </div>
+
+        {/* Real-time Carrier Mismatch Warning Banner */}
+        {phoneValidation.detectedNetwork && phoneValidation.detectedNetwork !== selectedNetwork && (
+          <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs animate-fade-in">
+            <div className="flex items-start gap-2">
+              <AlertTriangle size={16} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
+              <div className="text-amber-900 dark:text-amber-200">
+                <span className="font-bold">Carrier Mismatch Detected: </span>
+                <span>This number is an <strong className="uppercase font-mono">{phoneValidation.detectedNetwork}</strong> line, but you have <strong className="uppercase font-mono">{selectedNetwork}</strong> selected.</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                playTapSound();
+                triggerHaptic('medium');
+                setSelectedNetwork(phoneValidation.detectedNetwork!);
+                setIsManualNetworkOverride(false);
+              }}
+              className="w-full sm:w-auto px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shrink-0 flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
+            >
+              <TelecomLogo network={phoneValidation.detectedNetwork} size="xs" />
+              <span>Switch to {phoneValidation.detectedNetwork.toUpperCase()}</span>
+            </button>
+          </div>
+        )}
 
         {/* Quick Beneficiary Chips */}
         <div className="pt-1">

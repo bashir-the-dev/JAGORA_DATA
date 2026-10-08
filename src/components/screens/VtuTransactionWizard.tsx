@@ -28,6 +28,7 @@ import {
   Clock,
   FileText,
   BadgeCheck,
+  AlertTriangle,
 } from 'lucide-react';
 import { TelecomLogo } from '../common/TelecomLogo';
 import { FintechButtonLoader } from '../common/ProfessionalLoader';
@@ -1231,9 +1232,20 @@ export const VtuTransactionWizard: React.FC<VtuTransactionWizardProps> = ({
             <>
               {/* Phone Input Card */}
               <div className="bg-white dark:bg-[#0c1322] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs space-y-2.5">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                  Recipient Phone Number
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                    Recipient Phone Number
+                  </label>
+                  {phoneNorm.detectedNetwork && (
+                    <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full uppercase flex items-center gap-1 ${
+                      phoneNorm.detectedNetwork === network 
+                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300'
+                        : 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 font-extrabold ring-1 ring-amber-400'
+                    }`}>
+                      Line: {phoneNorm.detectedNetwork}
+                    </span>
+                  )}
+                </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                     <TelecomLogo network={network} size="xs" />
@@ -1242,13 +1254,49 @@ export const VtuTransactionWizard: React.FC<VtuTransactionWizardProps> = ({
                     type="tel"
                     value={phone}
                     onChange={(e) => {
-                      setPhone(e.target.value);
+                      const val = e.target.value;
+                      setPhone(val);
                       setErrorMessage('');
+                      const norm = normalizeNigerianPhone(val);
+                      if (norm.detectedNetwork) {
+                        if (norm.detectedNetwork !== network) {
+                          setNetwork(norm.detectedNetwork);
+                          setIsManualNetworkOverride(false);
+                        }
+                      } else {
+                        setIsManualNetworkOverride(false);
+                      }
                     }}
                     placeholder="08012345678"
                     className="w-full min-h-[48px] pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono text-base font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                   />
                 </div>
+
+                {/* Real-time Carrier Mismatch Warning Banner */}
+                {phoneNorm.detectedNetwork && phoneNorm.detectedNetwork !== network && (
+                  <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs animate-fade-in">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle size={16} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
+                      <div className="text-amber-900 dark:text-amber-200">
+                        <span className="font-bold">Carrier Mismatch Detected: </span>
+                        <span>This number is an <strong className="uppercase font-mono">{phoneNorm.detectedNetwork}</strong> line, but you have <strong className="uppercase font-mono">{network}</strong> selected.</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playTapSound();
+                        triggerHaptic('medium');
+                        setNetwork(phoneNorm.detectedNetwork!);
+                        setIsManualNetworkOverride(false);
+                      }}
+                      className="w-full sm:w-auto px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shrink-0 flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
+                    >
+                      <TelecomLogo network={phoneNorm.detectedNetwork} size="xs" />
+                      <span>Switch to {phoneNorm.detectedNetwork.toUpperCase()}</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Data Bundles Grid */}
@@ -1328,10 +1376,21 @@ export const VtuTransactionWizard: React.FC<VtuTransactionWizardProps> = ({
           {/* B. AIRTIME SPECIFICS */}
           {serviceType === 'airtime' && (
             <div className="bg-white dark:bg-[#0c1322] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-                  Recipient Phone Number
-                </label>
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                    Recipient Phone Number
+                  </label>
+                  {phoneNorm.detectedNetwork && (
+                    <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full uppercase flex items-center gap-1 ${
+                      phoneNorm.detectedNetwork === network 
+                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300'
+                        : 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 font-extrabold ring-1 ring-amber-400'
+                    }`}>
+                      Line: {phoneNorm.detectedNetwork}
+                    </span>
+                  )}
+                </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                     <TelecomLogo network={network} size="xs" />
@@ -1340,13 +1399,49 @@ export const VtuTransactionWizard: React.FC<VtuTransactionWizardProps> = ({
                     type="tel"
                     value={phone}
                     onChange={(e) => {
-                      setPhone(e.target.value);
+                      const val = e.target.value;
+                      setPhone(val);
                       setErrorMessage('');
+                      const norm = normalizeNigerianPhone(val);
+                      if (norm.detectedNetwork) {
+                        if (norm.detectedNetwork !== network) {
+                          setNetwork(norm.detectedNetwork);
+                          setIsManualNetworkOverride(false);
+                        }
+                      } else {
+                        setIsManualNetworkOverride(false);
+                      }
                     }}
                     placeholder="08012345678"
                     className="w-full min-h-[48px] pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono text-base font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
                   />
                 </div>
+
+                {/* Real-time Carrier Mismatch Warning Banner */}
+                {phoneNorm.detectedNetwork && phoneNorm.detectedNetwork !== network && (
+                  <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs animate-fade-in">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle size={16} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
+                      <div className="text-amber-900 dark:text-amber-200">
+                        <span className="font-bold">Carrier Mismatch Detected: </span>
+                        <span>This number is an <strong className="uppercase font-mono">{phoneNorm.detectedNetwork}</strong> line, but you have <strong className="uppercase font-mono">{network}</strong> selected.</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playTapSound();
+                        triggerHaptic('medium');
+                        setNetwork(phoneNorm.detectedNetwork!);
+                        setIsManualNetworkOverride(false);
+                      }}
+                      className="w-full sm:w-auto px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shrink-0 flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
+                    >
+                      <TelecomLogo network={phoneNorm.detectedNetwork} size="xs" />
+                      <span>Switch to {phoneNorm.detectedNetwork.toUpperCase()}</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div>

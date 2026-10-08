@@ -561,6 +561,16 @@ export async function apiGetAdminStats(): Promise<ApiResponse<any>> {
 }
 
 /**
+ * Reset Admin Platform Stats & Transaction Logs (Fresh Start)
+ */
+export async function apiResetPlatformStats(options?: { resetBalances?: boolean }): Promise<ApiResponse<any>> {
+  return request('/api/admin/reset-stats', {
+    method: 'POST',
+    body: JSON.stringify(options || {}),
+  });
+}
+
+/**
  * Fetch live upstream wholesale gateway wallet float balances
  */
 export async function apiGetGatewayBalances(): Promise<ApiResponse<{

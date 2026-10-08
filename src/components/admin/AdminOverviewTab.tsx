@@ -23,6 +23,10 @@ import {
   DollarSign,
   Search,
   ShieldCheck,
+  RotateCcw,
+  AlertTriangle,
+  X,
+  Trash2,
 } from 'lucide-react';
 import { PlatformUserAccount, Transaction, AdminPlatformWallet, ApiProvider } from '../../types';
 import { AdminTabType } from './AdminHeader';
@@ -37,6 +41,7 @@ interface AdminOverviewTabProps {
   onInspectUser?: (user: PlatformUserAccount) => void;
   onAdjustUserWallet?: (userId: string, amount: number, type: 'credit' | 'debit', reason: string) => void;
   onToggleUserStatus?: (userId: string) => void;
+  onResetStatistics?: (resetBalances: boolean) => Promise<void>;
   isLightMode?: boolean;
 }
 
@@ -50,8 +55,26 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
   onInspectUser,
   onAdjustUserWallet,
   onToggleUserStatus,
+  onResetStatistics,
   isLightMode = true,
 }) => {
+  // Fresh Start / Reset Stats Modal State
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [resetBalancesOption, setResetBalancesOption] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+
+  const handleExecuteReset = async () => {
+    if (!onResetStatistics) return;
+    setIsResetting(true);
+    try {
+      await onResetStatistics(resetBalancesOption);
+      setIsResetModalOpen(false);
+    } catch {
+      // Handled by parent toast
+    } finally {
+      setIsResetting(false);
+    }
+  };
   // Chart timeframe state: '7D' | '30D' | '90D' | '1Y'
   const [chartRange, setChartRange] = useState<'7D' | '30D' | '90D' | '1Y'>('30D');
   const [hoveredPointIndex, setHoveredPointIndex] = useState<number | null>(null);
@@ -138,6 +161,9 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
   const totalFloatReserves = useMemo(() => {
     return providers.reduce((acc, p) => acc + (Number(p.floatBalance) || 0), 0);
   }, [providers]);
+
+  const totalVendorFloat = totalFloatReserves;
+  const reserveRatio = totalCustomerLiabilities > 0 ? totalVendorFloat / totalCustomerLiabilities : 1;
 
   // Generate chart data points based on selected range
   const chartData = useMemo(() => {
@@ -285,16 +311,30 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
           </p>
         </div>
 
-        {/* Date & Time Widget */}
-        <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xs self-start sm:self-auto">
-          <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-          <div className="text-right">
-            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block font-heading">
-              {formattedDateStr}
-            </span>
-            <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
-              {formattedTimeStr} (WAT)
-            </span>
+        {/* Top Controls: Date/Time Widget & Fresh Start Reset Button */}
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          {onResetStatistics && (
+            <button
+              onClick={() => setIsResetModalOpen(true)}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800/80 text-xs font-bold transition-all shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer"
+              title="Reset dashboard analytics, orders & sales volume to zero for a fresh start"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              <span>Fresh Start / Reset Stats</span>
+            </button>
+          )}
+
+          {/* Date & Time Widget */}
+          <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xs">
+            <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <div className="text-right">
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block font-heading">
+                {formattedDateStr}
+              </span>
+              <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                {formattedTimeStr} (WAT)
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -302,22 +342,22 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
       {/* 2. TOP 4 KPI CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1: TOTAL CUSTOMERS */}
-        <div className="p-5 rounded-2xl bg-white dark:bg-[#0c1322] border border-slate-200/80 dark:border-slate-800/80 shadow-2xs hover:shadow-sm transition-all relative overflow-hidden group">
+        <div className="p-5 rounded-2xl bg-linear-to-br from-blue-500/10 via-white to-sky-500/5 dark:from-blue-950/40 dark:via-[#0c1322] dark:to-sky-950/20 border-2 border-blue-500/40 dark:border-blue-600/40 shadow-xs hover:shadow-md transition-all relative overflow-hidden group">
           <div className="flex items-start justify-between">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+            <div className="w-11 h-11 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/30 flex items-center justify-center">
               <Users className="w-5 h-5" />
             </div>
             <button
               onClick={() => onNavigateTab('users')}
-              className="w-7 h-7 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50 flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-lg text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-2xs"
               title="View all customers"
             >
               <ArrowUpRight className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="mt-3">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <div className="mt-3.5">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">
               TOTAL CUSTOMERS
             </span>
             <div className="flex items-baseline justify-between mt-1">
@@ -337,34 +377,34 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
             </div>
           </div>
 
-          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-3 text-xs font-mono">
-            <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+          <div className="mt-3 pt-3 border-t border-blue-200/60 dark:border-blue-900/60 flex items-center gap-3 text-xs font-mono">
+            <span className="text-emerald-700 dark:text-emerald-400 font-bold flex items-center gap-1">
               <span>▲</span> +{activeCustomersCount} Active
             </span>
             <span className="text-slate-300 dark:text-slate-700">•</span>
-            <span className="text-rose-500 dark:text-rose-400 font-semibold flex items-center gap-1">
+            <span className="text-rose-600 dark:text-rose-400 font-bold flex items-center gap-1">
               <span>●</span> {frozenCustomersCount} Frozen
             </span>
           </div>
         </div>
 
         {/* Metric 2: CUSTOMER LIABILITIES */}
-        <div className="p-5 rounded-2xl bg-white dark:bg-[#0c1322] border border-slate-200/80 dark:border-slate-800/80 shadow-2xs hover:shadow-sm transition-all relative overflow-hidden group">
+        <div className="p-5 rounded-2xl bg-linear-to-br from-emerald-500/10 via-white to-teal-500/5 dark:from-emerald-950/40 dark:via-[#0c1322] dark:to-teal-950/20 border-2 border-emerald-500/40 dark:border-emerald-600/40 shadow-xs hover:shadow-md transition-all relative overflow-hidden group">
           <div className="flex items-start justify-between">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <div className="w-11 h-11 rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-500/30 flex items-center justify-center">
               <Wallet className="w-5 h-5" />
             </div>
             <button
               onClick={() => onNavigateTab('wallets')}
-              className="w-7 h-7 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-lg text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-2xs"
               title="View wallet analytics"
             >
               <ArrowUpRight className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="mt-3">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <div className="mt-3.5">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
               CUSTOMER LIABILITIES
             </span>
             <div className="flex items-baseline justify-between mt-1">
@@ -384,82 +424,87 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
             </div>
           </div>
 
-          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 text-xs text-slate-500 dark:text-slate-400 truncate">
+          <div className="mt-3 pt-3 border-t border-emerald-200/60 dark:border-emerald-900/60 text-xs text-emerald-800 dark:text-emerald-300 font-medium truncate">
             Aggregated user wallet balances
           </div>
         </div>
 
         {/* Metric 3: LIFETIME TURNOVER */}
-        <div className="p-5 rounded-2xl bg-white dark:bg-[#0c1322] border border-slate-200/80 dark:border-slate-800/80 shadow-2xs hover:shadow-sm transition-all relative overflow-hidden group">
+        <div className="p-5 rounded-2xl bg-linear-to-br from-purple-500/10 via-white to-indigo-500/5 dark:from-purple-950/40 dark:via-[#0c1322] dark:to-indigo-950/20 border-2 border-purple-500/40 dark:border-purple-600/40 shadow-xs hover:shadow-md transition-all relative overflow-hidden group">
           <div className="flex items-start justify-between">
-            <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+            <div className="w-11 h-11 rounded-xl bg-purple-600 text-white shadow-md shadow-purple-500/30 flex items-center justify-center">
               <TrendingUp className="w-5 h-5" />
             </div>
             <button
               onClick={() => onNavigateTab('transactions')}
-              className="w-7 h-7 rounded-lg text-slate-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/50 flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-lg text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-600 hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-2xs"
               title="View transaction tracker"
             >
               <ArrowUpRight className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="mt-3">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <div className="mt-3.5">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300">
               LIFETIME TURNOVER
             </span>
             <div className="flex items-baseline justify-between mt-1">
-              <span className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono tracking-tight">
+              <span className="text-2xl sm:text-3xl font-black text-purple-700 dark:text-purple-300 font-mono tracking-tight">
                 ₦{lifetimeTurnover.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
               {/* Mini Bar Chart SVG */}
               <div className="flex items-end gap-1 h-7">
-                <div className="w-1.5 h-3 bg-purple-200 dark:bg-purple-900 rounded-xs" />
-                <div className="w-1.5 h-4 bg-purple-300 dark:bg-purple-800 rounded-xs" />
-                <div className="w-1.5 h-6 bg-purple-400 dark:bg-purple-700 rounded-xs" />
-                <div className="w-1.5 h-5 bg-purple-500 dark:bg-purple-600 rounded-xs" />
-                <div className="w-1.5 h-7 bg-purple-600 dark:bg-purple-400 rounded-xs" />
+                <div className="w-1.5 h-3 bg-purple-300 dark:bg-purple-900 rounded-xs" />
+                <div className="w-1.5 h-4 bg-purple-400 dark:bg-purple-800 rounded-xs" />
+                <div className="w-1.5 h-6 bg-purple-500 dark:bg-purple-700 rounded-xs" />
+                <div className="w-1.5 h-5 bg-purple-600 dark:bg-purple-600 rounded-xs" />
+                <div className="w-1.5 h-7 bg-purple-700 dark:bg-purple-400 rounded-xs" />
               </div>
             </div>
           </div>
 
-          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 text-xs text-slate-500 dark:text-slate-400 truncate">
-            Cumulative customer transaction volume
+          <div className="mt-3 pt-3 border-t border-purple-200/60 dark:border-purple-900/60 text-xs text-purple-800 dark:text-purple-300 font-medium truncate">
+            Cumulative transaction volume
           </div>
         </div>
 
         {/* Metric 4: PLATFORM FLOATS */}
-        <div className="p-5 rounded-2xl bg-white dark:bg-[#0c1322] border border-slate-200/80 dark:border-slate-800/80 shadow-2xs hover:shadow-sm transition-all relative overflow-hidden group">
+        <div className="p-5 rounded-2xl bg-linear-to-br from-amber-500/10 via-white to-orange-500/5 dark:from-amber-950/40 dark:via-[#0c1322] dark:to-orange-950/20 border-2 border-amber-500/40 dark:border-amber-600/40 shadow-xs hover:shadow-md transition-all relative overflow-hidden group">
           <div className="flex items-start justify-between">
-            <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 flex items-center justify-center">
+            <div className="w-11 h-11 rounded-xl bg-amber-600 text-white shadow-md shadow-amber-500/30 flex items-center justify-center">
               <Layers className="w-5 h-5" />
             </div>
             <button
               onClick={() => onNavigateTab('wallets')}
-              className="w-7 h-7 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/50 flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-lg text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-600 hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-2xs"
               title="View upstream floats"
             >
               <ArrowUpRight className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="mt-3">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <div className="mt-3.5">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">
               PLATFORM FLOATS
             </span>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed line-clamp-2">
-              Upstream gateway reserves, solvency ratio & telecom balances.
-            </p>
+            <div className="flex items-baseline justify-between mt-1">
+              <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
+                ₦{totalVendorFloat.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+              <span
+                className={`px-2 py-0.5 rounded-full font-bold font-mono text-[10px] border ${
+                  reserveRatio >= 1.0
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-300'
+                    : 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-300'
+                }`}
+              >
+                {(reserveRatio * 100).toFixed(0)}% Solvency
+              </span>
+            </div>
           </div>
 
-          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80">
-            <button
-              onClick={() => onNavigateTab('wallets')}
-              className="w-full py-2 px-3 rounded-xl bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white dark:bg-blue-950/60 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 group/btn cursor-pointer"
-            >
-              <span>View Floats & Reserves</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
-            </button>
+          <div className="mt-3 pt-3 border-t border-amber-200/60 dark:border-amber-900/60 text-xs text-amber-800 dark:text-amber-300 font-medium truncate">
+            Upstream telecom vendor float
           </div>
         </div>
       </div>
@@ -917,6 +962,96 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
           </table>
         </div>
       </div>
+
+      {/* FRESH START / RESET STATISTICS CONFIRMATION MODAL */}
+      {isResetModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200"
+        >
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-5 text-left">
+            <div className="flex items-start justify-between gap-3">
+              <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <button
+                onClick={() => !isResetting && setIsResetModalOpen(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white font-heading">
+                Reset Platform Statistics &amp; Logs
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                This utility will clear existing transaction logs to start fresh with a clean slate. Ideal after testing before opening the platform to the public.
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 space-y-2 text-xs">
+              <div className="font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
+                <span>⚠️</span> The following metrics will be reset to zeros:
+              </div>
+              <ul className="list-disc list-inside space-y-1 text-amber-800 dark:text-amber-300/90 text-[11px] font-medium">
+                <li><strong className="font-semibold">Lifetime Turnover:</strong> ₦0.00</li>
+                <li><strong className="font-semibold">Today's Sales Volume:</strong> ₦0.00</li>
+                <li><strong className="font-semibold">Today's Gross Profit:</strong> ₦0.00</li>
+                <li><strong className="font-semibold">Orders Processed / Tx Count:</strong> 0 orders</li>
+                <li><strong className="font-semibold">Transaction Logs:</strong> Cleared to 0 records</li>
+              </ul>
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-start gap-3">
+              <input
+                id="reset-customer-wallets"
+                type="checkbox"
+                checked={resetBalancesOption}
+                onChange={(e) => setResetBalancesOption(e.target.checked)}
+                className="mt-0.5 rounded text-amber-600 focus:ring-amber-500 cursor-pointer"
+              />
+              <label htmlFor="reset-customer-wallets" className="text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer">
+                <strong>Also reset customer wallet balances to ₦0.00</strong>
+                <span className="block text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Resets Customer Liabilities to zero. (Admin accounts are preserved).
+                </span>
+              </label>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                disabled={isResetting}
+                onClick={() => setIsResetModalOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isResetting}
+                onClick={handleExecuteReset}
+                className="flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 active:scale-95 transition-all shadow-md shadow-amber-600/30 cursor-pointer disabled:opacity-50"
+              >
+                {isResetting ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Resetting to Zeros...</span>
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Confirm &amp; Reset to Zeros</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

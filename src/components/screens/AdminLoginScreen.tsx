@@ -17,7 +17,7 @@ import {
   Copy,
   Check
 } from 'lucide-react';
-import { apiAdminLogin, apiAdminVerifyOtp, apiAdminResendOtp } from '../../services/apiClient';
+import { apiAdminLogin, apiAdminVerifyOtp, apiAdminResendOtp, setAuthToken } from '../../services/apiClient';
 import { isSimulationAllowed } from '../../utils/environment';
 
 interface AdminLoginScreenProps {
@@ -132,6 +132,12 @@ export const AdminLoginScreen: React.FC<AdminLoginScreenProps> = ({
       } else if (res.status === 'success' && res.data?.token) {
         // Direct authentication fallback
         setAttemptsRemaining(null);
+        setAuthToken(res.data.token);
+        try {
+          localStorage.setItem('jagora_auth_token', res.data.token);
+          localStorage.setItem('jagora_admin_token', res.data.token);
+          localStorage.setItem('jagora_admin_authenticated', 'true');
+        } catch {}
         onLoginSuccess(res.data?.user || { name: 'Bashir Abubakar', email, adminRole: 'super_admin' });
       } else {
         // Fallback check if credentials match authorized master credentials (simulation only)
@@ -194,12 +200,25 @@ export const AdminLoginScreen: React.FC<AdminLoginScreenProps> = ({
       setIsLoading(false);
 
       if (res.status === 'success' && res.data?.token) {
+        setAuthToken(res.data.token);
+        try {
+          localStorage.setItem('jagora_auth_token', res.data.token);
+          localStorage.setItem('jagora_admin_token', res.data.token);
+          localStorage.setItem('jagora_admin_authenticated', 'true');
+        } catch {}
         onLoginSuccess(res.data?.user || { name: 'Bashir Abubakar', email, adminRole: 'super_admin' });
       } else {
         const canSimulate = isSimulationAllowed();
         // Allow preview code match or backup recovery key only in simulation/dev mode
         if (canSimulate && (otp.trim() === previewOtp || (useBackupKey && backupKey.trim() === 'JAGORA-ROOT-2026'))) {
-          onLoginSuccess({ name: 'Bashir Abubakar', email, adminRole: 'super_admin' });
+          const simToken = btoa('bashirabubakar650@gmail.com');
+          setAuthToken(simToken);
+          try {
+            localStorage.setItem('jagora_auth_token', simToken);
+            localStorage.setItem('jagora_admin_token', simToken);
+            localStorage.setItem('jagora_admin_authenticated', 'true');
+          } catch {}
+          onLoginSuccess({ name: 'Bashir Abubakar', email, phone: '08123456789', role: 'admin', adminRole: 'super_admin', token: simToken });
         } else {
           setError(res.message || 'Invalid or expired 6-digit verification code.');
         }
@@ -209,7 +228,14 @@ export const AdminLoginScreen: React.FC<AdminLoginScreenProps> = ({
       const canSimulate = isSimulationAllowed();
       // Allow offline preview code match only in simulation/dev mode
       if (canSimulate && (otp.trim() === previewOtp || (useBackupKey && backupKey.trim() === 'JAGORA-ROOT-2026'))) {
-        onLoginSuccess({ name: 'Bashir Abubakar', email, adminRole: 'super_admin' });
+        const simToken = btoa('bashirabubakar650@gmail.com');
+        setAuthToken(simToken);
+        try {
+          localStorage.setItem('jagora_auth_token', simToken);
+          localStorage.setItem('jagora_admin_token', simToken);
+          localStorage.setItem('jagora_admin_authenticated', 'true');
+        } catch {}
+        onLoginSuccess({ name: 'Bashir Abubakar', email, phone: '08123456789', role: 'admin', adminRole: 'super_admin', token: simToken });
       } else {
         setError(err?.message || 'Invalid verification code. Please check your email or enter your valid OTP.');
       }

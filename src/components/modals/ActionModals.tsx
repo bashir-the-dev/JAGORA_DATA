@@ -31,6 +31,7 @@ import {
   MessageCircle,
   Layers,
   Search,
+  AlertTriangle,
 } from 'lucide-react';
 import { captureReceiptAsImage } from '../../utils/receiptImage';
 import { TelecomLogo } from '../common/TelecomLogo';
@@ -448,8 +449,12 @@ export const BuyAirtimeModal: React.FC<BuyAirtimeModalProps> = ({
     setPhone(val);
     setError('');
     const norm = normalizeNigerianPhone(val);
-    if (norm.detectedNetwork && norm.detectedNetwork !== selectedNetwork) {
-      setSelectedNetwork(norm.detectedNetwork);
+    if (norm.detectedNetwork) {
+      if (norm.detectedNetwork !== selectedNetwork) {
+        setSelectedNetwork(norm.detectedNetwork);
+        setIsManualNetworkOverride(false);
+      }
+    } else {
       setIsManualNetworkOverride(false);
     }
   };

@@ -38,6 +38,7 @@ import {
   apiGetGatewayBalances,
   apiGetGatewaySwitches,
   apiToggleGatewaySwitch,
+  apiResetPlatformStats,
 } from '../../services/apiClient';
 
 interface AdminDashboardScreenProps {
@@ -264,6 +265,38 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
     fetchLiveStats();
     fetchGatewaySwitches();
   }, []);
+
+  // Handle Manual Fresh Start / Reset Platform Statistics
+  const handleResetStatistics = async (resetBalances: boolean) => {
+    try {
+      const res = await apiResetPlatformStats({ resetBalances });
+      if (res.status === 'success' || res.success) {
+        // 1. Clear transaction records
+        setTransactions([]);
+        // 2. Clear platform wallet metrics
+        setPlatformWallet((prev) => ({
+          ...prev,
+          todaySalesVolume: 0,
+          todayGrossProfit: 0,
+          todayTxCount: 0,
+          failedTxCount: 0,
+          ...(resetBalances ? { totalUserWallets: 0 } : {}),
+        }));
+        // 3. Clear user balances if selected
+        if (resetBalances) {
+          setUsers((prev) =>
+            prev.map((u) => (u.role === 'admin' ? u : { ...u, balance: 0, bonusBalance: 0 }))
+          );
+        }
+        showToast('✅ Platform statistics, orders & logs have been reset to zeros for a fresh start!');
+        await fetchLiveStats();
+      } else {
+        showToast(res.message || 'Failed to reset statistics');
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Error occurred while resetting platform statistics');
+    }
+  };
 
   // Handle Master Upstream Gateway Shutdown Switches
   const handleToggleGatewaySwitch = async (gateway: string, active: boolean) => {
@@ -655,6 +688,7 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
               onNavigateTab={setActiveTab}
               onAdjustUserWallet={handleAdjustUserWallet}
               onToggleUserStatus={handleToggleUserStatus}
+              onResetStatistics={handleResetStatistics}
               onInspectUser={(u) => {
                 setActiveTab('users');
                 showToast(`Opened user: ${u.name}`);
@@ -738,6 +772,14 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
             <BulkPushNotificationsTab
               isLightMode={isLightMode}
               showToast={showToast}
+            />
+          )}
+
+          {activeTab === 'settings' && (
+            <PlatformSettingsTab
+              isLightMode={isLightMode}
+              showToast={showToast}
+              onResetStatistics={handleResetStatistics}
             />
           )}
         </main>

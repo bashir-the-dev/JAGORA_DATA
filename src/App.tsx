@@ -1235,6 +1235,7 @@ export default function App() {
               : u.adminRole === 'finance_agent'
               ? 'Finance Agent'
               : 'Administrator';
+          setAlerts([]);
           showToast(`Welcome ${roleLabel}, ${u.name || 'Admin'}!`);
         }, 550);
         return;
@@ -1247,6 +1248,7 @@ export default function App() {
       setTimeout(() => {
         setAuthLoadingMessage(null);
         setCurrentScreen('home');
+        setAlerts([]);
         showToast(`Welcome back, ${updatedProfile.name}!`);
       }, 550);
       return;
@@ -1276,6 +1278,7 @@ export default function App() {
         setTimeout(() => {
           setAuthLoadingMessage(null);
           setCurrentScreen('admin');
+          setAlerts([]);
           showToast(`Welcome Administrator, ${profile.name}!`);
         }, 550);
         return;
@@ -1287,6 +1290,7 @@ export default function App() {
       setTimeout(() => {
         setAuthLoadingMessage(null);
         setCurrentScreen('home');
+        setAlerts([]);
         showToast(`Welcome back, ${profile.name}!`);
       }, 550);
     });
@@ -1364,26 +1368,31 @@ export default function App() {
     setIsLogoutModalOpen(false);
     setTransactions([]);
     if (logoutTarget === 'admin') {
+      setAuthLoadingMessage('Locking administrative console & securing keys...');
       apiLogout().catch(() => {});
-      setIsUserLoggedIn(false);
-      setIsAdminAuthenticated(false);
-      setAdminProfile(null);
-      setUser(initialUser);
-      try {
-        localStorage.removeItem('jagora_admin_authenticated');
-        localStorage.removeItem('jagora_admin_profile');
-        localStorage.removeItem('jagora_user_logged_in');
-        localStorage.removeItem('jagora_user_profile');
-        localStorage.removeItem('jagora_token');
-        localStorage.removeItem('jagora_auth_token');
-        localStorage.setItem('jagora_active_screen', isAdminSubdomain() ? 'admin' : 'login');
-      } catch {}
-      setAuthToken(null);
-      setCurrentScreen(isAdminSubdomain() ? 'admin' : 'login');
-      if (window.location.hash === '#admin') {
-        history.replaceState(null, '', window.location.pathname);
-      }
-      showToast('Logged out of Admin Console.');
+      setTimeout(() => {
+        setIsUserLoggedIn(false);
+        setIsAdminAuthenticated(false);
+        setAdminProfile(null);
+        setUser(initialUser);
+        try {
+          localStorage.removeItem('jagora_admin_authenticated');
+          localStorage.removeItem('jagora_admin_profile');
+          localStorage.removeItem('jagora_user_logged_in');
+          localStorage.removeItem('jagora_user_profile');
+          localStorage.removeItem('jagora_token');
+          localStorage.removeItem('jagora_auth_token');
+          localStorage.removeItem('jagora_admin_token');
+          localStorage.setItem('jagora_active_screen', isAdminSubdomain() ? 'admin' : 'login');
+        } catch {}
+        setAuthToken(null);
+        setAuthLoadingMessage(null);
+        setCurrentScreen(isAdminSubdomain() ? 'admin' : 'login');
+        if (window.location.hash === '#admin') {
+          history.replaceState(null, '', window.location.pathname);
+        }
+        showToast('Logged out of Admin Console.', 'info', 'Console Locked');
+      }, 500);
     } else {
       setAuthLoadingMessage('Securing wallet & ending session...');
       apiLogout().catch(() => {});
@@ -1391,11 +1400,12 @@ export default function App() {
         try {
           localStorage.removeItem('jagora_token');
           localStorage.removeItem('jagora_auth_token');
+          localStorage.removeItem('jagora_admin_token');
           localStorage.removeItem('jagora_user_logged_in');
           localStorage.removeItem('jagora_user_profile');
           localStorage.removeItem('jagora_admin_authenticated');
           localStorage.removeItem('jagora_admin_profile');
-          localStorage.setItem('jagora_active_screen', 'landing');
+          localStorage.setItem('jagora_active_screen', 'login');
         } catch {}
         setAuthToken(null);
         setIsUserLoggedIn(false);
@@ -1404,10 +1414,10 @@ export default function App() {
         setUser(initialUser);
         setTransactions([]);
         setAuthLoadingMessage(null);
-        setCurrentScreen('landing');
+        setCurrentScreen('login');
         history.replaceState(null, '', '/' + window.location.search);
-        showToast('Logged out of session.');
-      }, 450);
+        showToast('You have been logged out successfully.', 'info', 'Session Ended');
+      }, 500);
     }
   };
 
@@ -1458,11 +1468,14 @@ export default function App() {
   // Dedicated In-App Professional Loading Screen during Auth / Session transitions
   if (authLoadingMessage) {
     return (
-      <LoadingScreen
-        message={authLoadingMessage}
-        isLightMode={isLightMode}
-        fullScreen={true}
-      />
+      <>
+        <ProfessionalToastContainer alerts={alerts} onDismiss={dismissAlert} isLightMode={isLightMode} />
+        <LoadingScreen
+          message={authLoadingMessage}
+          isLightMode={isLightMode}
+          fullScreen={true}
+        />
+      </>
     );
   }
 
@@ -1493,33 +1506,41 @@ export default function App() {
   if (currentScreen === 'login') {
     if (showStaff2FALogin) {
       return (
-        <AdminLoginScreen
-          onLoginSuccess={(adminUser) => {
-            setIsAdminAuthenticated(true);
-            setAdminProfile(adminUser);
-            setShowStaff2FALogin(false);
-            try {
-              localStorage.setItem('jagora_admin_authenticated', 'true');
-              localStorage.setItem('jagora_admin_profile', JSON.stringify(adminUser));
-              localStorage.setItem('jagora_active_screen', 'admin');
-            } catch {}
-            const roleLabel =
-              adminUser?.adminRole === 'support_agent'
-                ? 'Support Agent'
-                : adminUser?.adminRole === 'finance_agent'
-                ? 'Finance Agent'
-                : 'Administrator';
-            showToast(`Authenticated as ${roleLabel}. Console unlocked.`);
-            setCurrentScreen('admin');
-          }}
-          onCancel={() => setShowStaff2FALogin(false)}
-          isLightMode={isLightMode}
-        />
+        <>
+          <ProfessionalToastContainer alerts={alerts} onDismiss={dismissAlert} isLightMode={isLightMode} />
+          <AdminLoginScreen
+            onLoginSuccess={(adminUser) => {
+              setIsAdminAuthenticated(true);
+              setAdminProfile(adminUser);
+              setShowStaff2FALogin(false);
+              const adminTok = adminUser?.token || btoa(adminUser?.phone || 'bashirabubakar650@gmail.com');
+              setAuthToken(adminTok);
+              try {
+                localStorage.setItem('jagora_admin_authenticated', 'true');
+                localStorage.setItem('jagora_admin_profile', JSON.stringify(adminUser));
+                localStorage.setItem('jagora_auth_token', adminTok);
+                localStorage.setItem('jagora_admin_token', adminTok);
+                localStorage.setItem('jagora_active_screen', 'admin');
+              } catch {}
+              const roleLabel =
+                adminUser?.adminRole === 'support_agent'
+                  ? 'Support Agent'
+                  : adminUser?.adminRole === 'finance_agent'
+                  ? 'Finance Agent'
+                  : 'Administrator';
+              showToast(`Authenticated as ${roleLabel}. Console unlocked.`);
+              setCurrentScreen('admin');
+            }}
+            onCancel={() => setShowStaff2FALogin(false)}
+            isLightMode={isLightMode}
+          />
+        </>
       );
     }
 
     return (
       <>
+        <ProfessionalToastContainer alerts={alerts} onDismiss={dismissAlert} isLightMode={isLightMode} />
         <LoginScreen
           onLoginSuccess={handleLoginSuccess}
           onNavigateRegister={() => setCurrentScreen('register')}
@@ -1547,6 +1568,7 @@ export default function App() {
   if (currentScreen === 'register') {
     return (
       <>
+        <ProfessionalToastContainer alerts={alerts} onDismiss={dismissAlert} isLightMode={isLightMode} />
         <RegisterScreen
           onRegisterSuccess={handleRegisterSuccess}
           onNavigateLogin={() => setCurrentScreen('login')}
@@ -1569,18 +1591,21 @@ export default function App() {
 
   if (currentScreen === 'terms' || currentScreen === 'privacy') {
     return (
-      <LegalScreen
-        initialTab={currentScreen === 'privacy' ? 'privacy' : 'terms'}
-        onNavigateBack={() => {
-          if (isUserLoggedIn) {
-            setCurrentScreen('profile');
-          } else {
-            setCurrentScreen('landing');
-          }
-        }}
-        onNavigate={setCurrentScreen}
-        isLightMode={isLightMode}
-      />
+      <>
+        <ProfessionalToastContainer alerts={alerts} onDismiss={dismissAlert} isLightMode={isLightMode} />
+        <LegalScreen
+          initialTab={currentScreen === 'privacy' ? 'privacy' : 'terms'}
+          onNavigateBack={() => {
+            if (isUserLoggedIn) {
+              setCurrentScreen('profile');
+            } else {
+              setCurrentScreen('landing');
+            }
+          }}
+          onNavigate={setCurrentScreen}
+          isLightMode={isLightMode}
+        />
+      </>
     );
   }
 
@@ -1600,33 +1625,37 @@ export default function App() {
       // 2. If staff member selected 2FA Master PIN challenge
       if (showStaff2FALogin) {
         return (
-          <AdminLoginScreen
-            onLoginSuccess={(u) => {
-              setIsAdminAuthenticated(true);
-              setAdminProfile(u);
-              setShowStaff2FALogin(false);
-              try {
-                localStorage.setItem('jagora_admin_authenticated', 'true');
-                localStorage.setItem('jagora_admin_profile', JSON.stringify(u));
-                localStorage.setItem('jagora_active_screen', 'admin');
-              } catch {}
-              const roleLabel =
-                u?.adminRole === 'support_agent'
-                  ? 'Support Agent'
-                  : u?.adminRole === 'finance_agent'
-                  ? 'Finance Agent'
-                  : 'CEO (Master Admin)';
-              showToast(`Authenticated as ${roleLabel}. Console unlocked.`);
-            }}
-            onCancel={() => setShowStaff2FALogin(false)}
-            isLightMode={isLightMode}
-          />
+          <>
+            <ProfessionalToastContainer alerts={alerts} onDismiss={dismissAlert} isLightMode={isLightMode} />
+            <AdminLoginScreen
+              onLoginSuccess={(u) => {
+                setIsAdminAuthenticated(true);
+                setAdminProfile(u);
+                setShowStaff2FALogin(false);
+                try {
+                  localStorage.setItem('jagora_admin_authenticated', 'true');
+                  localStorage.setItem('jagora_admin_profile', JSON.stringify(u));
+                  localStorage.setItem('jagora_active_screen', 'admin');
+                } catch {}
+                const roleLabel =
+                  u?.adminRole === 'support_agent'
+                    ? 'Support Agent'
+                    : u?.adminRole === 'finance_agent'
+                    ? 'Finance Agent'
+                    : 'CEO (Master Admin)';
+                showToast(`Authenticated as ${roleLabel}. Console unlocked.`);
+              }}
+              onCancel={() => setShowStaff2FALogin(false)}
+              isLightMode={isLightMode}
+            />
+          </>
         );
       }
 
       // 3. Shared Login Screen: Admin and regular users share the same login screen
       return (
         <>
+          <ProfessionalToastContainer alerts={alerts} onDismiss={dismissAlert} isLightMode={isLightMode} />
           <LoginScreen
             onLoginSuccess={handleLoginSuccess}
             onNavigateRegister={() => setCurrentScreen('register')}
@@ -1719,6 +1748,7 @@ export default function App() {
   if (!isUserLoggedIn && !['landing', 'login', 'register', 'support', 'terms', 'privacy', 'admin'].includes(currentScreen)) {
     return (
       <>
+        <ProfessionalToastContainer alerts={alerts} onDismiss={dismissAlert} isLightMode={isLightMode} />
         <LoginScreen
           onLoginSuccess={handleLoginSuccess}
           onNavigateRegister={() => setCurrentScreen('register')}

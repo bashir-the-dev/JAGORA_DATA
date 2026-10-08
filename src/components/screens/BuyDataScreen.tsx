@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Tag,
   ArrowRight,
+  AlertTriangle,
 } from 'lucide-react';
 import { TelecomLogo } from '../common/TelecomLogo';
 import { PinVerificationModal } from '../modals/PinVerificationModal';
@@ -108,11 +109,17 @@ export const BuyDataScreen: React.FC<BuyDataScreenProps> = ({
     setPhone(val);
     setErrorMessage('');
     const norm = normalizeNigerianPhone(val);
-    if (norm.detectedNetwork && norm.detectedNetwork !== selectedNetwork) {
-      setSelectedNetwork(norm.detectedNetwork);
+    // When the phone number is changed or typed, dynamically switch to the detected carrier
+    if (norm.detectedNetwork) {
+      if (norm.detectedNetwork !== selectedNetwork) {
+        setSelectedNetwork(norm.detectedNetwork);
+        setIsManualNetworkOverride(false);
+        const matchPlan = plans.find((p) => p.network === norm.detectedNetwork);
+        if (matchPlan) setSelectedPlanId(matchPlan.id);
+      }
+    } else {
+      // If user clears or changes prefix, unlock override so subsequent typing auto-detects
       setIsManualNetworkOverride(false);
-      const matchPlan = plans.find((p) => p.network === norm.detectedNetwork);
-      if (matchPlan) setSelectedPlanId(matchPlan.id);
     }
   };
 
@@ -144,7 +151,7 @@ export const BuyDataScreen: React.FC<BuyDataScreenProps> = ({
     const norm = normalizeNigerianPhone(phone);
     if (norm.detectedNetwork) {
       setSelectedNetwork(norm.detectedNetwork);
-      const matchPlan = dataPlans.find((p) => p.network === norm.detectedNetwork);
+      const matchPlan = plans.find((p) => p.network === norm.detectedNetwork);
       if (matchPlan) setSelectedPlanId(matchPlan.id);
     }
   };
@@ -154,8 +161,8 @@ export const BuyDataScreen: React.FC<BuyDataScreenProps> = ({
     triggerHaptic('light');
     setPhone(b.phone);
     setSelectedNetwork(b.network);
-    setIsManualNetworkOverride(true);
-    const matchPlan = dataPlans.find((p) => p.network === b.network);
+    setIsManualNetworkOverride(false);
+    const matchPlan = plans.find((p) => p.network === b.network);
     if (matchPlan) setSelectedPlanId(matchPlan.id);
     setErrorMessage('');
   };
@@ -453,11 +460,43 @@ export const BuyDataScreen: React.FC<BuyDataScreenProps> = ({
           )}
 
           {phoneValidation.detectedNetwork && (
-            <span className="text-blue-600 dark:text-blue-400 font-bold uppercase">
-              Switch: {phoneValidation.detectedNetwork}
+            <span className={`font-bold uppercase font-mono px-2 py-0.5 rounded-md text-[10px] ${
+              phoneValidation.detectedNetwork === selectedNetwork
+                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 ring-1 ring-amber-400'
+            }`}>
+              Line: {phoneValidation.detectedNetwork}
             </span>
           )}
         </div>
+
+        {/* Real-time Carrier Mismatch Warning Banner */}
+        {phoneValidation.detectedNetwork && phoneValidation.detectedNetwork !== selectedNetwork && (
+          <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs animate-fade-in">
+            <div className="flex items-start gap-2">
+              <AlertTriangle size={16} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
+              <div className="text-amber-900 dark:text-amber-200">
+                <span className="font-bold">Carrier Mismatch Detected: </span>
+                <span>This number is an <strong className="uppercase font-mono">{phoneValidation.detectedNetwork}</strong> line, but you have <strong className="uppercase font-mono">{selectedNetwork}</strong> selected.</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                playTapSound();
+                triggerHaptic('medium');
+                setSelectedNetwork(phoneValidation.detectedNetwork!);
+                setIsManualNetworkOverride(false);
+                const matchPlan = plans.find((p) => p.network === phoneValidation.detectedNetwork);
+                if (matchPlan) setSelectedPlanId(matchPlan.id);
+              }}
+              className="w-full sm:w-auto px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shrink-0 flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
+            >
+              <TelecomLogo network={phoneValidation.detectedNetwork} size="xs" />
+              <span>Switch to {phoneValidation.detectedNetwork.toUpperCase()}</span>
+            </button>
+          </div>
+        )}
       </section>
 
       {/* 3. SELECT DATA PLAN */}

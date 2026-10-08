@@ -44,6 +44,15 @@ if (!$route) {
 $route = trim((string)$route, '/');
 $normalizedRoute = str_replace('_', '-', $route);
 
+// Normalize parameter routes for admin broadcast notifications
+if (preg_match('#^admin/broadcast-notifications/(.+)$#', $normalizedRoute, $m) ||
+    preg_match('#^admin/notifications/broadcast/(.+)$#', $normalizedRoute, $m)) {
+    $normalizedRoute = 'admin/notifications/broadcast';
+    $_GET['id'] = $m[1];
+} elseif ($normalizedRoute === 'admin/broadcast-notifications') {
+    $normalizedRoute = 'admin/notifications/broadcast';
+}
+
 $method = $_SERVER['REQUEST_METHOD'];
 $body = getRequestBody();
 
@@ -1417,6 +1426,12 @@ switch ($normalizedRoute) {
         require_once __DIR__ . '/../admin/stats.php';
         break;
 
+    // Admin Reset Stats & Transactions (Fresh Start)
+    case 'admin/reset-stats':
+    case 'admin/reset-stats.php':
+        require_once __DIR__ . '/../admin/reset-stats.php';
+        break;
+
     // Upstream Live Gateway Balances (Payflex, ClubKonnect, etc.)
     case 'admin/gateway-balances':
     case 'admin/gateway-balances.php':
@@ -1555,6 +1570,49 @@ switch ($normalizedRoute) {
     case 'admin/broadcast-notification':
     case 'admin/broadcast_notification':
         $admin = requireAdminUser($pdo);
+
+        // If GET request, return history of broadcast notifications
+        if ($method === 'GET') {
+            $totalUsersStmt = $pdo->query("SELECT COUNT(*) AS total FROM users");
+            $totalUsers = (int)($totalUsersStmt->fetch()['total'] ?? 1);
+
+            $stmt = $pdo->query("SELECT id, title, message, type, accent_color, read_users, created_by, created_at FROM notifications WHERE user_phone IS NULL ORDER BY created_at DESC LIMIT 50");
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $result = [];
+            foreach ($rows as $r) {
+                $readUsers = json_decode($r['read_users'] ?? '[]', true) ?: [];
+                $result[] = [
+                    'id' => (string)$r['id'],
+                    'title' => $r['title'],
+                    'message' => $r['message'],
+                    'type' => $r['type'],
+                    'accentColor' => $r['accent_color'],
+                    'readCount' => count($readUsers),
+                    'totalUsers' => $totalUsers,
+                    'created_by' => $r['created_by'],
+                    'created_at' => $r['created_at'],
+                    'time' => date('M d, Y h:i A', strtotime($r['created_at']))
+                ];
+            }
+            jsonResponse(['status' => 'success', 'success' => true, 'data' => $result]);
+            break;
+        }
+
+        // If DELETE request, delete by ID
+        if ($method === 'DELETE') {
+            $notifId = trim((string)($body['id'] ?? ($_GET['id'] ?? '')));
+            if (empty($notifId) && preg_match('#/([^/?]+)(?:\?.*)?$#', $_SERVER['REQUEST_URI'] ?? '', $m)) {
+                $notifId = trim($m[1]);
+            }
+            if (empty($notifId) || $notifId === 'broadcast' || $notifId === 'broadcast-notifications') {
+                jsonResponse(['status' => 'error', 'message' => 'Invalid notification ID.'], 400);
+            }
+            $del = $pdo->prepare("DELETE FROM notifications WHERE id = ? OR id = ?");
+            $del->execute([$notifId, (int)$notifId]);
+            jsonResponse(['status' => 'success', 'success' => true, 'message' => 'Broadcast notification deleted successfully.']);
+            break;
+        }
+
         $title = trim($body['title'] ?? '');
         $message = trim($body['message'] ?? '');
         $type = trim($body['type'] ?? 'system');
@@ -1579,10 +1637,32 @@ switch ($normalizedRoute) {
         ];
         $accentColor = $typeAccents[$type] ?? '#0047cc';
 
-        // Insert broadcast notification into database
-        $notifStmt = $pdo->prepare("INSERT INTO notifications (user_id, user_phone, title, message, type, accent_color, read_users, created_by, created_at) VALUES (NULL, NULL, ?, ?, ?, ?, '[]', ?, NOW())");
-        $notifStmt->execute([$title, $message, $type, $accentColor, $admin['phone'] ?? 'admin']);
-        $newNotifId = (int)$pdo->lastInsertId();
+        // Insert broadcast notification into database with auto-repair fallback
+        try {
+            $notifStmt = $pdo->prepare("INSERT INTO notifications (user_id, user_phone, title, message, type, accent_color, read_users, created_by, created_at) VALUES (NULL, NULL, ?, ?, ?, ?, '[]', ?, NOW())");
+            $notifStmt->execute([$title, $message, $type, $accentColor, $admin['phone'] ?? 'admin']);
+            $newNotifId = (int)$pdo->lastInsertId();
+        } catch (\Throwable $e) {
+            // Auto-create/repair notifications table on older cPanel database schemas
+            $pdo->exec("CREATE TABLE IF NOT EXISTS `notifications` (
+              `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+              `user_id` INT UNSIGNED NULL,
+              `user_phone` VARCHAR(20) NULL,
+              `title` VARCHAR(150) NOT NULL,
+              `message` TEXT NOT NULL,
+              `type` ENUM('system', 'promo', 'wallet', 'security', 'data') NOT NULL DEFAULT 'system',
+              `accent_color` VARCHAR(20) NOT NULL DEFAULT '#0047cc',
+              `read_users` JSON NULL,
+              `created_by` VARCHAR(50) NOT NULL DEFAULT 'admin',
+              `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              INDEX `idx_notif_phone` (`user_phone`),
+              INDEX `idx_notif_created` (`created_at` DESC)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+            $notifStmt = $pdo->prepare("INSERT INTO notifications (user_id, user_phone, title, message, type, accent_color, read_users, created_by, created_at) VALUES (NULL, NULL, ?, ?, ?, ?, '[]', ?, NOW())");
+            $notifStmt->execute([$title, $message, $type, $accentColor, $admin['phone'] ?? 'admin']);
+            $newNotifId = (int)$pdo->lastInsertId();
+        }
 
         // Count total registered users
         $totalUsersStmt = $pdo->query("SELECT COUNT(*) AS total FROM users");

@@ -52,21 +52,28 @@ if (!empty($payflexKey) && !str_starts_with($payflexKey, 'YOUR_')) {
     $payflexFloat = (float)($pfRes['wallet_credit'] ?? $pfRes['balance'] ?? $pfRes['wallet'] ?? 0);
 }
 
+// 9. Lifetime Platform Turnover
+$lifetimeTurnover = (float)$pdo->query('SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE status = "SUCCESS"')->fetchColumn();
+$reserveRatio = $totalUserWallets > 0 ? round($payflexFloat / $totalUserWallets, 4) : 1.0;
+
 $metricsData = [
-    'totalUsers'          => $userCount,
-    'totalUserWallets'    => $totalUserWallets,
-    'total_user_balance'  => $totalUserWallets,
-    'totalVendorFloat'    => $payflexFloat,
-    'totalDeposits'       => $totalDeposits,
-    'todaySalesVolume'    => $todaySales,
-    'total_volume'        => $todaySales,
-    'todayGrossProfit'    => round($todaySales * 0.05, 2),
-    'total_profit'        => round($todaySales * 0.05, 2),
-    'todayTxCount'        => $todayCount,
-    'todayFailedCount'    => $failedCount,
-    'currency'            => 'NGN',
-    'vtuGateway'          => defined('VTU_PROVIDER_NAME') ? VTU_PROVIDER_NAME : 'Payflex',
-    'serverTime'          => date('Y-m-d H:i:s'),
+    'totalUsers'               => $userCount,
+    'totalUserWallets'         => $totalUserWallets,
+    'totalCustomerLiabilities' => $totalUserWallets,
+    'total_user_balance'       => $totalUserWallets,
+    'totalVendorFloat'         => $payflexFloat,
+    'lifetimeTurnover'         => $lifetimeTurnover,
+    'reserveRatio'             => $reserveRatio,
+    'totalDeposits'            => $totalDeposits,
+    'todaySalesVolume'         => $todaySales,
+    'total_volume'             => $todaySales,
+    'todayGrossProfit'         => round($todaySales * 0.05, 2),
+    'total_profit'             => round($todaySales * 0.05, 2),
+    'todayTxCount'             => $todayCount,
+    'todayFailedCount'         => $failedCount,
+    'currency'                 => 'NGN',
+    'vtuGateway'               => defined('VTU_PROVIDER_NAME') ? VTU_PROVIDER_NAME : 'Payflex',
+    'serverTime'               => date('Y-m-d H:i:s'),
 ];
 
 jsonResponse([

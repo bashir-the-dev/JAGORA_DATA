@@ -14,7 +14,7 @@ $admin = requireAdminUser($pdo);
 
 $body = getRequestBody();
 
-$userPhone = preg_replace('/[^0-9]/', '', $body['phone'] ?? $body['recipient'] ?? '');
+$userPhone = normalizePhone($body['phone'] ?? $body['recipient'] ?? '');
 $amount    = (float)($body['amount'] ?? 0);
 $type      = strtolower(trim($body['type'] ?? 'credit')); // 'credit' or 'debit'
 $reason    = trim($body['reason'] ?? 'Admin manual wallet adjustment');
