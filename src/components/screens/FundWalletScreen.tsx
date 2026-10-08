@@ -10,8 +10,11 @@ import {
   ArrowRight,
   Info,
   AlertCircle,
+  Sparkles,
+  RefreshCw,
 } from 'lucide-react';
-import { playTapSound, triggerHaptic } from '../../utils/soundEffects';
+import { playTapSound, triggerHaptic, playSuccessChime } from '../../utils/soundEffects';
+import { apiGenerateVirtualAccounts } from '../../services/apiClient';
 
 interface FundWalletScreenProps {
   virtualAccounts?: Array<{ bank_name: string; account_number: string; account_name: string }>;
@@ -19,6 +22,7 @@ interface FundWalletScreenProps {
   onNavigateBack?: () => void;
   onNavigateSupport?: () => void;
   isMaintenanceMode?: boolean;
+  onRefresh?: () => Promise<void> | void;
 }
 
 export const FundWalletScreen: React.FC<FundWalletScreenProps> = ({
@@ -26,8 +30,34 @@ export const FundWalletScreen: React.FC<FundWalletScreenProps> = ({
   isLightMode,
   onNavigateSupport,
   isMaintenanceMode,
+  onRefresh,
 }) => {
   const [copiedBank, setCopiedBank] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+
+  const handleGenerate = async () => {
+    if (isGenerating) return;
+    setIsGenerating(true);
+    setGenerateError(null);
+    playTapSound();
+    triggerHaptic('medium');
+    try {
+      const res = await apiGenerateVirtualAccounts();
+      if (res.status === 'success' || res.data) {
+        playSuccessChime();
+        if (onRefresh) {
+          await onRefresh();
+        }
+      } else {
+        setGenerateError(res.message || 'Could not generate account numbers. Please try again.');
+      }
+    } catch (e: any) {
+      setGenerateError(e?.message || 'Server connection error.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const activeAccounts =
     userVirtualAccounts && Array.isArray(userVirtualAccounts) && userVirtualAccounts.length > 0
@@ -101,9 +131,35 @@ export const FundWalletScreen: React.FC<FundWalletScreenProps> = ({
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed font-medium">
-                  Real dedicated accounts are issued directly by CBN-licensed switches (Monnify / Payvessel). To prevent loss of funds, dummy or fake bank numbers are strictly blocked on your profile.
+                  Real dedicated accounts are issued directly via XIXAPAY (PalmPay & Kolomoni MFB) with 0% fees and no BVN or NIN needed.
                 </p>
               </div>
+            </div>
+
+            {/* Instant Account Generation CTA Button */}
+            <div className="space-y-2">
+              <button
+                type="button"
+                disabled={isGenerating}
+                onClick={handleGenerate}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#0047cc] to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white text-xs font-bold font-mono transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-95 disabled:opacity-60"
+              >
+                {isGenerating ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin text-white" />
+                    <span>Activating Real Bank Accounts...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={15} className="text-amber-300 fill-amber-300" />
+                    <span>⚡ Get My Account Numbers (Instant - No BVN/NIN)</span>
+                  </>
+                )}
+              </button>
+
+              {generateError && (
+                <p className="text-xs text-rose-500 font-medium text-center">{generateError}</p>
+              )}
             </div>
 
             <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80 space-y-2 text-xs">

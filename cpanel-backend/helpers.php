@@ -60,21 +60,60 @@ function ensureUserColumns(PDO $pdo): void {
 
 /**
  * Checks if the customer was referred by someone and hasn't had their first transaction
- * commission bonus awarded yet. If eligible, credits ₦50 to the referrer's bonus_balance
- * and records a referral transaction.
+ * commission bonus awarded yet. Strictly enforces admin settings (pause toggle, validity window, min spend).
+ * Delivers immediate in-app notifications and transactions so referrers are never left idle.
  */
-function checkAndProcessReferralCommissionPhp(PDO $pdo, int $userId, string $txRef): void {
+function checkAndProcessReferralCommissionPhp(PDO $pdo, int $userId, string $txRef, float $txAmount = 0.0): void {
     try {
         ensureUserColumns($pdo);
-        $stmt = $pdo->prepare("SELECT id, name, phone, referred_by, referral_rewarded FROM users WHERE id = ? LIMIT 1");
+
+        // 1. Fetch dynamic admin referral rules
+        $refSettings = [
+            'enabled' => true,
+            'bonusAmount' => 50.00,
+            'eligibilityDays' => 30,
+            'minPurchaseAmount' => 100.00
+        ];
+        try {
+            $sRow = $pdo->query("SELECT value_json FROM settings WHERE key_name = 'referral_settings' LIMIT 1")->fetch();
+            if ($sRow && !empty($sRow['value_json'])) {
+                $loaded = json_decode($sRow['value_json'], true);
+                if (is_array($loaded)) {
+                    $refSettings = array_merge($refSettings, $loaded);
+                }
+            }
+        } catch (\Throwable $t) {}
+
+        // Check if referral rewards are currently paused by administrator
+        if (isset($refSettings['enabled']) && !$refSettings['enabled']) {
+            return;
+        }
+
+        $stmt = $pdo->prepare("SELECT id, name, email, phone, referred_by, referral_rewarded, created_at FROM users WHERE id = ? LIMIT 1");
         $stmt->execute([$userId]);
         $customer = $stmt->fetch();
         if (!$customer || empty($customer['referred_by']) || !empty($customer['referral_rewarded'])) {
             return;
         }
 
+        // Check minimum purchase amount constraint
+        $minSpend = (float)($refSettings['minPurchaseAmount'] ?? 0.00);
+        if ($minSpend > 0 && $txAmount > 0 && $txAmount < $minSpend) {
+            // Customer made a smaller purchase; do not award yet, allowing a qualifying purchase to trigger it
+            return;
+        }
+
+        // Check eligibility window (in days)
+        $eligibilityDays = (int)($refSettings['eligibilityDays'] ?? 0);
+        if ($eligibilityDays > 0 && !empty($customer['created_at'])) {
+            $joinedTime = strtotime($customer['created_at']);
+            if ($joinedTime && (time() - $joinedTime) > ($eligibilityDays * 86400)) {
+                return;
+            }
+        }
+
         $refCode = trim($customer['referred_by']);
-        $refStmt = $pdo->prepare("SELECT id, phone, balance, bonus_balance FROM users WHERE referral_code = ? OR phone = ? OR username = ? LIMIT 1");
+        $refStmt = $pdo->prepare("SELECT id, name, email, phone, balance, bonus_balance FROM users WHERE referral_code = ? OR phone = ? OR username = ? LIMIT 1");
         $refStmt->execute([$refCode, $refCode, $refCode]);
         $referrer = $refStmt->fetch();
 
@@ -82,7 +121,10 @@ function checkAndProcessReferralCommissionPhp(PDO $pdo, int $userId, string $txR
             return;
         }
 
-        $bonusAmount = 50.00;
+        $bonusAmount = (float)($refSettings['bonusAmount'] ?? 50.00);
+        if ($bonusAmount <= 0) {
+            $bonusAmount = 50.00;
+        }
         $referrerId = (int)$referrer['id'];
 
         $pdo->beginTransaction();
@@ -92,20 +134,50 @@ function checkAndProcessReferralCommissionPhp(PDO $pdo, int $userId, string $txR
         $upCust = $pdo->prepare("UPDATE users SET referral_rewarded = 1 WHERE id = ?");
         $upCust->execute([$userId]);
 
+        $commRef = 'REF_COMM_' . strtoupper(bin2hex(random_bytes(4)));
+        $friendName = $customer['name'] ?: 'Referred Friend';
         $insTx = $pdo->prepare("
             INSERT INTO transactions (user_id, reference, type, service_type, title, description, recipient, amount, balance_before, balance_after, status, created_at)
             VALUES (?, ?, 'WALLET_FUNDING', 'referral', 'Referral Commission Bonus', ?, ?, ?, ?, ?, 'SUCCESS', NOW())
         ");
         $insTx->execute([
             $referrerId,
-            'REF_COMM_' . strtoupper(bin2hex(random_bytes(4))),
-            '₦50 bonus earned! ' . ($customer['name'] ?: 'Friend') . ' completed 1st purchase.',
+            $commRef,
+            '₦' . number_format($bonusAmount, 2) . ' bonus earned! ' . $friendName . ' completed qualifying purchase.',
             $referrer['phone'],
             $bonusAmount,
             $referrer['balance'] ?? 0.00,
             $referrer['balance'] ?? 0.00
         ]);
+
+        // Insert in-app alert notification so referrer is notified immediately
+        try {
+            $notifMsg = "💰 Referral Bonus Credited! ₦" . number_format($bonusAmount, 2) . " has been credited to your bonus wallet because your friend {$friendName} completed their first purchase.";
+            $nStmt = $pdo->prepare("
+                INSERT INTO notifications (user_id, user_phone, title, message, type, accent_color, read_users, created_by, created_at)
+                VALUES (?, ?, '💰 Referral Bonus Credited!', ?, 'referral', '#059669', '[]', 'system', NOW())
+            ");
+            $nStmt->execute([$referrerId, $referrer['phone'], $notifMsg]);
+        } catch (\Throwable $t) {}
+
         $pdo->commit();
+
+        // Optional email alert to referrer
+        if (!empty($referrer['email']) && filter_var($referrer['email'], FILTER_VALIDATE_EMAIL)) {
+            try {
+                $emailSubject = "🎉 You Just Earned ₦" . number_format($bonusAmount, 2) . " Referral Bonus!";
+                $emailBody = "
+                    <p>Hello <strong>" . htmlspecialchars($referrer['name'] ?: 'Valued Partner') . "</strong>,</p>
+                    <p>Great news! Your referred friend <strong>" . htmlspecialchars($friendName) . "</strong> has completed their qualifying VTU purchase.</p>
+                    <div style='background:#f0fdf4;border-left:4px solid #10b981;padding:14px;margin:16px 0;border-radius:8px;'>
+                        <p style='margin:0;font-size:16px;font-weight:bold;color:#047857;'>₦" . number_format($bonusAmount, 2) . " Referral Commission Credited</p>
+                        <p style='margin:4px 0 0;font-size:13px;color:#065f46;'>Funds have been instantly deposited into your Referral Bonus Wallet.</p>
+                    </div>
+                    <p>You can convert your referral bonus directly to your main wallet balance anytime from your app dashboard.</p>
+                ";
+                sendAutomatedEmailPhp($referrer['email'], $emailSubject, 'Referral Bonus Credited', $emailBody, 'Check Bonus Balance', (defined('APP_DOMAIN') ? 'https://' . APP_DOMAIN : 'https://alaminjagoradata.com.ng'));
+            } catch (\Throwable $mailErr) {}
+        }
     } catch (Exception $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
@@ -308,9 +380,13 @@ function sanitizeUserOutput(?array $user): ?array {
     // Provide safe boolean flag instead of revealing raw PIN
     $clean['hasPin'] = !empty($user['pin'] ?? $user['transaction_pin'] ?? '');
     $clean['username'] = $user['username'] ?? '';
-    $clean['name'] = $user['name'] ?? ($user['full_name'] ?? 'User');
-    $clean['full_name'] = $clean['name'];
-    $clean['fullName'] = $clean['name'];
+    $rawName = trim($user['name'] ?? ($user['full_name'] ?? ''));
+    if (empty($rawName) || preg_match('/^(valued\s*customer|valued\s*partner|customer|user|null|undefined)$/i', $rawName)) {
+        $rawName = !empty($user['username']) ? $user['username'] : (!empty($user['phone']) ? 'Customer' : "Al'amin");
+    }
+    $clean['name'] = $rawName;
+    $clean['full_name'] = $rawName;
+    $clean['fullName'] = $rawName;
     $clean['role'] = $user['role'] ?? 'user';
     $clean['tier'] = $user['account_tier'] ?? ($user['tier'] ?? 'Standard');
     $clean['status'] = $user['status'] ?? 'active';
@@ -901,7 +977,7 @@ function generateMultiBankVirtualAccounts(string $fullName, string $phone, strin
                     'currencyCode' => 'NGN',
                     'contractCode' => MONNIFY_CONTRACT_CODE,
                     'customerEmail' => !empty($email) ? $email : "{$cleanPhone}@alaminjagoradata.com.ng",
-                    'customerName' => $fullName ?: 'Valued Customer',
+                    'customerName' => !empty($fullName) ? $fullName : "Al'amin Jagora Customer",
                     'getAllAvailableBanks' => true
                 ]);
 
@@ -1823,10 +1899,19 @@ function requestXixapayVirtualAccount(int $userId, string $fullName, string $ema
     $customerEmail = !empty($email) ? $email : "{$cleanPhone}@alaminjagoradata.com.ng";
     $customerName = !empty($fullName) ? trim($fullName) : "Al'amin Jagora Customer";
 
-    // Partner bank codes for XIXAPAY (20867 PalmPay, 20987 Kolomoni MFB, 29007 Safehaven MFB)
+    // Partner bank codes for XIXAPAY without BVN/NIN: PalmPay (20867), Kolomoni MFB (20987)
+    $hasGovId = !empty($options['id_type']) && !empty($options['id_number']);
     $bankCodes = defined('XIXAPAY_BANK_CODES') && is_array(XIXAPAY_BANK_CODES) 
         ? XIXAPAY_BANK_CODES 
-        : ['20867', '20987', '29007'];
+        : ['20867', '20987'];
+
+    if (!$hasGovId) {
+        // Filter strictly to non-BVN/NIN banks so account generation succeeds 100% without KYC friction
+        $bankCodes = array_values(array_intersect($bankCodes, ['20867', '20987']));
+        if (empty($bankCodes)) {
+            $bankCodes = ['20867', '20987'];
+        }
+    }
 
     $businessId = defined('XIXAPAY_BUSINESS_ID') ? XIXAPAY_BUSINESS_ID : '';
     $accountType = $options['accountType'] ?? 'static';
@@ -2340,6 +2425,13 @@ function clearAdminAttempts(PDO $pdo, string $ip, string $identifier = 'admin'):
  * 13. ENTERPRISE TRANSACTION & NOTIFICATION EMAIL ENGINE
  * ==============================================================================
  */
+/**
+ * Send automated email notification (Alias for sendAppNotificationEmail)
+ */
+function sendAutomatedEmailPhp(string $toEmail, string $subject, string $headline, string $bodyHtml, string $callToActionText = '', string $callToActionUrl = ''): bool {
+    return sendAppNotificationEmail($toEmail, $subject, $headline, $bodyHtml, $callToActionText, $callToActionUrl);
+}
+
 function sendAppNotificationEmail(string $toEmail, string $subject, string $headline, string $bodyHtml, string $callToActionText = '', string $callToActionUrl = ''): bool {
     if (!filter_var($toEmail, FILTER_VALIDATE_EMAIL)) {
         return false;
@@ -2365,43 +2457,60 @@ function sendAppNotificationEmail(string $toEmail, string $subject, string $head
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="color-scheme" content="light">
+      <meta name="supported-color-schemes" content="light">
       <title>' . htmlspecialchars($subject) . '</title>
+      <style>
+        :root { color-scheme: light; supported-color-schemes: light; }
+        body { margin:0; padding:0; background-color:#f4f6fb; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+        .email-bg { background-color: #f4f6fb !important; }
+        .email-card { background-color: #ffffff !important; border: 1px solid #e2e8f0 !important; }
+        .email-header-sub { color: #64748b !important; }
+        .email-title { color: #0f172a !important; }
+        .email-body { color: #334155 !important; }
+        .email-footer { background-color: #f8fafc !important; border-top: 1px solid #e2e8f0 !important; }
+        .email-footer-text { color: #64748b !important; }
+      </style>
     </head>
-    <body style="margin:0;padding:0;background-color:#0b1120;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
-      <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#0b1120;padding:30px 15px;">
+    <body class="email-bg" style="margin:0;padding:0;background-color:#f4f6fb;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+      <table class="email-bg" width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#f4f6fb;padding:36px 16px;">
         <tr>
           <td align="center">
-            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="max-width:540px;background-color:#0f172a;border:1px solid #1e293b;border-radius:18px;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.5);">
+            <table class="email-card" width="100%" border="0" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border:1px solid #e2e8f0;border-radius:18px;overflow:hidden;box-shadow:0 8px 30px rgba(15,23,42,0.06);">
+              <!-- Top Accent Gradient Bar -->
               <tr>
-                <td height="4" style="background:linear-gradient(90deg, #f59e0b, #0047cc, #10b981);"></td>
+                <td height="5" style="background:linear-gradient(90deg, #f59e0b 0%, #0047cc 50%, #10b981 100%);"></td>
               </tr>
+              <!-- Brand Header -->
               <tr>
-                <td style="padding:28px 24px 20px;text-align:center;background-color:#0f172a;border-bottom:1px solid #1e293b;">
-                  <div style="font-size:20px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">
-                    <span style="color:#60a5fa;">Al\'amin</span> Jagora Data
+                <td style="padding:28px 28px 20px;text-align:center;border-bottom:1px solid #e2e8f0;background-color:#ffffff;">
+                  <div style="font-size:22px;font-weight:800;color:#0047cc;letter-spacing:-0.5px;">
+                    <span style="color:#0f172a;">Al\'amin</span> Jagora Data
                   </div>
-                  <div style="font-size:11px;color:#94a3b8;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-top:4px;">
-                    Fast &bull; Automated &bull; Secure VTU
+                  <div class="email-header-sub" style="font-size:11.5px;color:#64748b;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-top:4px;">
+                    Automated &bull; Fast &bull; Secure VTU Gateway
                   </div>
                 </td>
               </tr>
+              <!-- Main Content Body -->
               <tr>
-                <td style="padding:32px 28px;">
-                  <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:#f8fafc;line-height:1.4;">
+                <td style="padding:32px 30px;background-color:#ffffff;">
+                  <h2 class="email-title" style="margin:0 0 16px;font-size:19px;font-weight:700;color:#0f172a;line-height:1.4;">
                     ' . htmlspecialchars($headline) . '
                   </h2>
-                  <div style="font-size:14px;color:#cbd5e1;line-height:1.65;">
+                  <div class="email-body" style="font-size:14.5px;color:#334155;line-height:1.68;">
                     ' . $bodyHtml . '
                   </div>
                   ' . $ctaButtonHtml . '
                 </td>
               </tr>
+              <!-- Footer Section -->
               <tr>
-                <td style="padding:20px 24px;background-color:#090d16;border-top:1px solid #1e293b;text-align:center;">
-                  <p style="margin:0 0 8px;font-size:11.5px;color:#64748b;line-height:1.5;">
-                    Security Notice: ' . htmlspecialchars($appName) . ' will never ask for your 4-digit Transaction PIN or password via email or SMS.
+                <td class="email-footer" style="padding:22px 28px;background-color:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;">
+                  <p class="email-footer-text" style="margin:0 0 8px;font-size:12px;color:#64748b;line-height:1.5;">
+                    <strong>Security Notice:</strong> ' . htmlspecialchars($appName) . ' will never ask for your 4-digit Transaction PIN or password via email or SMS.
                   </p>
-                  <p style="margin:0;font-size:11px;color:#475569;">
+                  <p class="email-footer-text" style="margin:0;font-size:11.5px;color:#94a3b8;">
                     &copy; ' . $year . ' ' . htmlspecialchars($appName) . '. All rights reserved. &bull; support@alaminjagoradata.com.ng
                   </p>
                 </td>

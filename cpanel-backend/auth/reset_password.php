@@ -91,14 +91,14 @@ if ($action === 'initiate') {
     // Send Real HTML Email
     $to = $user['email'];
     $bodyHtml = '
-      <p style="font-size:15px;color:#f8fafc;margin-top:0;">Hello <strong>' . htmlspecialchars(($user['name'] ?? ($user['full_name'] ?? '')) ?: 'Customer') . '</strong>,</p>
-      <p style="font-size:14px;color:#cbd5e1;line-height:1.6;">We received an automated request to reset the login password for your Al\'amin Jagora Data account. Use the single-use 6-digit verification code below:</p>
-      <div style="text-align:center;margin:24px 0;background-color:#090d16;border:2px dashed #059669;border-radius:12px;padding:20px;">
-        <div style="font-size:11px;font-weight:bold;color:#10b981;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">6-Digit Security OTP</div>
-        <div style="font-size:36px;font-weight:bold;letter-spacing:10px;color:#34d399;font-family:monospace;">' . $otpCode . '</div>
+      <p style="font-size:15px;color:#0f172a;margin-top:0;">Hello <strong>' . htmlspecialchars(($user['name'] ?? ($user['full_name'] ?? '')) ?: 'Customer') . '</strong>,</p>
+      <p style="font-size:14px;color:#334155;line-height:1.6;">We received an automated request to reset the login password for your Al\'amin Jagora Data account. Use the single-use 6-digit verification code below:</p>
+      <div style="text-align:center;margin:24px 0;background-color:#f0fdf4;border:2px dashed #059669;border-radius:12px;padding:20px;">
+        <div style="font-size:11px;font-weight:bold;color:#047857;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">6-Digit Security OTP</div>
+        <div style="font-size:36px;font-weight:bold;letter-spacing:10px;color:#059669;font-family:monospace;">' . $otpCode . '</div>
       </div>
-      <p style="font-size:12.5px;color:#fca5a5;background:rgba(239,68,68,0.1);padding:10px 14px;border-radius:6px;margin:0 0 16px;"><strong>Security Notice:</strong> This code expires in 10 minutes. Never share this code with anyone, including our support agents.</p>
-      <p style="font-size:12px;color:#94a3b8;margin:0;">If you did not initiate this request, your account is still secure. You can safely ignore this email.</p>
+      <p style="font-size:12.5px;color:#991b1b;background:#fef2f2;border-left:4px solid #ef4444;padding:10px 14px;border-radius:6px;margin:0 0 16px;"><strong>Security Notice:</strong> This code expires in 10 minutes. Never share this code with anyone, including our support agents.</p>
+      <p style="font-size:12px;color:#64748b;margin:0;">If you did not initiate this request, your account is still secure. You can safely ignore this email.</p>
     ';
 
     sendAppNotificationEmail(
@@ -151,12 +151,12 @@ if ($action === 'resend') {
     // Resend Email
     $to = $resetReq['email'];
     $bodyHtml = '
-      <p style="font-size:14px;color:#cbd5e1;line-height:1.6;">Here is your fresh single-use 6-digit password reset verification code:</p>
-      <div style="text-align:center;margin:24px 0;background-color:#090d16;border:2px dashed #059669;border-radius:12px;padding:20px;">
-        <div style="font-size:11px;font-weight:bold;color:#10b981;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">Fresh Security OTP</div>
-        <div style="font-size:36px;font-weight:bold;letter-spacing:10px;color:#34d399;font-family:monospace;">' . $otpCode . '</div>
+      <p style="font-size:14px;color:#334155;line-height:1.6;">Here is your fresh single-use 6-digit password reset verification code:</p>
+      <div style="text-align:center;margin:24px 0;background-color:#f0fdf4;border:2px dashed #059669;border-radius:12px;padding:20px;">
+        <div style="font-size:11px;font-weight:bold;color:#047857;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">Fresh Security OTP</div>
+        <div style="font-size:36px;font-weight:bold;letter-spacing:10px;color:#059669;font-family:monospace;">' . $otpCode . '</div>
       </div>
-      <p style="font-size:12.5px;color:#fca5a5;background:rgba(239,68,68,0.1);padding:10px 14px;border-radius:6px;"><strong>Notice:</strong> This code expires in 10 minutes. Never share this code with anyone.</p>
+      <p style="font-size:12.5px;color:#991b1b;background:#fef2f2;border-left:4px solid #ef4444;padding:10px 14px;border-radius:6px;"><strong>Notice:</strong> This code expires in 10 minutes. Never share this code with anyone.</p>
     ';
 
     sendAppNotificationEmail(

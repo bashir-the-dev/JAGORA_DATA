@@ -20,6 +20,7 @@ import {
   Code2,
 } from 'lucide-react';
 import { playTapSound, triggerHaptic } from '../utils/soundEffects';
+import { isGenericCustomerName } from '../services/dbService';
 
 interface HeaderProps {
   currentScreen: ScreenType;
@@ -86,7 +87,9 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'support' as ScreenType, label: 'Support', icon: Headphones },
   ];
 
-  const rawFirst = user?.name ? user.name.trim().split(/\s+/)[0] : "Al'amin";
+  const rawFirst = (user?.name && !isGenericCustomerName(user.name))
+    ? user.name.trim().split(/\s+/)[0]
+    : ((user?.username && !isGenericCustomerName(user.username)) ? user.username : "Al'amin");
   const firstName =
     rawFirst.toUpperCase() === "AL'AMIN" || rawFirst.toUpperCase() === 'ALAMIN'
       ? "Al'amin"
@@ -281,7 +284,7 @@ export const Header: React.FC<HeaderProps> = ({
                 aria-expanded={isUserMenuOpen}
               >
                 <div className="w-7 h-7 rounded-full bg-amber-400 text-slate-950 font-black text-xs flex items-center justify-center shadow-xs">
-                  {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  {user?.name && !isGenericCustomerName(user.name) ? user.name.charAt(0).toUpperCase() : (user?.username ? user.username.charAt(0).toUpperCase() : 'A')}
                 </div>
                 <span className="text-xs font-semibold max-w-[85px] truncate">{firstName}</span>
                 <ChevronDown
@@ -303,7 +306,7 @@ export const Header: React.FC<HeaderProps> = ({
                 >
                   <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800 mb-1">
                     <div className="flex items-center gap-1.5">
-                      <p className="text-xs font-bold truncate">{user.name || "Al'amin User"}</p>
+                      <p className="text-xs font-bold truncate">{(user?.name && !isGenericCustomerName(user.name)) ? user.name : (user?.username || "Al'amin")}</p>
                       <ShieldCheck size={13} className="text-blue-500 shrink-0" />
                     </div>
                     <p className="text-[10px] font-mono text-slate-400 truncate">{user.phone}</p>

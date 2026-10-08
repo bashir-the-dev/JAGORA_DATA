@@ -13,6 +13,28 @@ import { initialUser } from '../data/mockData';
 
 export type Unsubscribe = () => void;
 
+/**
+ * Helper to identify generic fallback names that should not overwrite the user's real name
+ */
+export function isGenericCustomerName(n?: string | null): boolean {
+  if (!n) return true;
+  const cleaned = n.trim().toLowerCase();
+  return (
+    cleaned === 'valued customer' ||
+    cleaned === 'valued partner' ||
+    cleaned === 'customer' ||
+    cleaned === 'user' ||
+    cleaned === 'null' ||
+    cleaned === 'undefined' ||
+    cleaned === '' ||
+    cleaned === "al'amin customer" ||
+    cleaned === "al'amin user" ||
+    cleaned === "al'amin jagora customer" ||
+    cleaned.startsWith('valued customer') ||
+    cleaned.startsWith('customer_')
+  );
+}
+
 // Storage keys for persistent local caching
 const KEY_PREFIX = 'jagora_storage_';
 const USER_KEY_PREFIX = `${KEY_PREFIX}user_`;
@@ -186,19 +208,45 @@ export async function getOrCreateUserProfile(phone: string): Promise<UserProfile
   // 1. Check direct custom backend
   try {
     const remote = await apiCall<any>(`/api/user/profile?phone=${encodeURIComponent(phoneKey)}`);
-    if (remote) {
+    if (remote && (remote.status === 'success' || remote.success || remote.data || remote.user)) {
+      const u = remote.data?.user || remote.data || remote.user || remote;
+      // Safeguard: Check if we have an existing known customer name in local storage
+      let existingName = '';
+      try {
+        const rawLocal = safeGetItem(key) || safeGetItem('jagora_user_profile');
+        if (rawLocal) {
+          const parsed = JSON.parse(rawLocal);
+          if (parsed.name && !isGenericCustomerName(parsed.name)) {
+            existingName = parsed.name;
+          }
+        }
+      } catch {}
+
+      const candidateName = u.name || u.full_name || u.fullName;
+      let resolvedName = '';
+      if (candidateName && !isGenericCustomerName(candidateName)) {
+        resolvedName = candidateName;
+      } else if (existingName && !isGenericCustomerName(existingName)) {
+        resolvedName = existingName;
+      } else if (u.username) {
+        resolvedName = u.username;
+      } else {
+        resolvedName = candidateName || existingName || "Al'amin";
+      }
+
       const profile: UserProfile = {
-        name: remote.name || 'Valued Customer',
-        phone: remote.phone || phone,
-        email: remote.email || '',
-        avatarUrl: remote.avatarUrl || '',
-        isVerified: remote.isVerified ?? true,
-        balance: typeof remote.balance === 'number' ? remote.balance : (parseFloat(remote.balance) || 0.00),
-        bonusBalance: typeof remote.bonusBalance === 'number' ? remote.bonusBalance : (typeof remote.bonus_balance === 'number' ? remote.bonus_balance : (parseFloat(remote.bonus_balance) || 0.00)),
-        biometricEnabled: remote.biometricEnabled ?? false,
-        hasPin: Boolean(remote.hasPin ?? remote.has_pin ?? true),
-        role: remote.role || 'user',
-        virtualAccounts: Array.isArray(remote.virtualAccounts) ? remote.virtualAccounts : [],
+        name: resolvedName,
+        username: u.username || undefined,
+        phone: u.phone || phone,
+        email: u.email || '',
+        avatarUrl: u.avatarUrl || '',
+        isVerified: u.isVerified ?? true,
+        balance: typeof u.balance === 'number' ? u.balance : (parseFloat(u.balance) || 0.00),
+        bonusBalance: typeof u.bonusBalance === 'number' ? u.bonusBalance : (typeof u.bonus_balance === 'number' ? u.bonus_balance : (parseFloat(u.bonus_balance) || 0.00)),
+        biometricEnabled: u.biometricEnabled ?? false,
+        hasPin: Boolean(u.hasPin ?? u.has_pin ?? true),
+        role: u.role || 'user',
+        virtualAccounts: Array.isArray(u.virtualAccounts) ? u.virtualAccounts : (Array.isArray(u.virtual_accounts) ? u.virtual_accounts : []),
       };
       safeSetItem(key, JSON.stringify(profile));
       return profile;
@@ -210,8 +258,30 @@ export async function getOrCreateUserProfile(phone: string): Promise<UserProfile
     const raw = safeGetItem(key);
     if (raw) {
       const data = JSON.parse(raw);
+      let existingName = '';
+      try {
+        const profileRaw = safeGetItem('jagora_user_profile');
+        if (profileRaw) {
+          const parsed = JSON.parse(profileRaw);
+          if (parsed.name && !isGenericCustomerName(parsed.name)) existingName = parsed.name;
+        }
+      } catch {}
+
+      const candidateName = data.name || data.full_name || data.fullName;
+      let resolvedName = '';
+      if (candidateName && !isGenericCustomerName(candidateName)) {
+        resolvedName = candidateName;
+      } else if (existingName && !isGenericCustomerName(existingName)) {
+        resolvedName = existingName;
+      } else if (data.username) {
+        resolvedName = data.username;
+      } else {
+        resolvedName = candidateName || existingName || "Al'amin";
+      }
+
       return {
-        name: data.name || 'Valued Customer',
+        name: resolvedName,
+        username: data.username || undefined,
         phone: data.phone || phone,
         email: data.email || '',
         avatarUrl: data.avatarUrl || '',
@@ -227,8 +297,17 @@ export async function getOrCreateUserProfile(phone: string): Promise<UserProfile
   } catch {}
 
   // 3. First time initialization
+  let fallbackName = "Al'amin";
+  try {
+    const profileRaw = safeGetItem('jagora_user_profile');
+    if (profileRaw) {
+      const parsed = JSON.parse(profileRaw);
+      if (parsed.name && !isGenericCustomerName(parsed.name)) fallbackName = parsed.name;
+    }
+  } catch {}
+
   const newUser: UserProfile = {
-    name: 'Valued Customer',
+    name: fallbackName,
     phone: phone,
     email: '',
     avatarUrl: '',
@@ -345,19 +424,45 @@ export function subscribeToUserProfile(
   const intervalId = setInterval(async () => {
     try {
       const remote = await apiCall<any>(`/api/user/profile?phone=${encodeURIComponent(phoneKey)}`);
-      if (remote) {
+      if (remote && (remote.status === 'success' || remote.success || remote.data || remote.user)) {
+        const u = remote.data?.user || remote.data || remote.user || remote;
+        // Retain current known valid name if available
+        let existingName = '';
+        try {
+          const rawLocal = safeGetItem(`${USER_KEY_PREFIX}${phoneKey}`) || safeGetItem('jagora_user_profile');
+          if (rawLocal) {
+            const parsed = JSON.parse(rawLocal);
+            if (parsed.name && !isGenericCustomerName(parsed.name)) {
+              existingName = parsed.name;
+            }
+          }
+        } catch {}
+
+        const candidateName = u.name || u.full_name || u.fullName;
+        let resolvedName = '';
+        if (candidateName && !isGenericCustomerName(candidateName)) {
+          resolvedName = candidateName;
+        } else if (existingName && !isGenericCustomerName(existingName)) {
+          resolvedName = existingName;
+        } else if (u.username) {
+          resolvedName = u.username;
+        } else {
+          resolvedName = candidateName || existingName || "Al'amin";
+        }
+
         const profile: UserProfile = {
-          name: remote.name || 'Valued Customer',
-          phone: remote.phone || phone,
-          email: remote.email || '',
-          avatarUrl: remote.avatarUrl || '',
-          isVerified: remote.isVerified ?? true,
-          balance: typeof remote.balance === 'number' ? remote.balance : (parseFloat(remote.balance) || 0.00),
-          bonusBalance: typeof remote.bonusBalance === 'number' ? remote.bonusBalance : (typeof remote.bonus_balance === 'number' ? remote.bonus_balance : (parseFloat(remote.bonus_balance) || 0.00)),
-          biometricEnabled: remote.biometricEnabled ?? false,
-          hasPin: Boolean(remote.hasPin ?? remote.has_pin ?? true),
-          role: remote.role || 'user',
-          virtualAccounts: Array.isArray(remote.virtualAccounts) ? remote.virtualAccounts : [],
+          name: resolvedName,
+          username: u.username || undefined,
+          phone: u.phone || phone,
+          email: u.email || '',
+          avatarUrl: u.avatarUrl || '',
+          isVerified: u.isVerified ?? true,
+          balance: typeof u.balance === 'number' ? u.balance : (parseFloat(u.balance) || 0.00),
+          bonusBalance: typeof u.bonusBalance === 'number' ? u.bonusBalance : (typeof u.bonus_balance === 'number' ? u.bonus_balance : (parseFloat(u.bonus_balance) || 0.00)),
+          biometricEnabled: u.biometricEnabled ?? false,
+          hasPin: Boolean(u.hasPin ?? u.has_pin ?? true),
+          role: u.role || 'user',
+          virtualAccounts: Array.isArray(u.virtualAccounts) ? u.virtualAccounts : (Array.isArray(u.virtual_accounts) ? u.virtual_accounts : []),
         };
         onUpdate(profile);
       }
@@ -841,8 +946,8 @@ export async function loadNotificationsFromDb(userPhone: string): Promise<Notifi
   // 1. Try remote backend
   try {
     const res = await apiCall<any>(`/api/notifications?phone=${encodeURIComponent(phoneKey)}`);
-    const list: any[] = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
-    if (Array.isArray(list) && list.length > 0) {
+    const list: any[] = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : null);
+    if (Array.isArray(list)) {
       safeSetItem(cacheKey, JSON.stringify(list));
       return list;
     }
@@ -872,7 +977,7 @@ export function subscribeToNotifications(
 
   // Immediately invoke with cached or loaded items
   loadNotificationsFromDb(userPhone).then((items) => {
-    if (Array.isArray(items) && items.length > 0) {
+    if (Array.isArray(items)) {
       onUpdate(items);
     }
   }).catch(() => {});
@@ -906,8 +1011,8 @@ export function subscribeToNotifications(
   const intervalId = setInterval(async () => {
     try {
       const res = await apiCall<any>(`/api/notifications?phone=${encodeURIComponent(phoneKey)}`);
-      const list: any[] = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
-      if (Array.isArray(list) && list.length > 0) {
+      const list: any[] = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : null);
+      if (Array.isArray(list)) {
         safeSetItem(cacheKey, JSON.stringify(list));
         onUpdate(list);
       }

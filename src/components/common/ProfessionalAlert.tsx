@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CheckCircle2, AlertCircle, AlertTriangle, Info, X } from 'lucide-react';
 import { playSuccessChime, triggerHaptic, playTapSound } from '../../utils/soundEffects';
@@ -45,30 +45,43 @@ export const ProfessionalToastContainer: React.FC<ProfessionalToastProps> = ({
   );
 };
 
+// Global registry of played alert IDs to ensure audio plays strictly ONCE in alert lifecycle
+const playedAlertIds = new Set<string>();
+
 const ProfessionalToastItem: React.FC<{
   alert: ToastAlert;
   onDismiss: () => void;
   isLightMode?: boolean;
 }> = ({ alert, onDismiss, isLightMode = true }) => {
-  const { type, title, message: rawMessage, duration = 4000 } = alert;
+  const { id: alertId, type, title, message: rawMessage, duration = 4000 } = alert;
   const message = type === 'error' ? humanizeVtuError(rawMessage, 'account') : rawMessage;
 
+  const onDismissRef = useRef(onDismiss);
+  onDismissRef.current = onDismiss;
+
   useEffect(() => {
-    if (type === 'success') {
-      playSuccessChime();
-      triggerHaptic('success');
-    } else if (type === 'error') {
-      triggerHaptic('warning');
-    } else {
-      triggerHaptic('light');
+    // Strictly play audio and haptic feedback ONCE per alert ID
+    if (!playedAlertIds.has(alertId)) {
+      playedAlertIds.add(alertId);
+      if (type === 'success') {
+        playSuccessChime();
+        triggerHaptic('success');
+      } else if (type === 'error') {
+        triggerHaptic('warning');
+      } else {
+        triggerHaptic('light');
+      }
     }
 
+    // Fixed timeout that always cleans up and dismisses automatically
     const timer = setTimeout(() => {
-      onDismiss();
+      onDismissRef.current();
     }, duration);
 
-    return () => clearTimeout(timer);
-  }, [type, duration, onDismiss]);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [alertId, type, duration]);
 
   const config = {
     success: {

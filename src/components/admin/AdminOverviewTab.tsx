@@ -27,6 +27,7 @@ import {
   AlertTriangle,
   X,
   Trash2,
+  RefreshCw,
 } from 'lucide-react';
 import { PlatformUserAccount, Transaction, AdminPlatformWallet, ApiProvider } from '../../types';
 import { AdminTabType } from './AdminHeader';
@@ -43,6 +44,8 @@ interface AdminOverviewTabProps {
   onToggleUserStatus?: (userId: string) => void;
   onResetStatistics?: (resetBalances: boolean) => Promise<void>;
   isLightMode?: boolean;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
@@ -57,6 +60,8 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
   onToggleUserStatus,
   onResetStatistics,
   isLightMode = true,
+  onRefresh,
+  isRefreshing,
 }) => {
   // Fresh Start / Reset Stats Modal State
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -347,13 +352,26 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
             <div className="w-11 h-11 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/30 flex items-center justify-center">
               <Users className="w-5 h-5" />
             </div>
-            <button
-              onClick={() => onNavigateTab('users')}
-              className="w-8 h-8 rounded-lg text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-2xs"
-              title="View all customers"
-            >
-              <ArrowUpRight className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1.5">
+              {onRefresh && (
+                <button
+                  type="button"
+                  onClick={onRefresh}
+                  disabled={isRefreshing}
+                  className="w-8 h-8 rounded-lg text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-all flex items-center justify-center cursor-pointer shadow-2xs disabled:opacity-50"
+                  title="Refresh customer sign-ups"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                </button>
+              )}
+              <button
+                onClick={() => onNavigateTab('users')}
+                className="w-8 h-8 rounded-lg text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+                title="View all customers"
+              >
+                <ArrowUpRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           <div className="mt-3.5">

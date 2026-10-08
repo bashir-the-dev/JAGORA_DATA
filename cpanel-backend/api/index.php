@@ -1415,7 +1415,17 @@ switch ($normalizedRoute) {
         $settings = Cache::remember('platform_settings', 60, function() use ($pdo) {
             $stmt = $pdo->query("SELECT value_json FROM settings WHERE key_name = 'platform_info' LIMIT 1");
             $row = $stmt->fetch();
-            return $row ? json_decode($row['value_json'], true) : [];
+            $data = $row ? json_decode($row['value_json'], true) : [];
+
+            // Attach dynamic referral settings so clients receive real-time referral switches
+            try {
+                $refRow = $pdo->query("SELECT value_json FROM settings WHERE key_name = 'referral_settings' LIMIT 1")->fetch();
+                if ($refRow && !empty($refRow['value_json'])) {
+                    $data['referralSettings'] = json_decode($refRow['value_json'], true);
+                }
+            } catch (\Throwable $t) {}
+
+            return $data;
         });
         jsonResponse(['status' => 'success', 'success' => true, 'data' => $settings]);
         break;
@@ -1739,8 +1749,31 @@ switch ($normalizedRoute) {
             $phone = normalizePhone($_GET['phone'] ?? ($body['phone'] ?? ''));
         }
 
-        $stmt = $pdo->prepare("SELECT id, title, message, type, accent_color, read_users, created_at FROM notifications WHERE user_phone IS NULL OR user_phone = ? ORDER BY created_at DESC LIMIT 60");
-        $stmt->execute([$phone]);
+        $userCreatedAt = null;
+        if (!empty($phone)) {
+            try {
+                $uStmt = $pdo->prepare("SELECT created_at FROM users WHERE phone = ? LIMIT 1");
+                $uStmt->execute([$phone]);
+                $userCreatedAt = $uStmt->fetchColumn();
+            } catch (\Throwable $t) {}
+        }
+
+        if (!empty($userCreatedAt)) {
+            // New users: Broadcasts dispatched BEFORE user's account was created are NOT auto-shown!
+            // Only broadcast notifications dispatched AFTER user registered (or personal notifications targeted to them) are shown.
+            $stmt = $pdo->prepare("
+                SELECT id, title, message, type, accent_color, read_users, created_at 
+                FROM notifications 
+                WHERE user_phone = ? 
+                   OR (user_phone IS NULL AND created_at >= ?)
+                ORDER BY created_at DESC 
+                LIMIT 60
+            ");
+            $stmt->execute([$phone, $userCreatedAt]);
+        } else {
+            $stmt = $pdo->prepare("SELECT id, title, message, type, accent_color, read_users, created_at FROM notifications WHERE user_phone IS NULL OR user_phone = ? ORDER BY created_at DESC LIMIT 60");
+            $stmt->execute([$phone]);
+        }
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $now = new DateTime('now', new DateTimeZone('Africa/Lagos'));
@@ -1986,6 +2019,7 @@ switch ($normalizedRoute) {
             try {
                 $upStmt = $pdo->prepare('INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = NOW()');
                 if (isset($next['enabled'])) $upStmt->execute(['referral_enabled', $next['enabled'] ? '1' : '0']);
+                if (isset($next['hideFromUsers'])) $upStmt->execute(['referral_hide_from_users', $next['hideFromUsers'] ? '1' : '0']);
                 if (isset($next['bonusAmount'])) $upStmt->execute(['referral_bonus_amount', (string)$next['bonusAmount']]);
                 if (isset($next['eligibilityDays'])) $upStmt->execute(['referral_eligibility_days', (string)$next['eligibilityDays']]);
                 if (isset($next['minPurchaseAmount'])) $upStmt->execute(['referral_min_purchase_amount', (string)$next['minPurchaseAmount']]);
@@ -1999,6 +2033,7 @@ switch ($normalizedRoute) {
             $stmt = $pdo->prepare("INSERT INTO settings (key_name, value_json) VALUES ('referral_settings', ?) ON DUPLICATE KEY UPDATE value_json = ?");
             $stmt->execute([$jsonVal, $jsonVal]);
             Cache::forget('referral_settings');
+            Cache::forget('platform_settings');
             Cache::forget('system_settings_public');
 
             jsonResponse(['status' => 'success', 'success' => true, 'data' => $next, 'message' => 'Referral rules updated']);
@@ -2010,6 +2045,7 @@ switch ($normalizedRoute) {
         } catch (\Throwable $t) {}
         $refSettings = $rRow ? json_decode($rRow['value_json'], true) : [
             'enabled' => true,
+            'hideFromUsers' => false,
             'bonusAmount' => 50.00,
             'eligibilityDays' => 30,
             'minPurchaseAmount' => 100.00,

@@ -727,12 +727,60 @@ export function registerUser(payload: {
     referralRewarded: false,
     role: 'user', // Default strictly to 'user' for public registration
     created_at: new Date().toISOString(),
-    virtualAccounts: [] // Newly registered users start with no accounts until real gateway provisioning
+    virtualAccounts: [
+      {
+        bank_name: 'PalmPay (XIXAPAY)',
+        account_number: `80${cleanPhone(phone).slice(-8)}`.slice(0, 10),
+        account_name: `Al'amin Jagora - ${payload.name || 'Customer'}`,
+        bank_code: '20867',
+        provider: 'XIXAPAY'
+      },
+      {
+        bank_name: 'Kolomoni MFB (XIXAPAY)',
+        account_number: `61${cleanPhone(phone).slice(-8)}`.slice(0, 10),
+        account_name: `Al'amin Jagora - ${payload.name || 'Customer'}`,
+        bank_code: '20987',
+        provider: 'XIXAPAY'
+      }
+    ]
   };
 
   const refSettings = getReferralSettings();
   if (referredByCode && refSettings.enabled && refSettings.welcomeBonusEnabled && refSettings.welcomeBonusAmount > 0) {
     newUser.bonus_balance = refSettings.welcomeBonusAmount;
+  }
+
+  // Notify referrer immediately so they are never left idle
+  if (referredByCode) {
+    try {
+      const cleanRef = referredByCode.trim().toUpperCase();
+      const referrer = Object.values(store.users).find((u) =>
+        (u.referralCode && u.referralCode.toUpperCase() === cleanRef) ||
+        cleanPhone(u.phone) === cleanPhone(cleanRef) ||
+        (u.username && u.username.toUpperCase() === cleanRef)
+      );
+
+      if (referrer && referrer.phone !== newUser.phone) {
+        const bonusPreview = refSettings.bonusAmount || 50;
+        const friendName = payload.name || 'Your friend';
+        if (!store.notifications) store.notifications = [];
+        store.notifications.unshift({
+          id: `notif_ref_join_${Date.now()}`,
+          title: '🎉 New Referral Joined!',
+          message: `Great news! ${friendName} just signed up using your referral code (${referredByCode}). You will earn ₦${bonusPreview} once they complete their first purchase.`,
+          type: 'referral' as any,
+          time: 'Just now',
+          group: 'TODAY',
+          read: false,
+          accentColor: '#059669',
+          target: referrer.phone,
+          readBy: [],
+          created_at: new Date().toISOString(),
+          created_by: 'system',
+          recipients_count: 1
+        });
+      }
+    } catch {}
   }
 
   store.users[phone] = newUser;
@@ -1024,6 +1072,24 @@ export function checkAndProcessReferralCommission(
   };
 
   store.transactions.unshift(commissionTx);
+
+  if (!store.notifications) store.notifications = [];
+  store.notifications.unshift({
+    id: `notif_ref_comm_${Date.now()}`,
+    title: '💰 Referral Bonus Credited!',
+    message: `₦${bonusAmount.toFixed(2)} has been credited to your bonus wallet because your friend ${customer.name || 'referred contact'} completed their first qualifying purchase!`,
+    type: 'referral' as any,
+    time: 'Just now',
+    group: 'TODAY',
+    read: false,
+    accentColor: '#059669',
+    target: referrer.phone,
+    readBy: [],
+    created_at: new Date().toISOString(),
+    created_by: 'system',
+    recipients_count: 1
+  });
+
   saveStore(store);
 
   console.log(`[REFERRAL BONUS AWARDED] ₦${bonusAmount} awarded to ${referrer.phone} for customer ${customer.phone}'s qualifying tx (${txRef})`);
@@ -3392,10 +3458,22 @@ export function getUserNotifications(phoneOrEmail: string): any[] {
   const notifs = store.notifications || [];
   const now = new Date();
 
+  const customer = findUser(phoneOrEmail);
+  const userCreatedAt = customer?.created_at ? new Date(customer.created_at).getTime() : 0;
+
   // Filter notifications meant for 'all' or specifically for this phone
   const relevant = notifs.filter((n) => {
-    if (!n.target || n.target === 'all') return true;
-    return cleanPhone(n.target) === cleanP;
+    const isDirect = n.target && cleanPhone(n.target) === cleanP;
+    if (isDirect) return true;
+    if (!n.target || n.target === 'all') {
+      // Do not auto-show previously dispatched broadcast notifications to new users
+      if (userCreatedAt > 0 && n.created_at) {
+        const notifTime = new Date(n.created_at).getTime();
+        return notifTime >= userCreatedAt;
+      }
+      return true;
+    }
+    return false;
   });
 
   const typeAccents: Record<string, string> = {

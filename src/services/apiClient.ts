@@ -496,6 +496,13 @@ export async function apiGetProfile(): Promise<ApiResponse<{
 }
 
 /**
+ * Request instant generation of dedicated XIXAPAY virtual accounts (PalmPay & Kolomoni MFB without BVN/NIN)
+ */
+export async function apiGenerateVirtualAccounts(): Promise<ApiResponse<VirtualAccountItem[]>> {
+  return request('/api/virtual-accounts/generate', { method: 'POST' });
+}
+
+/**
  * Fetch live VTU plans from local hybrid cached catalog
  */
 export async function apiGetPlans(network?: string): Promise<ApiResponse<any[]>> {

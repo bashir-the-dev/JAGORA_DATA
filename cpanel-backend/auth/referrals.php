@@ -16,6 +16,7 @@ ensureUserColumns($pdo);
 $userId = (int)$user['id'];
 $userPhone = $user['phone'];
 $userCode = $user['referral_code'] ?? '';
+$userUsername = trim($user['username'] ?? '');
 
 // If referral code is missing, generate and persist one
 if (empty($userCode)) {
@@ -27,21 +28,43 @@ if (empty($userCode)) {
     $up->execute([$userCode, $userId]);
 }
 
-// Fetch all referred friends
+// Fetch dynamic referral configuration from settings
+$refSettings = [
+    'enabled' => true,
+    'hideFromUsers' => false,
+    'bonusAmount' => 50.00,
+    'eligibilityDays' => 30,
+    'minPurchaseAmount' => 100.00,
+    'allowBonusWithdrawal' => true,
+    'welcomeBonusEnabled' => false,
+    'welcomeBonusAmount' => 0.00,
+    'termsNotice' => 'Earn instant referral bonus when your referred friend completes their first qualifying purchase within 30 days.'
+];
+try {
+    $sRow = $pdo->query("SELECT value_json FROM settings WHERE key_name = 'referral_settings' LIMIT 1")->fetch();
+    if ($sRow && !empty($sRow['value_json'])) {
+        $loaded = json_decode($sRow['value_json'], true);
+        if (is_array($loaded)) {
+            $refSettings = array_merge($refSettings, $loaded);
+        }
+    }
+} catch (\Throwable $t) {}
+
+$COMMISSION_AMOUNT = (float)($refSettings['bonusAmount'] ?? 50.00);
+
+// Fetch all referred friends (matches by user referral code, phone, or username)
 $stmt = $pdo->prepare("
     SELECT id, name, phone, referral_rewarded, created_at
     FROM users
-    WHERE referred_by = ? OR referred_by = ?
+    WHERE referred_by = ? OR referred_by = ? OR (referred_by = ? AND ? != '')
     ORDER BY id DESC
 ");
-$stmt->execute([$userCode, $userPhone]);
+$stmt->execute([$userCode, $userPhone, $userUsername, $userUsername]);
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
+$referralsList = [];
 $completedCount = 0;
 $pendingCount = 0;
-$COMMISSION_AMOUNT = 50.00;
-
-$referralsList = [];
 foreach ($rows as $row) {
     $isRewardPaid = !empty($row['referral_rewarded']);
     if ($isRewardPaid) {
@@ -82,9 +105,10 @@ jsonResponse([
     'status'  => 'success',
     'message' => 'Referrals data loaded successfully',
     'data'    => [
-        'referralCode' => $userCode,
-        'referralLink' => $referralLink,
-        'stats'        => [
+        'referralCode'    => $userCode,
+        'referralLink'    => $referralLink,
+        'programSettings' => $refSettings,
+        'stats'           => [
             'totalReferrals'        => count($rows),
             'completedReferrals'    => $completedCount,
             'pendingReferrals'      => $pendingCount,
@@ -92,6 +116,6 @@ jsonResponse([
             'bonusBalance'          => $bonusBalance,
             'commissionPerReferral' => $COMMISSION_AMOUNT
         ],
-        'referrals'    => $referralsList
+        'referrals'       => $referralsList
     ]
 ]);

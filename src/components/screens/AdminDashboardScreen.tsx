@@ -694,6 +694,8 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
                 showToast(`Opened user: ${u.name}`);
               }}
               isLightMode={isLightMode}
+              onRefresh={handleRefreshData}
+              isRefreshing={isRefreshing}
             />
           )}
 
@@ -717,6 +719,8 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
               showToast={showToast}
               onNavigateToWallets={() => setActiveTab('wallets')}
               currentAdmin={currentAdmin}
+              onRefresh={handleRefreshData}
+              isRefreshing={isRefreshing}
             />
           )}
 

@@ -38,9 +38,11 @@ import {
   Gift,
 } from 'lucide-react';
 import { TelecomLogo } from '../common/TelecomLogo';
-import { playTapSound, triggerHaptic, playSuccessChime } from '../../utils/soundEffects';
+import { playTapSound, triggerHaptic, playSuccessChime, triggerConfetti } from '../../utils/soundEffects';
 import { Skeleton, TransactionItemSkeleton } from '../common/Skeleton';
 import { useSystemStatus } from '../../context/SystemStatusContext';
+import { apiGenerateVirtualAccounts } from '../../services/apiClient';
+import { isGenericCustomerName } from '../../services/dbService';
 
 interface DashboardScreenProps {
   user: UserProfile;
@@ -96,7 +98,31 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
     }
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isGeneratingAccounts, setIsGeneratingAccounts] = useState(false);
+  const [genAccountSuccess, setGenAccountSuccess] = useState(false);
   const { isOnline, latencyMs, syncState, lastSyncedTime, triggerSync, setIsStatusModalOpen } = useSystemStatus();
+
+  const handleGenerateVirtualAccounts = async () => {
+    if (isGeneratingAccounts) return;
+    setIsGeneratingAccounts(true);
+    playTapSound();
+    triggerHaptic('medium');
+    try {
+      const res = await apiGenerateVirtualAccounts();
+      if (res.status === 'success' || res.data) {
+        setGenAccountSuccess(true);
+        playSuccessChime();
+        triggerConfetti();
+        if (onRefresh) {
+          await onRefresh();
+        }
+      }
+    } catch {
+      // Ignored
+    } finally {
+      setIsGeneratingAccounts(false);
+    }
+  };
 
   const handleRefresh = async () => {
     if (isRefreshing || syncState === 'syncing') return;
@@ -295,14 +321,17 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
     );
   };
 
-  const rawFirst = user?.name ? user.name.trim().split(/\s+/)[0] : "Al'amin";
+  const isGeneric = (n?: string) => isGenericCustomerName(n);
+  const rawFirst = (user?.name && !isGeneric(user.name))
+    ? user.name.trim().split(/\s+/)[0]
+    : ((user?.username && !isGeneric(user.username)) ? user.username : "Al'amin");
   const firstName = rawFirst.toUpperCase() === "AL'AMIN" || rawFirst.toUpperCase() === "ALAMIN"
     ? "Al'amin"
     : rawFirst.charAt(0).toUpperCase() + rawFirst.slice(1).toLowerCase();
 
   const currentHour = new Date().getHours();
   const timeGreeting = currentHour < 12 ? 'Good Morning' : currentHour < 17 ? 'Good Afternoon' : 'Good Evening';
-  const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'A';
+  const userInitial = (user?.name && !isGeneric(user.name)) ? user.name.charAt(0).toUpperCase() : (user?.username ? user.username.charAt(0).toUpperCase() : 'A');
 
   const isAdminUser = Boolean(
     user?.role === 'admin' ||
@@ -877,52 +906,73 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
               </span>
             </div>
 
-            {/* Virtual Accounts State: Safeguard against dummy numbers */}
+            {/* Virtual Accounts State: Real XiXapay PalmPay & Kolomoni generation without BVN/NIN */}
             {virtualAccountsList.length === 0 ? (
-              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-dashed border-slate-300 dark:border-slate-800 space-y-3">
+              <div className="p-3.5 rounded-xl bg-gradient-to-br from-blue-50/70 to-indigo-50/40 dark:from-slate-900/80 dark:to-blue-950/30 border border-blue-200 dark:border-blue-900/60 space-y-3">
                 <div className="flex items-start gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-[#0047cc] dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
                     <ShieldCheck size={18} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                        Dedicated Accounts Pending
+                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                        Dedicated Virtual Accounts
                       </span>
-                      <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-blue-500/10 text-[#0047cc] dark:text-blue-400 border border-blue-500/20">
-                        Zero Dummy Safeguard
+                      <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30">
+                        No BVN / NIN Needed
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                      Real dedicated bank accounts are assigned directly by CBN-licensed payment partners (Monnify / Payvessel). Dummy or fake bank numbers are strictly blocked to safeguard your funds.
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                      Instant PalmPay & Kolomoni MFB accounts for 24/7 automated zero-fee wallet top-ups.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 pt-0.5">
+                <div className="pt-0.5 space-y-2">
                   <button
                     type="button"
-                    onClick={() => {
-                      playTapSound();
-                      triggerHaptic('light');
-                      onNavigate('fund-wallet');
-                    }}
-                    className="flex-1 py-2 px-3 rounded-lg bg-[#0047cc] hover:bg-blue-700 text-white text-xs font-bold font-mono transition-all flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
+                    disabled={isGeneratingAccounts}
+                    onClick={handleGenerateVirtualAccounts}
+                    className="w-full py-2.5 px-3 rounded-lg bg-gradient-to-r from-[#0047cc] to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white text-xs font-bold font-mono transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer active:scale-95 disabled:opacity-60"
                   >
-                    <span>Fund Wallet</span>
-                    <ArrowRight size={13} />
+                    {isGeneratingAccounts ? (
+                      <>
+                        <RefreshCw size={13} className="animate-spin text-white" />
+                        <span>Activating Real Bank Accounts...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={14} className="text-amber-300 fill-amber-300" />
+                        <span>⚡ Generate My Account Numbers (Instant)</span>
+                      </>
+                    )}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      playTapSound();
-                      triggerHaptic('light');
-                      onNavigate('support');
-                    }}
-                    className="py-2 px-3 rounded-lg bg-slate-200/80 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold font-mono transition-all cursor-pointer"
-                  >
-                    Help
-                  </button>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playTapSound();
+                        triggerHaptic('light');
+                        onNavigate('fund-wallet');
+                      }}
+                      className="flex-1 py-1.5 px-3 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-semibold transition-all flex items-center justify-center gap-1 hover:border-slate-300 cursor-pointer"
+                    >
+                      <span>Other Funding Methods</span>
+                      <ArrowRight size={11} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playTapSound();
+                        triggerHaptic('light');
+                        onNavigate('support');
+                      }}
+                      className="py-1.5 px-3 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-semibold transition-all cursor-pointer hover:border-slate-300"
+                    >
+                      Help
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : activeVirtualAcc ? (

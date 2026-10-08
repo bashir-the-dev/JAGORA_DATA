@@ -20,6 +20,7 @@ import {
   Calendar,
   Layers,
   Sparkles,
+  RefreshCw,
 } from 'lucide-react';
 
 interface CustomerAccountsTabProps {
@@ -30,6 +31,8 @@ interface CustomerAccountsTabProps {
   showToast?: (msg: string) => void;
   onNavigateToWallets?: () => void;
   currentAdmin?: any;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 export const CustomerAccountsTab: React.FC<CustomerAccountsTabProps> = ({
@@ -40,6 +43,8 @@ export const CustomerAccountsTab: React.FC<CustomerAccountsTabProps> = ({
   showToast,
   onNavigateToWallets,
   currentAdmin,
+  onRefresh,
+  isRefreshing,
 }) => {
   // Helper to detect administrative or staff accounts (must never be suspended or listed as customer)
   const isUserAdminOrSelf = (u: PlatformUserAccount) => {
@@ -131,8 +136,24 @@ export const CustomerAccountsTab: React.FC<CustomerAccountsTabProps> = ({
               <span className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Total Customers
               </span>
-              <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#0047cc] dark:text-blue-400 flex items-center justify-center">
-                <Users size={16} />
+              <div className="flex items-center gap-1.5">
+                {onRefresh && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onRefresh();
+                      showToast?.('Customer accounts & sign-ups refreshed');
+                    }}
+                    disabled={isRefreshing}
+                    className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 bg-slate-50 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-[#0047cc] dark:hover:text-blue-400 flex items-center justify-center transition-all cursor-pointer disabled:opacity-50 active:scale-95"
+                    title="Refresh new customer sign-ups"
+                  >
+                    <RefreshCw size={13} className={isRefreshing ? "animate-spin text-[#0047cc]" : ""} />
+                  </button>
+                )}
+                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#0047cc] dark:text-blue-400 flex items-center justify-center">
+                  <Users size={16} />
+                </div>
               </div>
             </div>
             <div className="text-2xl sm:text-3xl font-bold font-sans tabular-nums tracking-tight text-slate-900 dark:text-white">
@@ -293,6 +314,22 @@ export const CustomerAccountsTab: React.FC<CustomerAccountsTabProps> = ({
               <option value="spent_desc">Highest Lifetime Spend</option>
               <option value="name_asc">Name (A-Z)</option>
             </select>
+
+            {onRefresh && (
+              <button
+                type="button"
+                onClick={() => {
+                  onRefresh();
+                  showToast?.('Customer accounts & sign-ups refreshed');
+                }}
+                disabled={isRefreshing}
+                className="px-3 py-2 rounded-lg text-xs font-semibold bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 border border-blue-200/80 dark:border-blue-800 text-[#0047cc] dark:text-blue-300 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-95 shrink-0"
+                title="Refresh customer accounts & recent sign-ups without reloading browser"
+              >
+                <RefreshCw size={12} className={isRefreshing ? "animate-spin text-[#0047cc]" : ""} />
+                <span>Refresh Sign-ups</span>
+              </button>
+            )}
           </div>
         </div>
 

@@ -69,20 +69,34 @@ try {
         : 'AJD' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
 
     $referredBy = null;
+    $referrerRow = null;
     if (!empty($rawReferralCode)) {
         try {
-            $refStmt = $pdo->prepare('SELECT referral_code, phone FROM users WHERE referral_code = ? OR phone = ? OR username = ? LIMIT 1');
+            $refStmt = $pdo->prepare('SELECT id, name, email, phone, referral_code, username FROM users WHERE referral_code = ? OR phone = ? OR username = ? LIMIT 1');
             $refStmt->execute([$rawReferralCode, $rawReferralCode, $rawReferralCode]);
             $refRow = $refStmt->fetch();
             if ($refRow && $refRow['phone'] !== $phone) {
                 $referredBy = $refRow['referral_code'] ?: $refRow['phone'];
+                $referrerRow = $refRow;
             }
         } catch (\Throwable $t) {}
     }
 
+    // Check if welcome bonus is enabled
+    $initialBonusBalance = 0.00;
+    try {
+        $sRow = $pdo->query("SELECT value_json FROM settings WHERE key_name = 'referral_settings' LIMIT 1")->fetch();
+        if ($sRow && !empty($sRow['value_json'])) {
+            $rSettings = json_decode($sRow['value_json'], true) ?: [];
+            if (!empty($rSettings['welcomeBonusEnabled']) && !empty($rSettings['welcomeBonusAmount'])) {
+                $initialBonusBalance = (float)$rSettings['welcomeBonusAmount'];
+            }
+        }
+    } catch (\Throwable $t) {}
+
     $insert = $pdo->prepare('
-        INSERT INTO users (name, full_name, username, email, phone, password_hash, pin, transaction_pin, balance, auth_token, referral_code, referred_by, referral_rewarded, status, account_tier, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0.00, ?, ?, ?, 0, "active", "Standard", NOW())
+        INSERT INTO users (name, full_name, username, email, phone, password_hash, pin, transaction_pin, balance, bonus_balance, auth_token, referral_code, referred_by, referral_rewarded, status, account_tier, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0.00, ?, ?, ?, ?, 0, "active", "Standard", NOW())
     ');
     $insert->execute([
         $fullName,
@@ -93,11 +107,30 @@ try {
         $passwordHash,
         $pinHash,
         $pinHash,
+        $initialBonusBalance,
         $authToken,
         $myReferralCode,
         $referredBy
     ]);
     $userId = (int)$pdo->lastInsertId();
+
+    // Notify referrer immediately so they are never left idle
+    if ($referrerRow) {
+        try {
+            $refUserId = (int)$referrerRow['id'];
+            $refUserPhone = $referrerRow['phone'];
+            $refUserName = $referrerRow['name'] ?: 'Partner';
+            $notifTitle = '🎉 New Referral Joined!';
+            $notifMsg = "Great news! Your friend {$fullName} just registered using your referral code ({$rawReferralCode}). You will earn your cash bonus once they complete their first transaction.";
+            $insNotif = $pdo->prepare("
+                INSERT INTO notifications (user_id, user_phone, title, message, type, accent_color, read_users, created_by, created_at)
+                VALUES (?, ?, ?, ?, 'referral', '#059669', '[]', 'system', NOW())
+            ");
+            $insNotif->execute([$refUserId, $refUserPhone, $notifTitle, $notifMsg]);
+        } catch (\Throwable $notifErr) {
+            error_log('Referrer sign up notification notice: ' . $notifErr->getMessage());
+        }
+    }
 
     // Safely generate or fetch virtual accounts
     $accounts = [];

@@ -29,40 +29,73 @@ export function isAudioMuted(): boolean {
   return isSoundMuted;
 }
 
+let lastChimeTime = 0;
+let isChimePlaying = false;
+
 /**
- * Delightful celebratory chime (played on successful transaction)
+ * Sweet, gentle professional chime (luxurious, warm, crystalline fintech bell)
+ * Designed to be soft, pleasing, and never loop or beep repeatedly.
+ * Strictly debounced with a 2.5s cooldown and playback lock.
  */
 export function playSuccessChime() {
-  if (isSoundMuted) return;
+  if (isSoundMuted || isChimePlaying) return;
+  const nowMs = Date.now();
+  // Cooldown guard: strictly prevent repetitive triggering within 2.5 seconds
+  if (nowMs - lastChimeTime < 2500) {
+    return;
+  }
+  lastChimeTime = nowMs;
+  isChimePlaying = true;
+
   try {
     const ctx = getAudioContext();
-    if (!ctx) return;
+    if (!ctx || ctx.state === 'suspended') {
+      isChimePlaying = false;
+      return;
+    }
 
     const now = ctx.currentTime;
-    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6 arpeggio
+    // Sweet, crystalline 2-note ascending chime (C6 at 1046.5Hz -> G6 at 1567.98Hz)
+    // Very gentle gain (0.045) and soft envelope for a sweet, professional tone
+    const tones = [
+      { freq: 1046.50, time: 0, gain: 0.045, duration: 0.28 },    // C6 crystal bell
+      { freq: 1567.98, time: 0.09, gain: 0.038, duration: 0.38 }, // G6 sweet harmonic shimmer
+    ];
 
-    notes.forEach((freq, idx) => {
+    tones.forEach((tone) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+      osc.frequency.setValueAtTime(tone.freq, now + tone.time);
 
-      gain.gain.setValueAtTime(0, now + idx * 0.08);
-      gain.gain.linearRampToValueAtTime(0.12, now + idx * 0.08 + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.08 + 0.35);
+      gain.gain.setValueAtTime(0, now + tone.time);
+      gain.gain.linearRampToValueAtTime(tone.gain, now + tone.time + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + tone.time + tone.duration);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
 
-      osc.start(now + idx * 0.08);
-      osc.stop(now + idx * 0.08 + 0.36);
+      osc.start(now + tone.time);
+      osc.stop(now + tone.time + tone.duration + 0.01);
     });
+
+    setTimeout(() => {
+      isChimePlaying = false;
+    }, 500);
 
     triggerHaptic('success');
   } catch {
+    isChimePlaying = false;
     // Gracefully ignore any browser autoplay policy restrictions
   }
+}
+
+/**
+ * Sweet, polite alert tone for banners and notices
+ */
+export function playSweetAlertSound() {
+  playSuccessChime();
 }
 
 /**

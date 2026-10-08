@@ -31,6 +31,7 @@ interface WalletScreenProps {
   onTransferSuccess?: (recipient: string, amount: number, reference: string, newBalance: number) => void;
   isLightMode?: boolean;
   isMaintenanceMode?: boolean;
+  isReferralsHidden?: boolean;
 }
 
 export const WalletScreen: React.FC<WalletScreenProps> = ({
@@ -45,6 +46,7 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({
   onTransferSuccess,
   isLightMode,
   isMaintenanceMode,
+  isReferralsHidden = false,
 }) => {
   const [showBalance, setShowBalance] = useState(true);
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
@@ -146,16 +148,18 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({
             type="button"
             onClick={() => {
               playTapSound();
-              if (onNavigate) onNavigate('referrals');
+              if (!isReferralsHidden && onNavigate) onNavigate('referrals');
             }}
             className="flex flex-col text-left hover:opacity-90 active:scale-95 transition-all cursor-pointer p-1 -m-1 rounded-lg"
-            title="View referral bonus details"
+            title={isReferralsHidden ? "Bonus Balance" : "View referral bonus details"}
           >
             <div className="flex items-center gap-1.5">
               <span className="text-[10.5px] font-mono font-medium text-slate-400">Bonus Balance</span>
-              <span className="text-[9px] px-1.5 py-0.2 rounded-xs bg-amber-400 text-blue-950 font-black uppercase tracking-tight">
-                Earn ₦50
-              </span>
+              {!isReferralsHidden && (
+                <span className="text-[9px] px-1.5 py-0.2 rounded-xs bg-amber-400 text-blue-950 font-black uppercase tracking-tight">
+                  Refer & Earn
+                </span>
+              )}
             </div>
             <span className="font-mono text-sm font-bold text-emerald-400">
               {showBalance
@@ -233,23 +237,25 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({
         </button>
 
         {/* Refer & Earn */}
-        <button
-          id="quick-action-refer"
-          onClick={() => {
-            playTapSound();
-            if (onNavigate) onNavigate('referrals');
-          }}
-          className={`rounded-2xl p-2.5 sm:p-3 flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 group border shadow-2xs cursor-pointer min-h-[44px] ${
-            isLightMode
-              ? 'bg-amber-50/60 border-amber-200 hover:border-amber-300'
-              : 'bg-amber-950/20 border-amber-800/70 hover:border-amber-700'
-          }`}
-        >
-          <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300 group-hover:scale-105 transition-all flex items-center justify-center border border-amber-300 dark:border-amber-700/80">
-            <Gift size={18} />
-          </div>
-          <span className="text-[11px] font-heading font-bold text-amber-800 dark:text-amber-300 truncate">Refer ₦50</span>
-        </button>
+        {!isReferralsHidden && (
+          <button
+            id="quick-action-refer"
+            onClick={() => {
+              playTapSound();
+              if (onNavigate) onNavigate('referrals');
+            }}
+            className={`rounded-2xl p-2.5 sm:p-3 flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 group border shadow-2xs cursor-pointer min-h-[44px] ${
+              isLightMode
+                ? 'bg-amber-50/60 border-amber-200 hover:border-amber-300'
+                : 'bg-amber-950/20 border-amber-800/70 hover:border-amber-700'
+            }`}
+          >
+            <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300 group-hover:scale-105 transition-all flex items-center justify-center border border-amber-300 dark:border-amber-700/80">
+              <Gift size={18} />
+            </div>
+            <span className="text-[11px] font-heading font-bold text-amber-800 dark:text-amber-300 truncate">Refer & Earn</span>
+          </button>
+        )}
       </section>
 
       {/* Action Notification banner */}

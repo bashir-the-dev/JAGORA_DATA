@@ -49,6 +49,7 @@ import {
   subscribeToNotifications,
   markNotificationReadInDb,
   markAllNotificationsReadInDb,
+  isGenericCustomerName,
 } from './services/dbService';
 import { ApiSettingsModal } from './components/modals/ApiSettingsModal';
 import { SessionLockModal } from './components/modals/SessionLockModal';
@@ -323,7 +324,7 @@ export default function App() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(true);
   const [platformSettings, setPlatformSettings] = useState<PlatformSettingsState>({ maintenanceMode: false });
-  const isReferralsHidden = Boolean(platformSettings?.referralSettings?.hideFromUsers || platformSettings?.referralSettings?.enabled === false);
+  const isReferralsHidden = Boolean(platformSettings?.referralSettings?.hideFromUsers);
 
   // Modals
   const [isFundWalletOpen, setIsFundWalletOpen] = useState(false);
@@ -403,10 +404,15 @@ export default function App() {
       type: resolvedType,
       title: defaultTitle,
       message: msg,
-      duration: 4200,
+      duration: 3800,
     };
 
-    setAlerts((prev) => [...prev.slice(-3), newAlert]);
+    setAlerts((prev) => [...prev.slice(-2), newAlert]);
+
+    // Guaranteed auto-cleanup timer so alerts NEVER stay stuck or beep continuously
+    setTimeout(() => {
+      dismissAlert(newAlert.id);
+    }, 3900);
   };
 
   // Listen for navigation changes (browser back/forward or direct clean URL navigation) and discreet shortcut (Alt+A)
@@ -731,8 +737,9 @@ export default function App() {
           ...prev,
           balance: updated.balance,
           bonusBalance: updated.bonusBalance,
-          name: updated.name,
-          email: updated.email,
+          name: updated.name && !isGenericCustomerName(updated.name) ? updated.name : prev.name,
+          email: updated.email || prev.email,
+          virtualAccounts: updated.virtualAccounts && updated.virtualAccounts.length > 0 ? updated.virtualAccounts : prev.virtualAccounts,
         }));
       }
     });
@@ -779,8 +786,11 @@ export default function App() {
       const res = await apiGetProfile();
       if (res.status === 'success' && res.data?.user) {
         const u = res.data.user;
+        const resolvedName = (u.name && !isGenericCustomerName(u.name))
+          ? u.name
+          : ((user.name && !isGenericCustomerName(user.name)) ? user.name : (u.username || "Al'amin"));
         const updatedUser: UserProfile = {
-          name: u.name || user.name,
+          name: resolvedName,
           username: u.username || user.username,
           phone: u.phone || user.phone,
           email: u.email || user.email,
@@ -1916,6 +1926,7 @@ export default function App() {
                 isMaintenanceMode={platformSettings.maintenanceMode}
                 onNavigateBack={() => setCurrentScreen('home')}
                 onNavigateSupport={() => setCurrentScreen('support')}
+                onRefresh={refreshProfileFromApi}
               />
             )}
 
@@ -1931,6 +1942,7 @@ export default function App() {
                 onNavigate={setCurrentScreen}
                 isLightMode={isLightMode}
                 isMaintenanceMode={platformSettings.maintenanceMode}
+                isReferralsHidden={isReferralsHidden}
                 onTransferSuccess={(recipient, amount, reference, newBalance) => {
                   setUser((prev) => ({ ...prev, balance: newBalance }));
                   updateUserBalanceInDb(user.phone, newBalance);
@@ -2182,7 +2194,7 @@ export default function App() {
       {/* Auto-Lock / Inactivity Quick PIN Unlock Modal */}
       <SessionLockModal
         isOpen={isSessionLocked}
-        userName={user.name || 'Valued Customer'}
+        userName={(user.name && !isGenericCustomerName(user.name)) ? user.name : (user.username || "Al'amin")}
         userPhone={user.phone}
         biometricEnabled={user.biometricEnabled}
         isLightMode={isLightMode}

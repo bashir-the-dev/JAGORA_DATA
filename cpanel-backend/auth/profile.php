@@ -37,7 +37,11 @@ $txStmt->execute([$userId, $userPhone, $userPhone]);
 $rawTransactions = $txStmt->fetchAll();
 $transactions = array_map('formatTransactionRecord', $rawTransactions ?: []);
 
-$userName = $user['name'] ?? ($user['full_name'] ?? 'User');
+$rawName = trim($user['name'] ?? ($user['full_name'] ?? ''));
+if (empty($rawName) || preg_match('/^(valued\s*customer|valued\s*partner|customer|user|null|undefined)$/i', $rawName)) {
+    $rawName = !empty($user['username']) ? $user['username'] : (!empty($user['phone']) ? 'Customer' : "Al'amin");
+}
+$userName = $rawName;
 
 $phoneClean = preg_replace('/[^0-9]/', '', $user['phone'] ?? '');
 $emailClean = strtolower(trim($user['email'] ?? ''));
