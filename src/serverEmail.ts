@@ -45,7 +45,7 @@ export async function sendPasswordResetEmail(
   otpCode: string
 ): Promise<EmailResult> {
   const cleanEmail = recipientEmail.trim().toLowerCase();
-  const fromAddress = process.env.SMTP_FROM || `"Al'amin Jagora Data" <${process.env.SMTP_USER || 'support@alaminjagoradata.com.ng'}>`;
+  const fromAddress = process.env.SMTP_FROM || `"AJDATASUB" <${process.env.SMTP_USER || 'support@ajdatasub.com.ng'}>`;
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -83,7 +83,7 @@ export async function sendPasswordResetEmail(
           <tr>
             <td style="padding:28px 32px 20px;text-align:center;border-bottom:1px solid #e2e8f0;">
               <h1 style="margin:0;font-size:22px;font-weight:800;color:#0047cc;letter-spacing:-0.5px;">
-                <span style="color:#0f172a;">Al'amin</span> Jagora Data
+                <span style="color:#0f172a;">Al'amin</span> AJDATASUB
               </h1>
               <p class="email-header-sub" style="margin:4px 0 0 0;font-size:11.5px;color:#64748b;font-weight:600;letter-spacing:1px;text-transform:uppercase;">Automated Telecom & VTU Gateway</p>
             </td>
@@ -97,7 +97,7 @@ export async function sendPasswordResetEmail(
                 Hello <strong style="color:#0f172a;">${recipientName || 'Customer'}</strong>,
               </p>
               <p class="email-body" style="margin:0 0 24px 0;font-size:14.5px;line-height:1.65;color:#334155;">
-                We received an automated request to reset the login password for your Al'amin Jagora Data account. Use the 6-digit verification code below to authorize your new password:
+                We received an automated request to reset the login password for your AJDATASUB account. Use the 6-digit verification code below to authorize your new password:
               </p>
 
               <!-- OTP Code Display Card -->
@@ -119,7 +119,7 @@ export async function sendPasswordResetEmail(
                 <tr>
                   <td>
                     <p style="margin:0;font-size:12.5px;color:#991b1b;line-height:1.5;">
-                      <strong>Security Advisory:</strong> This code is valid for <strong>10 minutes</strong>. Never share this code with anyone. Al'amin Jagora Data staff will never ask for your verification code.
+                      <strong>Security Advisory:</strong> This code is valid for <strong>10 minutes</strong>. Never share this code with anyone. AJDATASUB staff will never ask for your verification code.
                     </p>
                   </td>
                 </tr>
@@ -135,10 +135,10 @@ export async function sendPasswordResetEmail(
           <tr>
             <td class="email-footer" style="background-color:#f8fafc;padding:22px 32px;border-top:1px solid #e2e8f0;text-align:center;">
               <p class="email-footer-text" style="margin:0 0 6px 0;font-size:12px;color:#64748b;">
-                Al'amin Jagora Data &bull; Enterprise VTU Telecom Gateway
+                AJDATASUB &bull; Enterprise VTU Telecom Gateway
               </p>
               <p class="email-footer-text" style="margin:0;font-size:11.5px;color:#94a3b8;">
-                Need assistance? Contact support at <a href="mailto:support@alaminjagoradata.com.ng" style="color:#0047cc;text-decoration:none;">support@alaminjagoradata.com.ng</a>
+                Need assistance? Contact support at <a href="mailto:support@ajdatasub.com.ng" style="color:#0047cc;text-decoration:none;">support@ajdatasub.com.ng</a>
               </p>
             </td>
           </tr>
@@ -151,7 +151,7 @@ export async function sendPasswordResetEmail(
   `;
 
   const textContent = `
-Al'amin Jagora Data - Password Reset Verification Code
+AJDATASUB - Password Reset Verification Code
 
 Hello ${recipientName || 'Customer'},
 
@@ -163,7 +163,7 @@ This code expires in 10 minutes. Never share this code with anyone.
 
 If you did not request this password reset, please ignore this message.
 
-Support: support@alaminjagoradata.com.ng
+Support: support@ajdatasub.com.ng
 `.trim();
 
   const transporter = getTransporter();
@@ -174,7 +174,7 @@ Support: support@alaminjagoradata.com.ng
       `\n============================================================\n` +
       `[EMAIL SIMULATION - SMTP CREDENTIALS NOT SET IN .ENV]\n` +
       `TO: ${cleanEmail} (${recipientName})\n` +
-      `SUBJECT: Password Reset Code - Al'amin Jagora Data\n` +
+      `SUBJECT: Password Reset Code - AJDATASUB\n` +
       `RESET OTP: ${otpCode}\n` +
       `EXPIRES: 10 minutes\n` +
       `============================================================\n`
@@ -189,7 +189,7 @@ Support: support@alaminjagoradata.com.ng
     const info = await transporter.sendMail({
       from: fromAddress,
       to: cleanEmail,
-      subject: `Your Password Reset Code: ${otpCode} - Al'amin Jagora Data`,
+      subject: `Your Password Reset Code: ${otpCode} - AJDATASUB`,
       text: textContent,
       html: htmlContent,
     });
@@ -217,8 +217,8 @@ export async function sendWelcomeEmail(
   virtualAccounts: Array<{ bank_name: string; account_number: string; account_name?: string }> = []
 ): Promise<EmailResult> {
   const cleanEmail = recipientEmail.trim().toLowerCase();
-  const fromAddress = process.env.SMTP_FROM || `"Al'amin Jagora Data" <${process.env.SMTP_USER || 'support@alaminjagoradata.com.ng'}>`;
-  const appDomain = process.env.APP_DOMAIN || 'alaminjagoradata.com.ng';
+  const fromAddress = process.env.SMTP_FROM || `"AJDATASUB" <${process.env.SMTP_USER || 'support@ajdatasub.com.ng'}>`;
+  const appDomain = process.env.APP_DOMAIN || 'ajdatasub.com.ng';
 
   let accountsHtml = '';
   if (virtualAccounts && virtualAccounts.length > 0) {
@@ -241,7 +241,7 @@ export async function sendWelcomeEmail(
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
   <meta name="supported-color-schemes" content="light">
-  <title>Welcome to Al'amin Jagora Data</title>
+  <title>Welcome to AJDATASUB</title>
   <style>
     :root { color-scheme: light; supported-color-schemes: light; }
     body { margin:0; padding:0; background-color:#f4f6fb; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
@@ -269,7 +269,7 @@ export async function sendWelcomeEmail(
           <tr>
             <td style="padding:28px 32px 20px;text-align:center;border-bottom:1px solid #e2e8f0;">
               <h1 style="margin:0;font-size:22px;font-weight:800;color:#0047cc;letter-spacing:-0.5px;">
-                <span style="color:#0f172a;">Al'amin</span> Jagora Data
+                <span style="color:#0f172a;">Al'amin</span> AJDATASUB
               </h1>
               <p class="email-header-sub" style="margin:4px 0 0 0;font-size:11.5px;color:#64748b;font-weight:600;letter-spacing:1px;text-transform:uppercase;">Automated Telecom & VTU Gateway</p>
             </td>
@@ -303,7 +303,7 @@ export async function sendWelcomeEmail(
               <!-- Security Notice -->
               <div style="margin-top:24px;background-color:#fef2f2;border-left:4px solid #ef4444;border-radius:6px;padding:12px 14px;">
                 <p style="margin:0;font-size:12.5px;color:#991b1b;line-height:1.5;">
-                  <strong>Security Advisory:</strong> Keep your login password and 4-digit Transaction PIN strictly confidential. Al'amin Jagora Data staff will never ask for your PIN.
+                  <strong>Security Advisory:</strong> Keep your login password and 4-digit Transaction PIN strictly confidential. AJDATASUB staff will never ask for your PIN.
                 </p>
               </div>
             </td>
@@ -313,10 +313,10 @@ export async function sendWelcomeEmail(
           <tr>
             <td class="email-footer" style="background-color:#f8fafc;padding:22px 32px;border-top:1px solid #e2e8f0;text-align:center;">
               <p class="email-footer-text" style="margin:0 0 6px 0;font-size:12px;color:#64748b;">
-                Al'amin Jagora Data &bull; Enterprise VTU Telecom Gateway
+                AJDATASUB &bull; Enterprise VTU Telecom Gateway
               </p>
               <p class="email-footer-text" style="margin:0;font-size:11.5px;color:#94a3b8;">
-                Need assistance? Contact support at <a href="mailto:support@alaminjagoradata.com.ng" style="color:#0047cc;text-decoration:none;">support@alaminjagoradata.com.ng</a>
+                Need assistance? Contact support at <a href="mailto:support@ajdatasub.com.ng" style="color:#0047cc;text-decoration:none;">support@ajdatasub.com.ng</a>
               </p>
             </td>
           </tr>
@@ -330,7 +330,7 @@ export async function sendWelcomeEmail(
   `;
 
   const textContent = `
-Welcome to Al'amin Jagora Data!
+Welcome to AJDATASUB!
 
 Hello ${recipientName},
 
@@ -344,7 +344,7 @@ Account Overview:
 Security Reminder: Keep your login password and 4-digit Transaction PIN strictly secret. Never share them with anyone.
 
 Login: https://${appDomain}/login
-Support: support@alaminjagoradata.com.ng
+Support: support@ajdatasub.com.ng
 `.trim();
 
   const transporter = getTransporter();
@@ -355,7 +355,7 @@ Support: support@alaminjagoradata.com.ng
       `[EMAIL SIMULATION - WELCOME EMAIL]\n` +
       `TO: ${cleanEmail} (${recipientName})\n` +
       `PHONE: ${phone}\n` +
-      `SUBJECT: Welcome to Al'amin Jagora Data\n` +
+      `SUBJECT: Welcome to AJDATASUB\n` +
       `============================================================\n`
     );
     return {
@@ -368,7 +368,7 @@ Support: support@alaminjagoradata.com.ng
     const info = await transporter.sendMail({
       from: fromAddress,
       to: cleanEmail,
-      subject: `Welcome to Al'amin Jagora Data - Account Activated`,
+      subject: `Welcome to AJDATASUB - Account Activated`,
       text: textContent,
       html: htmlContent,
     });

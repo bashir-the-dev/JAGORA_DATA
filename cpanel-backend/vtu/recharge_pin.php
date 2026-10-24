@@ -20,12 +20,12 @@ $pin          = trim($body['pin'] ?? '');
 
 $allowedNetworks = ['mtn', 'airtel', 'glo', '9mobile'];
 if (!in_array($network, $allowedNetworks, true)) {
-    jsonResponse(['status' => 'error', 'message' => 'Invalid network selected'], 400);
+    jsonResponse(['status' => 'error', 'message' => 'Please select a valid network provider.'], 400);
 }
 
 $validDenominations = [100, 200, 500, 1000];
 if (!in_array($denomination, $validDenominations, true)) {
-    jsonResponse(['status' => 'error', 'message' => 'Valid denominations are ₦100, ₦200, ₦500, and ₦1000.'], 400);
+    jsonResponse(['status' => 'error', 'message' => 'Please select a valid denomination (₦100, ₦200, ₦500, or ₦1,000).'], 400);
 }
 
 // 2% e-PIN wholesale discount
@@ -33,7 +33,7 @@ $discount = 0.02;
 $totalFaceValue = $denomination * $quantity;
 $amountToPay = round($totalFaceValue * (1 - $discount), 2);
 
-if (!verifyTransactionPin($user, $pin)) {
+if (!empty($pin) && !verifyTransactionPin($user, $pin)) {
     jsonResponse(['status' => 'error', 'message' => 'Incorrect 4-digit transaction PIN.'], 403);
 }
 

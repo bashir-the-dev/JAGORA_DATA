@@ -39,7 +39,7 @@ async function createEnvGuidePdf() {
   let y = 800;
 
   // Header Title
-  page1.drawText("AL'AMIN JAGORA DATA SERVICES", {
+  page1.drawText("AJDATASUB SERVICES", {
     x: 45,
     y: y,
     size: 11,
@@ -223,7 +223,7 @@ async function createEnvGuidePdf() {
   }
 
   // Footer Page 1
-  page1.drawText("Page 1 of 2 | Al'amin Jagora Data Services Deployment Guide", {
+  page1.drawText("Page 1 of 2 | AJDATASUB Services Deployment Guide", {
     x: 180,
     y: 25,
     size: 8,
@@ -254,9 +254,9 @@ async function createEnvGuidePdf() {
 
   // Code Box for Security
   const secLines = [
-    "APP_URL=https://alaminjagoradata.com.ng",
+    "APP_URL=https://ajdatasub.com.ng",
     "APP_SECRET=alamin_super_secret_cryptographic_key_993847291",
-    "VITE_API_BASE_URL=https://alaminjagoradata.com.ng/api",
+    "VITE_API_BASE_URL=https://ajdatasub.com.ng/api",
     "GEMINI_API_KEY=your_gemini_api_key_here (optional for smart support)"
   ];
   page2.drawRectangle({
@@ -359,7 +359,7 @@ async function createEnvGuidePdf() {
     borderWidth: 1,
   });
   page2.drawText("Need Help or Troubleshooting?", { x: 58, y: y - 5, size: 9.5, font: fontBold, color: primaryBlue });
-  page2.drawText("Email: bashirabubakar650@gmail.com | Portal: alaminjagoradata.com.ng", {
+  page2.drawText("Email: bashirabubakar650@gmail.com | Portal: ajdatasub.com.ng", {
     x: 58,
     y: y - 22,
     size: 8.5,
@@ -375,7 +375,7 @@ async function createEnvGuidePdf() {
   });
 
   // Footer Page 2
-  page2.drawText("Page 2 of 2 | Al'amin Jagora Data Services Deployment Guide", {
+  page2.drawText("Page 2 of 2 | AJDATASUB Services Deployment Guide", {
     x: 180,
     y: 25,
     size: 8,

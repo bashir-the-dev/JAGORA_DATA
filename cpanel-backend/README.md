@@ -1,4 +1,4 @@
-# Al'amin Jagora Data - Professional cPanel VTU Backend Guide
+# AJDATASUB - Professional cPanel VTU Backend Guide
 
 This folder (`cpanel-backend/`) contains the complete, production-ready, industry-standard backend built specifically for **cPanel hosting** (Namecheap, Whogohost, QServers, Hostinger, Truehost, etc.).
 
@@ -38,6 +38,7 @@ public_html/
     └── admin/
         ├── stats.php          <-- Today's sales volume & user counts
         ├── fund_user.php      <-- Manual credit/debit with audit trail
+        ├── feedbacks.php      <-- Customer star ratings & feedback moderation
         └── settings.php       <-- Maintenance mode & broadcast notice
 ```
 
@@ -48,7 +49,7 @@ public_html/
 ### Step 1: Create MySQL Database in cPanel
 1. Log into your **cPanel**.
 2. Under the **Databases** section, click **MySQL Databases** (or **MySQL Database Wizard**).
-3. Create a new database: e.g. `cpaneluser_jagoradata`.
+3. Create a new database: e.g. `cpaneluser_ajdatasub`.
 4. Create a new user: e.g. `cpaneluser_dbuser` and choose a strong password.
 5. Under **Add User To Database**, select both, click **Add**, and tick **ALL PRIVILEGES**. Click **Make Changes**.
 
@@ -78,7 +79,7 @@ Open `public_html/api/config.php` in the cPanel code editor and fill in:
 ```php
 // Database Credentials
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'cpaneluser_jagoradata');
+define('DB_NAME', 'cpaneluser_ajdatasub');
 define('DB_USER', 'cpaneluser_dbuser');
 define('DB_PASS', 'YourStrongPassword123#');
 

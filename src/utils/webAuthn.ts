@@ -1,5 +1,5 @@
 /**
- * Web Authentication API (WebAuthn) Helper for Al'amin Jagora Data
+ * Web Authentication API (WebAuthn) Helper for AJDATASUB
  * Enables biometric transaction approval & quick-unlock using Device Fingerprint / Face ID / Touch ID / Windows Hello.
  */
 
@@ -64,7 +64,7 @@ export async function registerDeviceBiometrics(user: {
     const publicKeyCredentialCreationOptions: PublicKeyCredentialCreationOptions = {
       challenge,
       rp: {
-        name: "Al'amin Jagora Data",
+        name: "AJDATASUB",
         id: window.location.hostname === 'localhost' ? 'localhost' : undefined,
       },
       user: {

@@ -68,9 +68,20 @@ try {
         ? strtoupper($username)
         : 'AJD' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
 
+    // Read referral program settings (honoring hideFromUsers & enabled switches)
+    $rSettings = [];
+    try {
+        $sRow = $pdo->query("SELECT value_json FROM settings WHERE key_name = 'referral_settings' LIMIT 1")->fetch();
+        if ($sRow && !empty($sRow['value_json'])) {
+            $rSettings = json_decode($sRow['value_json'], true) ?: [];
+        }
+    } catch (\Throwable $t) {}
+
+    $isReferralProgramActive = (!isset($rSettings['enabled']) || !empty($rSettings['enabled'])) && empty($rSettings['hideFromUsers']);
+
     $referredBy = null;
     $referrerRow = null;
-    if (!empty($rawReferralCode)) {
+    if ($isReferralProgramActive && !empty($rawReferralCode)) {
         try {
             $refStmt = $pdo->prepare('SELECT id, name, email, phone, referral_code, username FROM users WHERE referral_code = ? OR phone = ? OR username = ? LIMIT 1');
             $refStmt->execute([$rawReferralCode, $rawReferralCode, $rawReferralCode]);
@@ -84,15 +95,9 @@ try {
 
     // Check if welcome bonus is enabled
     $initialBonusBalance = 0.00;
-    try {
-        $sRow = $pdo->query("SELECT value_json FROM settings WHERE key_name = 'referral_settings' LIMIT 1")->fetch();
-        if ($sRow && !empty($sRow['value_json'])) {
-            $rSettings = json_decode($sRow['value_json'], true) ?: [];
-            if (!empty($rSettings['welcomeBonusEnabled']) && !empty($rSettings['welcomeBonusAmount'])) {
-                $initialBonusBalance = (float)$rSettings['welcomeBonusAmount'];
-            }
-        }
-    } catch (\Throwable $t) {}
+    if ($isReferralProgramActive && !empty($rSettings['welcomeBonusEnabled']) && !empty($rSettings['welcomeBonusAmount'])) {
+        $initialBonusBalance = (float)$rSettings['welcomeBonusAmount'];
+    }
 
     $insert = $pdo->prepare('
         INSERT INTO users (name, full_name, username, email, phone, password_hash, pin, transaction_pin, balance, bonus_balance, auth_token, referral_code, referred_by, referral_rewarded, status, account_tier, created_at)
@@ -192,7 +197,7 @@ try {
             "Welcome aboard, " . $fullName . "!",
             $welcomeBody,
             "Login to Your Dashboard",
-            "https://" . (defined('APP_DOMAIN') ? APP_DOMAIN : "alaminjagoradata.com.ng") . "/login"
+            "https://" . (defined('APP_DOMAIN') ? APP_DOMAIN : "ajdatasub.com.ng") . "/login"
         );
     } catch (\Throwable $mailErr) {
         error_log("Welcome email delivery notice: " . $mailErr->getMessage());

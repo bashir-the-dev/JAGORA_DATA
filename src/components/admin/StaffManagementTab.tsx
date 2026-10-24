@@ -613,23 +613,23 @@ export const StaffManagementTab: React.FC<StaffManagementTabProps> = ({
                       <>
                         <button
                           onClick={() => promptToggleStatus(agent)}
-                          className={`p-2 px-3 rounded-xl border text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer ${
+                          className={`min-h-[44px] px-3.5 rounded-xl border text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer active:scale-95 ${
                             agent.status === 'active'
                               ? 'border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 hover:bg-amber-100'
                               : 'border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100'
                           }`}
                           title={agent.status === 'active' ? 'Temporarily suspend agent' : 'Reactivate agent'}
                         >
-                          <Power size={13} />
+                          <Power size={14} />
                           <span>{agent.status === 'active' ? 'Suspend' : 'Activate'}</span>
                         </button>
 
                         <button
                           onClick={() => promptDeleteAgent(agent)}
-                          className="p-2 px-2.5 rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors cursor-pointer"
+                          className="min-h-[44px] min-w-[44px] px-3 rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors flex items-center justify-center cursor-pointer active:scale-95"
                           title="Permanently remove agent"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={15} />
                         </button>
                       </>
                     ) : (

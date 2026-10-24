@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * AL'AMIN JAGORA DATA - HUMAN-FRIENDLY ERROR TRANSLATION UTILITY
+ * AJDATASUB - HUMAN-FRIENDLY ERROR TRANSLATION UTILITY
  * ============================================================================
  * Transforms cryptic system/API error messages, HTTP status codes, and provider
  * codes into helpful, respectful, localized messages that reassure the customer
@@ -36,7 +36,7 @@ export function humanizeVtuError(
     return 'System maintenance is currently in progress. Recharge, bill payments, and financial transfers are temporarily paused. Your funds are 100% secure and services will resume shortly.';
   }
 
-  // Network / Connection dropouts
+  // Network / Connection dropouts & Timeouts
   if (
     lower.includes('failed to fetch') ||
     lower.includes('networkerror') ||
@@ -45,6 +45,8 @@ export function humanizeVtuError(
     lower.includes('err_connection') ||
     lower.includes('err_internet_disconnected') ||
     lower.includes('err_name_not_resolved') ||
+    lower.includes('signal aborted') ||
+    lower.includes('aborted') ||
     lower.includes('aborterror') ||
     lower.includes('timeout') ||
     lower.includes('timed out') ||
@@ -55,7 +57,7 @@ export function humanizeVtuError(
     lower.includes('access-control')
   ) {
     if (fallbackContext === 'admin' || fallbackContext === 'auth' || fallbackContext === 'login' || fallbackContext === 'account') {
-      return 'Unable to reach the server. Please check your internet connection and try again.';
+      return 'Network request timed out or was interrupted. If your account was already created, you can try logging in, or check your internet connection and try again.';
     }
     return isFinancial
       ? 'Your network connection dropped while connecting to the provider. Your wallet has not been charged. Please check your connection and try again.'
@@ -199,7 +201,7 @@ export function humanizeVtuError(
       : 'A temporary system issue occurred. Please refresh and try again shortly.';
   }
 
-  // Already user-friendly messages
+  // Clean, human-friendly messages returned by our API
   if (
     errString.length > 8 &&
     errString.length < 140 &&
@@ -209,13 +211,24 @@ export function humanizeVtuError(
     !lower.includes('server error') &&
     !lower.includes('status code')
   ) {
-    if (isFinancial && !lower.includes('wallet') && !lower.includes('charged') && !lower.includes('success') && !lower.includes('balance')) {
-      return `${errString} Your wallet was not charged.`;
+    const isValidationError =
+      lower.includes('please select') ||
+      lower.includes('please enter') ||
+      lower.includes('required') ||
+      lower.includes('invalid') ||
+      lower.includes('incorrect') ||
+      lower.includes('between') ||
+      lower.includes('must be') ||
+      lower.includes('already exists') ||
+      lower.includes('minimum');
+
+    if (isFinancial && !isValidationError && !lower.includes('wallet') && !lower.includes('charged') && !lower.includes('success') && !lower.includes('balance') && !lower.includes('pin')) {
+      return `${errString} (Your wallet was not charged).`;
     }
     return errString;
   }
 
   return isFinancial
-    ? `We could not complete this ${fallbackContext} right now. Your wallet balance is safe and has not been charged. Please try again.`
-    : 'We could not complete your request right now. Please try again in a moment.';
+    ? 'Unable to complete this transaction right now. Your wallet balance is safe and was not charged. Please try again.'
+    : 'Unable to complete your request right now. Please try again in a moment.';
 }

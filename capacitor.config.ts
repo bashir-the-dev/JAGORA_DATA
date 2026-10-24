@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.alaminjagora.data',
-  appName: "Al'amin Jagora Data",
+  appName: "AJDATASUB",
   webDir: 'dist',
   server: {
     androidScheme: 'https',

@@ -1,7 +1,7 @@
 <?php
 /**
  * ============================================================================
- * Al'amin Jagora Data - Production Cache Subsystem (cPanel / PHP)
+ * AJDATASUB - Production Cache Subsystem (cPanel / PHP)
  * ============================================================================
  * Multi-Driver high-performance caching for VTU / Fintech backend:
  * 1. In-Memory APCu Driver (Sub-millisecond RAM access across PHP worker pools)

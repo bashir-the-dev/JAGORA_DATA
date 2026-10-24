@@ -138,7 +138,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
             >
               <img
                 src="/logo.png"
-                alt="Al'amin Jagora Data"
+                alt="AJDATASUB"
                 className="w-full h-full object-contain"
               />
             </motion.div>
@@ -150,7 +150,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
               isLightMode ? 'text-slate-900' : 'text-white'
             }`}
           >
-            Al'amin Jagora Data
+            AJDATASUB
           </h2>
 
           <p

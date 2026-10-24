@@ -67,8 +67,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [isEnrollingBiometrics, setIsEnrollingBiometrics] = useState(false);
   const [biometricStatusMsg, setBiometricStatusMsg] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [biometricInfo, setBiometricInfo] = useState<BiometricAvailability | null>(null);
-  const [activeModal, setActiveModal] = useState<string | null>(null);
-  const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(false);
   const [isChangePinOpen, setIsChangePinOpen] = useState(false);
   const [isLocalRateModalOpen, setIsLocalRateModalOpen] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -100,11 +98,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const userEmail = user.email || 'Email not linked';
 
   const isAdminUser = Boolean(
-    user.role === 'admin' ||
-    user.role === 'support_agent' ||
-    user.role === 'finance_agent' ||
-    user.email === 'bashirabubakar650@gmail.com' ||
-    localStorage.getItem('jagora_admin_authenticated') === 'true'
+    user.email?.toLowerCase() === 'bashirabubakar650@gmail.com' ||
+    user.phone === '08123456789' ||
+    (user.role === 'admin' && user.adminRole === 'super_admin')
   );
 
   const handleOpenRateUs = () => {
@@ -296,9 +292,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             {user.name}
           </h2>
           <p className="font-mono text-xs text-slate-600 dark:text-slate-400 font-medium">{user.phone}</p>
-          <div className="inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-[11px] font-medium text-slate-700 dark:text-slate-300">
-            <Lock size={11} className="text-slate-500 dark:text-slate-400" />
-            <span>Verified Profile • Read-Only</span>
+          <div className="inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+            <CheckCircle2 size={13} className="text-emerald-500" />
+            <span>Verified Account</span>
           </div>
         </div>
       </div>
@@ -464,73 +460,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         </div>
       </section>
 
-      {/* 1. ACCOUNT SETTINGS SECTION */}
-      <section className="space-y-2">
-        <h3 className="font-heading text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider uppercase px-1">
-          Account Settings
-        </h3>
-        <div
-          className={`rounded-2xl overflow-hidden border divide-y shadow-xs ${
-            isLightMode
-              ? 'bg-white border-slate-100 divide-slate-100'
-              : 'bg-slate-800/90 border-slate-700 divide-slate-700/60'
-          }`}
-        >
-          {/* Personal Info */}
-          <button
-            onClick={() => setIsPersonalInfoOpen(true)}
-            className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors text-left cursor-pointer"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0047cc] dark:bg-blue-950 dark:text-blue-400 flex items-center justify-center">
-                <User size={18} />
-              </div>
-              <div>
-                <span className="font-heading text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 block">
-                  Personal Information
-                </span>
-                <span className="text-[11px] text-slate-600 dark:text-slate-400 block font-medium">
-                  Verified name, phone & customer credentials (read-only)
-                </span>
-              </div>
-            </div>
-            <ChevronRight size={17} className="text-slate-500 dark:text-slate-400" />
-          </button>
-
-          {/* Refer & Earn (₦50 Commission) */}
-          {!isReferralsHidden && (
-            <button
-              id="profile-referral-btn"
-              onClick={() => {
-                playTapSound();
-                if (onNavigate) onNavigate('referrals');
-              }}
-              className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors text-left cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400 flex items-center justify-center">
-                  <Gift size={18} />
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-heading text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
-                      Refer & Earn
-                    </span>
-                    <span className="px-1.5 py-0.2 rounded-xs bg-amber-400 text-blue-950 text-[9px] font-black uppercase">
-                      ₦50 Bonus
-                    </span>
-                  </div>
-                  <span className="text-[11px] text-slate-600 dark:text-slate-400 block font-medium">
-                    {user.referralCode ? `Your Code: ${user.referralCode} • ` : ''}Earn cash commission on friend's 1st purchase
-                  </span>
-                </div>
-              </div>
-              <ChevronRight size={17} className="text-slate-500 dark:text-slate-400" />
-            </button>
-          )}
-        </div>
-      </section>
-
       {/* 2. SECURITY SETTINGS */}
       <section className="space-y-2">
         <h3 className="font-heading text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider uppercase px-1">
@@ -543,27 +472,61 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
               : 'bg-slate-800/90 border-slate-700 divide-slate-700/60'
           }`}
         >
-          {/* Change PIN */}
-          <button
-            id="profile-change-pin-btn"
-            onClick={() => handleOpenChangePin('change')}
-            className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors text-left cursor-pointer"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0047cc] dark:bg-blue-950 dark:text-blue-400 flex items-center justify-center">
+          {/* Transaction PIN with Requirement Toggle */}
+          <div className="w-full p-3.5 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0047cc] dark:bg-blue-950 dark:text-blue-400 flex items-center justify-center shrink-0">
                 <KeyRound size={18} />
               </div>
-              <div>
-                <span className="font-heading text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 block">
-                  Change Transaction PIN
-                </span>
-                <span className="text-[11px] text-slate-600 dark:text-slate-400 block font-mono font-medium">
-                  Update your active 4-digit security PIN
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-heading text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 block truncate">
+                    Transaction PIN
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenChangePin('change')}
+                    className="text-[10px] font-bold text-[#0047cc] dark:text-blue-400 hover:underline cursor-pointer"
+                  >
+                    Change PIN
+                  </button>
+                </div>
+                <span className="text-[11px] text-slate-600 dark:text-slate-400 block font-medium">
+                  {user.requirePinForTransactions ? 'PIN required to confirm VTU orders' : 'Require 4-digit PIN before confirming orders'}
                 </span>
               </div>
             </div>
-            <ChevronRight size={17} className="text-slate-500 dark:text-slate-400" />
-          </button>
+
+            {/* Toggle Switch */}
+            <button
+              id="profile-toggle-require-pin"
+              type="button"
+              role="switch"
+              aria-checked={Boolean(user.requirePinForTransactions)}
+              onClick={() => {
+                playTapSound();
+                triggerHaptic('light');
+                const nextVal = !user.requirePinForTransactions;
+                onUpdateUser({ requirePinForTransactions: nextVal });
+                try {
+                  localStorage.setItem('jagora_require_pin_for_transactions', String(nextVal));
+                } catch {}
+              }}
+              className={`w-12 h-7 rounded-full p-1 transition-colors relative shrink-0 cursor-pointer focus:outline-none min-h-[44px] flex items-center ${
+                user.requirePinForTransactions
+                  ? 'bg-[#0047cc]'
+                  : isLightMode
+                  ? 'bg-slate-200'
+                  : 'bg-slate-700'
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full bg-white shadow-xs transition-transform ${
+                  user.requirePinForTransactions ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
 
           {/* Reset Forgotten PIN */}
           <button
@@ -596,7 +559,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <div className="w-full p-3.5 space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-400 flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0047cc] dark:bg-blue-950 dark:text-blue-300 flex items-center justify-center shrink-0">
                   <Fingerprint size={18} />
                 </div>
                 <div>
@@ -604,7 +567,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                     <span className="font-heading text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
                       Use Biometrics
                     </span>
-                    <span className="px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 text-[9px] font-bold uppercase tracking-wider">
+                    <span className="px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/60 text-[#0047cc] dark:text-blue-300 text-[9px] font-bold uppercase tracking-wider">
                       WebAuthn
                     </span>
                   </div>
@@ -781,125 +744,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         </div>
       </section>
 
-      {/* READ-ONLY PERSONAL INFORMATION MODAL */}
-      {isPersonalInfoOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 max-w-sm w-full border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950 text-[#0047cc] dark:text-blue-400 flex items-center justify-center">
-                  <User size={16} />
-                </div>
-                <div>
-                  <h4 className="font-heading font-bold text-sm text-slate-900 dark:text-white">
-                    Personal Information
-                  </h4>
-                  <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                    <Lock size={9} />
-                    <span>Verified & Locked Record</span>
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsPersonalInfoOpen(false)}
-                className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 p-1 rounded-lg transition-colors cursor-pointer"
-              >
-                <X size={18} />
-              </button>
-            </div>
 
-            <div className="space-y-2.5 text-xs">
-              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Legal Name</span>
-                  <span className="font-heading text-sm font-bold text-slate-900 dark:text-slate-100 mt-0.5 block">{user.name}</span>
-                </div>
-                <div className="flex items-center gap-1 text-[10px] font-mono text-emerald-600 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded">
-                  <CheckCircle2 size={10} />
-                  <span>Matched</span>
-                </div>
-              </div>
 
-              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Phone Line</span>
-                  <span className="font-mono text-xs font-bold text-slate-900 dark:text-slate-100 mt-0.5 block">{user.phone}</span>
-                </div>
-                <button
-                  onClick={() => copyToClipboard(user.phone, 'modal-phone')}
-                  className="text-[11px] font-mono text-[#0047cc] dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded cursor-pointer font-bold"
-                >
-                  {copiedField === 'modal-phone' ? 'Copied' : 'Copy'}
-                </button>
-              </div>
 
-              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                <div className="min-w-0 pr-2">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Email Address</span>
-                  <span className="font-mono text-xs font-bold text-slate-900 dark:text-slate-100 mt-0.5 block truncate">{userEmail}</span>
-                </div>
-                <button
-                  onClick={() => copyToClipboard(userEmail, 'modal-email')}
-                  className="text-[11px] font-mono text-[#0047cc] dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded cursor-pointer font-bold shrink-0"
-                >
-                  {copiedField === 'modal-email' ? 'Copied' : 'Copy'}
-                </button>
-              </div>
-
-              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Customer ID</span>
-                  <span className="font-mono text-xs font-bold text-slate-900 dark:text-slate-100 mt-0.5 block">{customerId}</span>
-                </div>
-                <button
-                  onClick={() => copyToClipboard(customerId, 'modal-id')}
-                  className="text-[11px] font-mono text-[#0047cc] dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded cursor-pointer font-bold"
-                >
-                  {copiedField === 'modal-id' ? 'Copied' : 'Copy'}
-                </button>
-              </div>
-
-              <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/40 text-[11px] text-amber-800 dark:text-amber-300 flex items-start gap-2">
-                <Lock size={13} className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
-                <p className="leading-relaxed">
-                  Profile records cannot be edited directly. To request corrections to your legal name or phone, contact Customer Support with regulatory documents.
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setIsPersonalInfoOpen(false)}
-              className="w-full bg-[#0047cc] hover:bg-[#003bb3] text-white py-2.5 rounded-xl text-xs font-bold transition-all"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* General Detail Dialog */}
-      {activeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 max-w-sm w-full border border-slate-200 dark:border-slate-800 shadow-xl space-y-3">
-            <div className="flex justify-between items-center">
-              <h4 className="font-heading font-bold text-sm text-slate-900 dark:text-white">Account Detail</h4>
-              <button
-                onClick={() => setActiveModal(null)}
-                className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">{activeModal}</p>
-            <button
-              onClick={() => setActiveModal(null)}
-              className="w-full bg-[#0047cc] hover:bg-[#003bb3] text-white py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer"
-            >
-              OK
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Change / Reset Transaction PIN Dialog */}
       {isChangePinOpen && (

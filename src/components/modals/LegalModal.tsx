@@ -47,7 +47,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                 {activeTab === 'terms' ? 'Terms of Service' : 'Privacy Policy'}
               </h3>
               <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium">
-                Al'amin Jagora Data • RC: 8153406
+                AJDATASUB • RC: 8153406
               </p>
             </div>
           </div>
@@ -102,7 +102,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                   <span>Agreement & CAC Registration</span>
                 </h4>
                 <p className="text-slate-600 dark:text-slate-300">
-                  By registering or transacting with Al'amin Jagora Data (CAC RC: 8153406), you agree to comply with all operational guidelines governing automated VTU transactions and wallet maintenance under the laws of the Federal Republic of Nigeria.
+                  By registering or transacting with AJDATASUB (CAC RC: 8153406), you agree to comply with all operational guidelines governing automated VTU transactions and wallet maintenance under the laws of the Federal Republic of Nigeria.
                 </p>
               </div>
 
@@ -164,7 +164,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                   <span>NDPA 2023 Compliance Commitment</span>
                 </h4>
                 <p className="text-slate-600 dark:text-slate-300">
-                  Al'amin Jagora Data complies strictly with the Nigeria Data Protection Act (NDPA 2023). We handle personal identity and transaction data under strict confidentiality and bank-grade cryptographic protocols.
+                  AJDATASUB complies strictly with the Nigeria Data Protection Act (NDPA 2023). We handle personal identity and transaction data under strict confidentiality and bank-grade cryptographic protocols.
                 </p>
               </div>
 
@@ -210,7 +210,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
         {/* Modal Actions Footer */}
         <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/60 flex items-center justify-between gap-3 shrink-0">
           <div className="text-[11px] text-slate-500 font-medium">
-            Kano State, Nigeria • support@alaminjagoradata.com.ng
+            Kano State, Nigeria • support@ajdatasub.com.ng
           </div>
 
           <div className="flex items-center gap-2">

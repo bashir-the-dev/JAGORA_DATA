@@ -115,7 +115,7 @@ export const LegalScreen: React.FC<LegalScreenProps> = ({
               {activeTab === 'terms' ? 'Terms of Service' : 'Privacy Policy'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 mt-2 font-medium">
-              Al'amin Jagora Data • Registered Business Enterprise (RC: 8153406)
+              AJDATASUB • Registered Business Enterprise (RC: 8153406)
             </p>
             <p className="text-[11px] text-amber-300/90 mt-1 font-mono">
               Effective Date: September 2026 • Governed by the Laws of the Federal Republic of Nigeria
@@ -208,13 +208,13 @@ export const LegalScreen: React.FC<LegalScreenProps> = ({
               <div className="w-12 h-12 rounded-xl bg-[#0055ff] border border-white/20 shadow-md flex items-center justify-center p-0.5 overflow-hidden shrink-0">
                 <img
                   src="/logo.png"
-                  alt="Al'amin Jagora Data Seal"
+                  alt="AJDATASUB Seal"
                   className="w-full h-full object-contain"
                 />
               </div>
               <div>
                 <h2 className="font-heading font-extrabold text-base sm:text-lg text-slate-900 dark:text-white">
-                  Al'amin Jagora Data Enterprise
+                  AJDATASUB Enterprise
                 </h2>
                 <p className="text-xs text-slate-500 font-medium">
                   Federal Republic of Nigeria • CAC Registered Entity RC: 8153406
@@ -242,10 +242,10 @@ export const LegalScreen: React.FC<LegalScreenProps> = ({
                   <span>Introduction & Acceptance of Terms</span>
                 </h3>
                 <p>
-                  Welcome to <strong>Al'amin Jagora Data</strong> ("we", "us", "our", or the "Platform"), a technology-driven Virtual Top-Up (VTU) and bill settlement platform registered under the Corporate Affairs Commission (CAC) of the Federal Republic of Nigeria with Registration Number <strong>RC: 8153406</strong>, headquartered in Kano State, Nigeria.
+                  Welcome to <strong>AJDATASUB</strong> ("we", "us", "our", or the "Platform"), a technology-driven Virtual Top-Up (VTU) and bill settlement platform registered under the Corporate Affairs Commission (CAC) of the Federal Republic of Nigeria with Registration Number <strong>RC: 8153406</strong>, headquartered in Kano State, Nigeria.
                 </p>
                 <p>
-                  By accessing, creating an account, or transacting on the Al'amin Jagora Data mobile application, web portal, or developer API, you ("User", "Customer", or "Merchant") acknowledge that you have read, understood, and agreed to be legally bound by these Terms of Service. If you do not accept these terms in full, you must immediately discontinue use of our platform.
+                  By accessing, creating an account, or transacting on the AJDATASUB mobile application, web portal, or developer API, you ("User", "Customer", or "Merchant") acknowledge that you have read, understood, and agreed to be legally bound by these Terms of Service. If you do not accept these terms in full, you must immediately discontinue use of our platform.
                 </p>
               </section>
 
@@ -282,17 +282,17 @@ export const LegalScreen: React.FC<LegalScreenProps> = ({
                   <span>Wallet Funding & Dedicated Virtual Accounts</span>
                 </h3>
                 <p>
-                  To facilitate instant transactions, Al'amin Jagora Data provisions personalized, dedicated automated virtual bank accounts (in partnership with licensed CBN-approved payment partners such as Monnify, Wema Bank, Sterling Bank, and Fidelity Bank).
+                  To facilitate instant transactions, AJDATASUB provisions personalized, dedicated automated virtual bank accounts (in partnership with licensed CBN-approved payment partners such as Monnify, Wema Bank, Sterling Bank, and Fidelity Bank).
                 </p>
                 <ul className="list-disc list-inside space-y-2 pl-2">
                   <li>
-                    <strong>Automated Reconciliation:</strong> Transfers made to your dedicated virtual account number are credited to your Al'amin Jagora Data wallet automatically within 5 to 60 seconds.
+                    <strong>Automated Reconciliation:</strong> Transfers made to your dedicated virtual account number are credited to your AJDATASUB wallet automatically within 5 to 60 seconds.
                   </li>
                   <li>
                     <strong>Processing Fees:</strong> Bank transfer gateway processing fees charged by our upstream banking partners (typically ₦20 to ₦50 or 1.5% capped at statutory limits) are displayed transparently before completion.
                   </li>
                   <li>
-                    <strong>Deposit Accuracy:</strong> You must ensure you transfer to your own assigned virtual account number. Al'amin Jagora Data is not liable for funds sent to bank accounts belonging to unrelated third parties.
+                    <strong>Deposit Accuracy:</strong> You must ensure you transfer to your own assigned virtual account number. AJDATASUB is not liable for funds sent to bank accounts belonging to unrelated third parties.
                   </li>
                 </ul>
               </section>
@@ -352,7 +352,7 @@ export const LegalScreen: React.FC<LegalScreenProps> = ({
                   <span>Anti-Fraud Compliance & Prohibited Uses</span>
                 </h3>
                 <p>
-                  Users shall not use Al'amin Jagora Data for:
+                  Users shall not use AJDATASUB for:
                 </p>
                 <ul className="list-disc list-inside space-y-1.5 pl-2">
                   <li>Airtime/data laundering or conversion of proceeds of financial fraud.</li>
@@ -388,8 +388,8 @@ export const LegalScreen: React.FC<LegalScreenProps> = ({
                   For formal inquiries regarding our Terms of Service, please contact our Legal Compliance Desk:
                 </p>
                 <div className="text-xs font-mono space-y-1 pt-1 text-slate-700 dark:text-slate-200">
-                  <p>• <strong>Entity:</strong> Al'amin Jagora Data (RC: 8153406)</p>
-                  <p>• <strong>Email:</strong> support@alaminjagoradata.com.ng</p>
+                  <p>• <strong>Entity:</strong> AJDATASUB (RC: 8153406)</p>
+                  <p>• <strong>Email:</strong> support@ajdatasub.com.ng</p>
                   <p>• <strong>Phone / WhatsApp:</strong> +234 803 898 3334</p>
                   <p>• <strong>Headquarters:</strong> Kano State, Nigeria</p>
                 </div>
@@ -411,7 +411,7 @@ export const LegalScreen: React.FC<LegalScreenProps> = ({
                   <span>Privacy Commitment & NDPA 2023 Compliance</span>
                 </h3>
                 <p>
-                  At <strong>Al'amin Jagora Data</strong> (RC: 8153406), your personal privacy and financial security are our foundational priorities. This Privacy Policy outlines how we collect, process, store, and safeguard your personal information in strict compliance with the <strong>Nigeria Data Protection Act (NDPA 2023)</strong> and guidelines issued by the <strong>Nigeria Data Protection Commission (NDPC)</strong>.
+                  At <strong>AJDATASUB</strong> (RC: 8153406), your personal privacy and financial security are our foundational priorities. This Privacy Policy outlines how we collect, process, store, and safeguard your personal information in strict compliance with the <strong>Nigeria Data Protection Act (NDPA 2023)</strong> and guidelines issued by the <strong>Nigeria Data Protection Commission (NDPC)</strong>.
                 </p>
                 <p>
                   By using our application, you consent to the data collection and processing practices described in this document.
@@ -461,7 +461,7 @@ export const LegalScreen: React.FC<LegalScreenProps> = ({
                   <li>To provide prompt 24/7 customer support and resolve transaction reconciliation tickets.</li>
                 </ul>
                 <div className="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 text-xs text-blue-900 dark:text-blue-200 font-medium">
-                  <strong>Zero Data Selling Guarantee:</strong> Al'amin Jagora Data does <em>never</em> sell, rent, or trade your personal information or contact details to third-party advertisers or marketing data brokers.
+                  <strong>Zero Data Selling Guarantee:</strong> AJDATASUB does <em>never</em> sell, rent, or trade your personal information or contact details to third-party advertisers or marketing data brokers.
                 </div>
               </section>
 
@@ -531,7 +531,7 @@ export const LegalScreen: React.FC<LegalScreenProps> = ({
                 </p>
                 <div className="text-xs font-mono space-y-1 pt-1 text-slate-700 dark:text-slate-200">
                   <p>• <strong>Office:</strong> Data Protection & Security Office</p>
-                  <p>• <strong>Email:</strong> privacy@alaminjagoradata.com.ng</p>
+                  <p>• <strong>Email:</strong> privacy@ajdatasub.com.ng</p>
                   <p>• <strong>Direct Hotline:</strong> +234 803 898 3334</p>
                   <p>• <strong>Location:</strong> Kano State, Nigeria</p>
                 </div>
@@ -541,7 +541,7 @@ export const LegalScreen: React.FC<LegalScreenProps> = ({
 
           {/* Document Footer Action */}
           <div className="mt-10 pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-            <span>© 2026 Al'amin Jagora Data (RC: 8153406). All rights reserved.</span>
+            <span>© 2026 AJDATASUB (RC: 8153406). All rights reserved.</span>
             <div className="flex items-center gap-3">
               <button
                 type="button"

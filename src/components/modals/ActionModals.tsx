@@ -32,6 +32,7 @@ import {
   Layers,
   Search,
   AlertTriangle,
+  RotateCw,
 } from 'lucide-react';
 import { captureReceiptAsImage } from '../../utils/receiptImage';
 import { TelecomLogo } from '../common/TelecomLogo';
@@ -144,6 +145,7 @@ interface FundWalletModalProps {
   onFundSuccess: (amount: number) => void;
   virtualAccounts?: Array<{ bank_name: string; account_number: string; account_name: string }>;
   isLightMode?: boolean;
+  onRefreshBalance?: () => void;
 }
 
 export const FundWalletModal: React.FC<FundWalletModalProps> = ({
@@ -152,18 +154,18 @@ export const FundWalletModal: React.FC<FundWalletModalProps> = ({
   onFundSuccess,
   virtualAccounts: userVirtualAccounts,
   isLightMode,
+  onRefreshBalance,
 }) => {
-  const [amount, setAmount] = useState<number>(2000);
   const [copiedBank, setCopiedBank] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const isSubmittingRef = useRef<boolean>(false);
 
-  useEffect(() => {
-    if (!isOpen) {
-      isSubmittingRef.current = false;
-      setIsProcessing(false);
+  const handleRefreshBalanceAndClose = () => {
+    playTapSound();
+    triggerHaptic('light');
+    if (onRefreshBalance) {
+      onRefreshBalance();
     }
-  }, [isOpen]);
+    onClose();
+  };
 
   const activeAccounts = (userVirtualAccounts && Array.isArray(userVirtualAccounts) && userVirtualAccounts.length > 0)
     ? userVirtualAccounts
@@ -175,21 +177,6 @@ export const FundWalletModal: React.FC<FundWalletModalProps> = ({
     triggerHaptic('light');
     setCopiedBank(bank);
     setTimeout(() => setCopiedBank(null), 3000);
-  };
-
-  const handleVerifyTransfer = () => {
-    if (amount <= 0 || isProcessing || isSubmittingRef.current) return;
-    isSubmittingRef.current = true;
-    setIsProcessing(true);
-    playTapSound();
-    setTimeout(() => {
-      setIsProcessing(false);
-      isSubmittingRef.current = false;
-      playCoinSound();
-      triggerConfetti();
-      onFundSuccess(amount);
-      onClose();
-    }, 900);
   };
 
   return (
@@ -244,7 +231,7 @@ export const FundWalletModal: React.FC<FundWalletModalProps> = ({
           {activeAccounts.map((acc, i) => {
             const bankName = (acc as any).bank_name || (acc as any).bank || 'Virtual Bank';
             const accNum = (acc as any).account_number || (acc as any).number || '0000000000';
-            const accHolder = (acc as any).account_name || (acc as any).name || "Al'amin Jagora";
+            const accHolder = (acc as any).account_name || (acc as any).name || "AJDATASUB";
             const isCopied = copiedBank === bankName;
 
             return (
@@ -315,49 +302,16 @@ export const FundWalletModal: React.FC<FundWalletModalProps> = ({
           </div>
         )}
 
-        {/* Goal-Centered Direct Verification */}
-        <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800 space-y-2.5">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-              Instant Transfer Verification
-            </label>
-            <span className="text-[11px] text-slate-500 font-medium">Select Amount</span>
-          </div>
-
-          <div className="grid grid-cols-4 gap-1.5">
-            {[1000, 2000, 5000, 10000].map((val) => (
-              <button
-                key={val}
-                type="button"
-                onClick={() => {
-                  playTapSound();
-                  setAmount(val);
-                }}
-                className={`py-2 text-xs font-bold font-mono rounded-xl border transition-all cursor-pointer ${
-                  amount === val
-                    ? 'border-[#0047cc] bg-blue-50 dark:bg-blue-950 text-[#0047cc] dark:text-blue-300 ring-1 ring-[#0047cc]/40'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                }`}
-              >
-                ₦{val >= 1000 ? `${val / 1000}k` : val}
-              </button>
-            ))}
-          </div>
-
+        {/* Refresh Balance Action Button */}
+        <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800">
           <motion.button
             whileTap={{ scale: 0.98 }}
-            onClick={handleVerifyTransfer}
-            disabled={isProcessing}
-            className="w-full bg-[#0047cc] hover:bg-[#003eb8] text-white font-sans font-bold text-sm py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-80"
+            type="button"
+            onClick={handleRefreshBalanceAndClose}
+            className="w-full bg-[#0047cc] hover:bg-[#003eb8] active:bg-[#003399] text-white font-sans font-bold text-sm min-h-[46px] py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer"
           >
-            {isProcessing ? (
-              <FintechButtonLoader text="Verifying Transfer..." subtext="Polling automated virtual banking switch" />
-            ) : (
-              <>
-                <Sparkles size={16} className="text-amber-300 fill-current" />
-                <span>I Have Sent ₦{amount.toLocaleString()} • Verify Now</span>
-              </>
-            )}
+            <RotateCw size={16} />
+            <span>Refresh Balance</span>
           </motion.button>
         </div>
         </>
@@ -2486,21 +2440,7 @@ export const MoreServicesModal: React.FC<MoreServicesModalProps> = ({
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                        svc.name.includes('Electricity')
-                          ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-xs'
-                          : svc.name.includes('Cable')
-                          ? 'bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xs'
-                          : svc.name.includes('Exam')
-                          ? 'bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-xs'
-                          : svc.name.includes('Recharge')
-                          ? 'bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 text-white shadow-xs'
-                          : svc.name.includes('Data Card')
-                          ? 'bg-gradient-to-br from-purple-600 to-violet-700 text-white shadow-xs'
-                          : svc.name.includes('Airtime')
-                          ? 'bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-xs'
-                          : 'bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-xs'
-                      }`}>
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0052e0] via-[#0047cc] to-[#0038a8] text-white shadow-xs flex items-center justify-center shrink-0">
                         <Icon size={19} className="stroke-[2.2]" />
                       </div>
                       <div className="min-w-0">
@@ -2622,7 +2562,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
       if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: "Al'amin Jagora Data Official Receipt",
+          title: "AJDATASUB Official Receipt",
           text: `Official transaction receipt for ${transaction.title} (₦${transaction.amount.toLocaleString('en-NG', { minimumFractionDigits: 2 })}) - Ref: ${txIdStr}`,
         });
         setActionFeedback('Receipt image shared!');
@@ -2677,12 +2617,16 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
           {/* Header Brand Section */}
           <div className="p-4 pb-3 flex items-start justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-[#0047cc] text-white flex items-center justify-center font-black text-sm shadow-xs border border-blue-400/30">
-                AJ
+              <div className="w-10 h-10 rounded-xl bg-white border border-slate-200/80 shadow-xs flex items-center justify-center p-0.5 overflow-hidden shrink-0">
+                <img
+                  src="/logo.png"
+                  alt="AJDATASUB"
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div>
                 <span className="font-extrabold text-slate-900 text-[13px] tracking-tight block uppercase leading-tight font-sans">
-                  Al'amin Jagora Data
+                  AJDATASUB
                 </span>
                 <span className="text-[10px] text-slate-500 font-medium block">
                   Telecom & Utility VTU Services
@@ -2863,7 +2807,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
           {/* Legal / Authenticity Footer Strip */}
           <div className="bg-slate-50 border-t border-slate-100 px-4 py-1.5 text-center">
             <span className="text-[9px] text-slate-400 font-medium">
-              Official digital proof of transaction • Al'amin Jagora Data Switch
+              Official digital proof of transaction • AJDATASUB Switch
             </span>
           </div>
         </div>

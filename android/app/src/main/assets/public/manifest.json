@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Al'amin Jagora Data",
-  "short_name": "JagoraData",
+  "name": "AJDATASUB",
+  "short_name": "AJDATASUB",
   "description": "Fast VTU Data, Airtime, Cable TV and Electricity vending platform.",
   "start_url": "/",
   "scope": "/",

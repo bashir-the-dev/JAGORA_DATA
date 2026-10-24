@@ -40,9 +40,21 @@ export const BulkPushNotificationsTab: React.FC<BulkPushNotificationsTabProps> =
   isLightMode,
   showToast,
 }) => {
-  // Broadcast Compose State
-  const [notifTitle, setNotifTitle] = useState('');
-  const [notifMessage, setNotifMessage] = useState('');
+  // Broadcast Compose State - Persisted to prevent any unexpected auto-deletion
+  const [notifTitle, setNotifTitle] = useState(() => {
+    try {
+      return sessionStorage.getItem('ajd_draft_push_title') || '';
+    } catch {
+      return '';
+    }
+  });
+  const [notifMessage, setNotifMessage] = useState(() => {
+    try {
+      return sessionStorage.getItem('ajd_draft_push_msg') || '';
+    } catch {
+      return '';
+    }
+  });
   const [notifType, setNotifType] = useState<NotificationItem['type']>('system');
   const [targetAudience, setTargetAudience] = useState<'all' | 'kyc_verified' | 'agents' | 'active_users'>('all');
   const [enableSound, setEnableSound] = useState(true);
@@ -55,10 +67,39 @@ export const BulkPushNotificationsTab: React.FC<BulkPushNotificationsTabProps> =
 
   // Announcement Banner Quick Controls
   const [showBannerControls, setShowBannerControls] = useState(false);
-  const [announcementText, setAnnouncementText] = useState('');
+  const [announcementText, setAnnouncementText] = useState(() => {
+    try {
+      return sessionStorage.getItem('ajd_draft_ticker_text') || '';
+    } catch {
+      return '';
+    }
+  });
   const [isAnnouncementActive, setIsAnnouncementActive] = useState(false);
   const [announcementType, setAnnouncementType] = useState<'info' | 'warning' | 'urgent'>('warning');
   const [isSavingBanner, setIsSavingBanner] = useState(false);
+
+  // Keep draft in sessionStorage to protect against unmounts or tab switches
+  const handleTitleChange = (val: string) => {
+    setNotifTitle(val);
+    try {
+      sessionStorage.setItem('ajd_draft_push_title', val);
+    } catch {}
+  };
+
+  const handleMessageChange = (val: string) => {
+    setNotifMessage(val);
+    try {
+      sessionStorage.setItem('ajd_draft_push_msg', val);
+    } catch {}
+  };
+
+  const handleAnnouncementChange = (val: string) => {
+    isEditingAnnouncementRef.current = true;
+    setAnnouncementText(val);
+    try {
+      sessionStorage.setItem('ajd_draft_ticker_text', val);
+    } catch {}
+  };
 
   // Fetch History
   const fetchBroadcastHistory = async () => {
@@ -77,13 +118,25 @@ export const BulkPushNotificationsTab: React.FC<BulkPushNotificationsTabProps> =
     fetchBroadcastHistory();
   }, [historyRefreshKey]);
 
-  // Subscribe to platform announcement settings
+  // Refs to prevent any background subscription from wiping user text input
+  const isEditingAnnouncementRef = React.useRef(false);
+  const hasInitializedAnnouncementRef = React.useRef(false);
+
+  // Subscribe to platform announcement settings without wiping admin input
   useEffect(() => {
     const unsub = subscribeToPlatformSettings((settings) => {
       if (settings?.broadcastAnnouncement) {
-        setAnnouncementText(settings.broadcastAnnouncement.text || '');
         setIsAnnouncementActive(Boolean(settings.broadcastAnnouncement.active));
         setAnnouncementType(settings.broadcastAnnouncement.type || 'info');
+        // Protect user typing: Never overwrite if admin has focused, edited, or modified the field
+        if (!isEditingAnnouncementRef.current && !hasInitializedAnnouncementRef.current) {
+          const remoteText = settings.broadcastAnnouncement.text || '';
+          // Only populate if local draft is completely empty
+          if (!announcementText.trim() && remoteText) {
+            setAnnouncementText(remoteText);
+          }
+          hasInitializedAnnouncementRef.current = true;
+        }
       }
     });
     return () => unsub();
@@ -115,7 +168,7 @@ export const BulkPushNotificationsTab: React.FC<BulkPushNotificationsTabProps> =
     {
       label: '⚠️ Security Alert',
       title: '🛡️ Security Advisory: Never Share Your Transaction PIN',
-      message: 'Al\'amin Jagora Data staff will NEVER ask for your transaction PIN, password, or OTP. Protect your funds and enable biometrics in security settings.',
+      message: 'Al\'amin AJDATASUB staff will NEVER ask for your transaction PIN, password, or OTP. Protect your funds and enable biometrics in security settings.',
       type: 'security' as const,
       target: 'all' as const,
     },
@@ -158,8 +211,12 @@ export const BulkPushNotificationsTab: React.FC<BulkPushNotificationsTabProps> =
 
       if (res && res.success !== false) {
         showToast(`🎉 ${res.message || 'Bulk push notification dispatched to all users successfully!'}`);
-        setNotifTitle('');
-        setNotifMessage('');
+        handleTitleChange('');
+        handleMessageChange('');
+        try {
+          sessionStorage.removeItem('ajd_draft_push_title');
+          sessionStorage.removeItem('ajd_draft_push_msg');
+        } catch {}
         setHistoryRefreshKey((prev) => prev + 1);
       } else {
         showToast(`❌ ${res?.message || 'Failed to dispatch broadcast notification.'}`);
@@ -294,7 +351,10 @@ export const BulkPushNotificationsTab: React.FC<BulkPushNotificationsTabProps> =
             <textarea
               rows={2}
               value={announcementText}
-              onChange={(e) => setAnnouncementText(e.target.value)}
+              onFocus={() => {
+                isEditingAnnouncementRef.current = true;
+              }}
+              onChange={(e) => handleAnnouncementChange(e.target.value)}
               placeholder="E.g., Notice: MTN SME Data server maintenance scheduled from 1:00 AM - 2:00 AM..."
               className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:border-[#0047cc]"
             />
@@ -444,7 +504,7 @@ export const BulkPushNotificationsTab: React.FC<BulkPushNotificationsTabProps> =
                   maxLength={80}
                   placeholder="E.g., 🚀 Flash Weekend Promo: MTN 1GB @ ₦260!"
                   value={notifTitle}
-                  onChange={(e) => setNotifTitle(e.target.value)}
+                  onChange={(e) => handleTitleChange(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-sans text-slate-900 dark:text-slate-100 focus:outline-none focus:border-[#0047cc] focus:ring-1 focus:ring-[#0047cc]"
                 />
               </div>
@@ -465,7 +525,7 @@ export const BulkPushNotificationsTab: React.FC<BulkPushNotificationsTabProps> =
                   rows={3}
                   placeholder="Enter full notification message content that users will read in their notifications drawer..."
                   value={notifMessage}
-                  onChange={(e) => setNotifMessage(e.target.value)}
+                  onChange={(e) => handleMessageChange(e.target.value)}
                   className="w-full p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-sans text-slate-900 dark:text-slate-100 focus:outline-none focus:border-[#0047cc] focus:ring-1 focus:ring-[#0047cc] leading-relaxed"
                 />
               </div>
@@ -557,7 +617,7 @@ export const BulkPushNotificationsTab: React.FC<BulkPushNotificationsTabProps> =
                     <div className="w-4 h-4 rounded-md bg-[#0047cc] flex items-center justify-center p-0.5">
                       <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
                     </div>
-                    <span className="font-bold text-slate-200">Al&apos;amin Jagora Data</span>
+                    <span className="font-bold text-slate-200">Al&apos;amin AJDATASUB</span>
                   </div>
                   <span className="text-[10px]">Just now</span>
                 </div>

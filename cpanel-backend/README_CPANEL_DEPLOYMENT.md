@@ -1,4 +1,4 @@
-# 🚀 Deploying Al'amin Jagora Data to QServers cPanel (PHP + MySQL)
+# 🚀 Deploying AJDATASUB to QServers cPanel (PHP + MySQL)
 
 This step-by-step guide walks you through deploying your VTU Web App onto your **QServers cPanel** hosting plan.
 
@@ -78,9 +78,9 @@ This produces a `dist/` folder containing the compiled `index.html`, JavaScript,
 You can deploy using either of these two easy methods:
 
 ### Method A (Fastest - 1-Click ZIP Upload):
-1. Download **`alaminjagora_cpanel_files.zip`** from the project root.
+1. Download **`ajdatasub_cpanel_files.zip`** (or `alaminjagora_cpanel_files.zip`) from the project root.
 2. In cPanel ➔ **File Manager**, enter **`public_html`**.
-3. Click **Upload** and upload `alaminjagora_cpanel_files.zip`.
+3. Click **Upload** and upload `ajdatasub_cpanel_files.zip` (or `alaminjagora_cpanel_files.zip`).
 4. Right-click the uploaded zip file and click **Extract**.
 5. *(Optional)* Delete the zip file after extraction. Done!
 
@@ -120,7 +120,7 @@ public_html/
      ```json
      {
        "status": "online",
-       "service": "Al'amin Jagora Data VTU Engine (PHP Edition)",
+       "service": "AJDATASUB VTU Engine (PHP Edition)",
        "environment": "cPanel / MySQL"
      }
      ```
@@ -135,3 +135,16 @@ public_html/
 
 ## Need Support?
 All routes, wallets, transactions, and security checks are now 100% compatible with native Apache, PHP, and MySQL on QServers!
+
+---
+## 🌐 Hosting the Landing Page on a Subdomain (for Existing Customers)
+To prevent existing customers from seeing the marketing landing page every time they visit your main app domain/subdomain, you can separate your marketing landing page onto a dedicated subdomain (e.g., `landing.ajdata.ng` or `www.ajdata.ng`) while keeping your main portal (`app.ajdata.ng` or root domain) pointing straight to the VTU dashboard & login:
+
+1. **Create Subdomain in cPanel:**
+   * Go to **Subdomains** in cPanel.
+   * Create `landing` (pointing to document root `/public_html/landing` or a dedicated folder).
+2. **Move Landing Files:**
+   * Copy `landing.php` into your new landing folder and rename it to `index.php`.
+   * Ensure `config.php` and assets (`/logo.png`, CSS, etc.) are accessible or correctly linked.
+3. **Configure Main Domain / App Domain:**
+   * On your main domain (e.g., `ajdata.ng` or `app.ajdata.ng`), users go directly to the app portal (`index.php` / React SPA / login), while existing customers who return are automatically recognized with our smart session detector or can bookmark the direct app portal.

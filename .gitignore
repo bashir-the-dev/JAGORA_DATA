@@ -1,7 +1,10 @@
 node_modules/
 build/
-dist/
+dist/*
+!dist/server.cjs
+!dist/server.cjs.map
 coverage/
+cpanel_deploy_package/
 .DS_Store
 *.log
 .env*

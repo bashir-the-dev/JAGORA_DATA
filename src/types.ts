@@ -14,6 +14,7 @@ export type ScreenType =
   | 'profile'
   | 'referrals'
   | 'support'
+  | 'chat'
   | 'notifications'
   | 'login'
   | 'register'
@@ -22,6 +23,24 @@ export type ScreenType =
   | 'admin';
 
 export type NetworkId = 'mtn' | 'airtel' | 'glo' | '9mobile';
+
+export type PeyflexNetworkIdentifier =
+  | 'mtn_data_share'
+  | 'mtn_gifting_data'
+  | 'airtel_data'
+  | 'glo_data'
+  | '9mobile_data';
+
+export interface PeyflexDataNetwork {
+  name: string;
+  identifier: PeyflexNetworkIdentifier;
+  carrier: NetworkId;
+  badge: string;
+  badgeColor: string;
+  textColor: string;
+  bgColor: string;
+  category: string;
+}
 
 export interface NetworkProvider {
   id: NetworkId;
@@ -34,11 +53,17 @@ export interface NetworkProvider {
 
 export interface DataPlan {
   id: string;
-  network: NetworkId;
+  network: NetworkId | PeyflexNetworkIdentifier;
+  networkKey?: PeyflexNetworkIdentifier;
+  network_key?: PeyflexNetworkIdentifier;
   size: string;
   validity: string;
-  type: string; // 'Corporate Gifting' | 'SME' | 'Gifting'
+  type: string; // 'Corporate Gifting' | 'SME' | 'Gifting' | 'Data Share' | 'Gifting Data'
   price: number;
+  costPrice?: number;
+  gatewayPrice?: number;
+  planCode?: string;
+  name?: string;
 }
 
 export type VtuNetwork = 'MTN' | 'GLO' | 'AIRTEL' | '9MOBILE';
@@ -87,6 +112,7 @@ export interface Transaction {
   iconType: 'wifi' | 'phone' | 'bolt' | 'wallet' | 'tv' | 'transfer' | 'pin';
   token?: string; // e.g. electricity token or pin serial
   reference?: string;
+  type?: string;
   // Admin & Auditing metadata
   provider?: string;
   costPrice?: number;
@@ -148,6 +174,7 @@ export interface UserProfile {
   biometricEnabled: boolean;
   hasPin?: boolean;
   transactionPin?: string; // Kept as optional for backwards compatibility, but not stored in plaintext
+  requirePinForTransactions?: boolean;
   role?: 'admin' | 'user' | 'support_agent' | 'finance_agent';
   adminRole?: 'super_admin' | 'support_agent' | 'finance_agent';
   virtualAccounts?: VirtualAccountItem[];
@@ -273,10 +300,19 @@ export interface AdminPlatformWallet {
   totalVendorFloat: number;
   todaySalesVolume: number;
   todayGrossProfit: number;
+  todayProfit?: number;
   todayTxCount: number;
   failedTxCount: number;
   successRate: number;
   reserveRatio: number; // vendor float / user wallets
+  activeUsersToday?: number;
+  serviceBreakdown?: Record<string, { name: string; volume: number; count: number; percentage: number }>;
+  profitGrowthPercent?: number;
+  liabilitiesGrowthPercent?: number;
+  turnoverGrowthPercent?: number;
+  floatsGrowthPercent?: number;
+  customerLiabilities?: number;
+  platformTurnover?: number;
 }
 
 export interface PlatformUserAccount {
@@ -293,4 +329,53 @@ export interface PlatformUserAccount {
   kycTier: 1 | 2 | 3;
   role?: string;
   isAdmin?: boolean;
+}
+
+/**
+ * Deduplicate transactions list by ID/reference and paired twin entries
+ * (e.g. optimistic client log vs authoritative server log for the same top-up)
+ */
+export function deduplicateTransactions(list: Transaction[]): Transaction[] {
+  if (!Array.isArray(list)) return [];
+  const seenIds = new Set<string>();
+  const result: Transaction[] = [];
+
+  for (const tx of list) {
+    if (!tx) continue;
+    const cleanId = String(tx.id || tx.reference || '').trim();
+    if (cleanId && seenIds.has(cleanId)) continue;
+
+    const recipientDigits = String(tx.recipient || tx.subtitle || '').replace(/\D/g, '').slice(-10);
+    const cat = String(tx.category || '').toLowerCase();
+    const timeDigits = String(tx.date || '').replace(/[^0-9:]/g, '');
+
+    // Check if an existing entry is a twin for the exact same transaction
+    const isTwin = result.some((prev) => {
+      const prevDigits = String(prev.recipient || prev.subtitle || '').replace(/\D/g, '').slice(-10);
+      const prevCat = String(prev.category || '').toLowerCase();
+      const prevTime = String(prev.date || '').replace(/[^0-9:]/g, '');
+
+      if (recipientDigits && prevDigits && recipientDigits === prevDigits && cat === prevCat) {
+        const timeClose =
+          !timeDigits ||
+          !prevTime ||
+          timeDigits === prevTime ||
+          Math.abs(parseInt(timeDigits.replace(':', '') || '0') - parseInt(prevTime.replace(':', '') || '0')) <= 2;
+        if (timeClose) {
+          const diff = Math.abs(Number(prev.amount || 0) - Number(tx.amount || 0));
+          if (diff <= 5 || diff === 0) {
+            return true;
+          }
+        }
+      }
+      return false;
+    });
+
+    if (!isTwin) {
+      if (cleanId) seenIds.add(cleanId);
+      result.push(tx);
+    }
+  }
+
+  return result;
 }

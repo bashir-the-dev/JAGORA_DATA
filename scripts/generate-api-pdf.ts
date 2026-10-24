@@ -34,7 +34,7 @@ async function generateManual() {
       thickness: 0.5,
       color: colorBorder,
     });
-    page.drawText("Al'amin Jagora Data - Official API Integration & Deployment Manual", {
+    page.drawText("AJDATASUB - Official API Integration & Deployment Manual", {
       x: margin,
       y: 22,
       size: 8,
@@ -70,7 +70,7 @@ async function generateManual() {
     color: colorSecondary,
   });
 
-  currentPage.drawText("AL'AMIN JAGORA DATA", {
+  currentPage.drawText("AJDATASUB", {
     x: margin + 20,
     y: y - 35,
     size: 20,
@@ -237,11 +237,11 @@ async function generateManual() {
   // SECTION 1: ARCHITECTURE OVERVIEW
   // =========================================================================
   addSectionHeading('1. SYSTEM ARCHITECTURE & INTEGRATION MODES');
-  addParagraph("The Al'amin Jagora Data platform is designed with a full-stack architecture running a React single-page frontend on the client side and an authoritative TypeScript/Express API gateway on the backend. You can operate the app in three distinct integration modes depending on your business infrastructure:");
+  addParagraph("The AJDATASUB platform is designed with a full-stack architecture running a React single-page frontend on the client side and an authoritative TypeScript/Express API gateway on the backend. You can operate the app in three distinct integration modes depending on your business infrastructure:");
 
   addBullet('Mode A: Built-in Express Backend (Default & Recommended)', 'Directly uses the bundled Node.js server (server.ts) which acts as a secure middleware bridge to upstream VTU gateways (ClubKonnect, Monnify, Payvessel) without exposing secret credentials to client browsers.');
   addBullet('Mode B: External Custom PHP / MySQL API (cPanel / XAMPP)', 'Allows you to point the web app to an external PHP backend by changing the API Base URL in Settings. All REST requests adapt automatically to standard PHP endpoints (e.g., buy_data.php).');
-  addBullet('Mode C: Third-Party Developer API Consumer', 'Other websites, mobile applications, or WhatsApp bots can consume your Jagora Data REST API using Bearer Token authorization.');
+  addBullet('Mode C: Third-Party Developer API Consumer', 'Other websites, mobile applications, or WhatsApp bots can consume your AJDATASUB REST API using Bearer Token authorization.');
 
   // =========================================================================
   // SECTION 2: ENVIRONMENT CONFIGURATION (.env)
@@ -288,7 +288,7 @@ async function generateManual() {
   addBullet('Airtel Nigeria', 'Network Code: "04" • Supported: Corporate Gifting, Direct VTU');
 
   addSubHeading('B. Automatic Compensation & Rollback Guarantee:');
-  addParagraph('If the upstream telecom switch is under scheduled maintenance or rejects the vending transaction, the Jagora Data backend automatically executes a compensation refund to the user wallet in under 200ms and flags the ledger transaction as REFUNDED.');
+  addParagraph('If the upstream telecom switch is under scheduled maintenance or rejects the vending transaction, the AJDATASUB backend automatically executes a compensation refund to the user wallet in under 200ms and flags the ledger transaction as REFUNDED.');
 
   // =========================================================================
   // SECTION 4: REST API ENDPOINTS SPECIFICATION
@@ -410,7 +410,7 @@ async function generateManual() {
     font: fontBold,
     color: colorAccent,
   });
-  currentPage.drawText("Al'amin Jagora Data Developer Support • Email: support@jagoradata.com • WhatsApp: +234 800 123 4567", {
+  currentPage.drawText("AJDATASUB Developer Support • Email: support@jagoradata.com • WhatsApp: +234 800 123 4567", {
     x: margin + 12,
     y: y - 27,
     size: 8,

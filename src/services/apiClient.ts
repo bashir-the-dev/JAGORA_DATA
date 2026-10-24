@@ -1,13 +1,13 @@
 /**
  * ==============================================================================
- * AL'AMIN JAGORA DATA - BACKEND API CLIENT
+ * AJDATASUB - BACKEND API CLIENT
  * ==============================================================================
  * Communicates with the PHP / MySQL backend hosted on:
- * - Local XAMPP (e.g., http://localhost/jagora-api)
+ * - Local XAMPP (e.g., http://localhost/ajdatasub-api)
  * - Live cPanel / Apache Production (e.g., https://yourdomain.com/api)
  */
 
-import { UserProfile, Transaction, DataPlan, VirtualAccountItem, StaffAgent, StaffPermissions, ReferralData, ReferralProgramSettings } from '../types';
+import { UserProfile, Transaction, DataPlan, PeyflexDataNetwork, VirtualAccountItem, StaffAgent, StaffPermissions, ReferralData, ReferralProgramSettings } from '../types';
 import { humanizeVtuError } from '../utils/errorParser';
 import { Capacitor } from '@capacitor/core';
 
@@ -15,7 +15,7 @@ const STORAGE_API_KEY = 'jagora_api_base_url';
 const STORAGE_TOKEN_KEY = 'jagora_auth_token';
 
 // Production cPanel domain hosted on QServers
-export const DEFAULT_PRODUCTION_BACKEND_URL = 'https://alaminjagoradata.com.ng';
+export const DEFAULT_PRODUCTION_BACKEND_URL = 'https://ajdatasub.com.ng';
 
 // In-memory fallback if localStorage is restricted (e.g. strict iframe, incognito)
 const memoryStore = new Map<string, string>();
@@ -110,7 +110,7 @@ export function setApiBaseUrl(url: string): void {
 /**
  * Resolves any API endpoint into a fully-qualified or relative URL depending
  * on the execution environment:
- * - On Native Android APK: prepends the live backend URL (e.g. https://alaminjagoradata.com.ng)
+ * - On Native Android APK: prepends the live backend URL (e.g. https://ajdatasub.com.ng)
  * - On Web: uses relative path (/api/...) to hit the current origin server
  */
 export function resolveApiUrl(endpoint: string): string {
@@ -172,8 +172,13 @@ async function request<T = any>(
     ...(options.headers as Record<string, string> || {}),
   };
 
-  if (token && !headers['Authorization']) {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (token) {
+    if (!headers['Authorization']) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    // Redundant headers ensure Apache, LiteSpeed, FastCGI, and reverse proxies do not strip the token
+    headers['X-Auth-Token'] = token;
+    headers['X-Authorization'] = `Bearer ${token}`;
   }
 
   const method = (options.method || 'GET').toUpperCase();
@@ -183,8 +188,17 @@ async function request<T = any>(
     }
   }
 
+  const isAuthOrRegister = cleanEndpoint.includes('/auth/register') || cleanEndpoint.includes('register') || cleanEndpoint.includes('/auth/');
+  const requestTimeoutMs = isAuthOrRegister ? 50000 : 30000;
+
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s timeout
+  const timeoutId = setTimeout(() => {
+    try {
+      controller.abort(new DOMException('The network request timed out. Please check your connection.', 'AbortError'));
+    } catch {
+      controller.abort();
+    }
+  }, requestTimeoutMs);
 
   try {
     const res = await fetch(url, {
@@ -194,10 +208,12 @@ async function request<T = any>(
     });
     clearTimeout(timeoutId);
 
-    // If unauthorized, wipe expired/invalid credentials and notify application
+    // If unauthorized on explicit authentication actions, notify application.
+    // Passive background checks (such as /auth/profile.php on tab reload) must NOT immediately log out the user.
     if (res.status === 401) {
       const isAdminEndpoint = cleanEndpoint.startsWith('/api/admin') || cleanEndpoint.includes('admin');
-      if (!isAdminEndpoint) {
+      const isPassiveProfileCheck = cleanEndpoint.includes('/auth/profile') || cleanEndpoint.includes('/user/profile');
+      if (!isAdminEndpoint && !isPassiveProfileCheck) {
         setAuthToken(null);
         if (typeof window !== 'undefined' && !cleanEndpoint.includes('/auth/login')) {
           window.dispatchEvent(
@@ -210,10 +226,21 @@ async function request<T = any>(
     }
 
     let json: any;
+    const rawText = await res.text();
     try {
-      json = await res.json();
+      json = JSON.parse(rawText);
     } catch {
-      json = { status: 'error', message: 'Unable to process server response. Please try again shortly.' };
+      const firstBrace = rawText.indexOf('{');
+      const lastBrace = rawText.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace > firstBrace) {
+        try {
+          json = JSON.parse(rawText.slice(firstBrace, lastBrace + 1));
+        } catch {
+          json = { status: 'error', message: 'Unable to process server response. Please try again shortly.' };
+        }
+      } else {
+        json = { status: 'error', message: 'Unable to process server response. Please try again shortly.' };
+      }
     }
 
     if (!res.ok) {
@@ -277,8 +304,9 @@ export async function apiRegister(payload: {
     }
   );
 
-  if (res.status === 'success' && res.data?.token) {
-    setAuthToken(res.data.token);
+  const token = res.data?.token || (res as any).token;
+  if (res.status === 'success' && token) {
+    setAuthToken(token);
   }
 
   return res;
@@ -342,6 +370,55 @@ export async function apiAdminGetReferralsOverview(): Promise<ApiResponse<any>> 
   });
 }
 
+export interface RatingFeedbackItem {
+  id: string;
+  phone: string;
+  userName?: string;
+  userEmail?: string;
+  rating: number;
+  comment?: string;
+  suggestion?: string;
+  category?: string;
+  createdAt: string;
+}
+
+export interface RatingsSummary {
+  totalReviews: number;
+  averageRating: number;
+  distribution: {
+    '5': number;
+    '4': number;
+    '3': number;
+    '2': number;
+    '1': number;
+  };
+}
+
+export interface RatingsResponseData {
+  summary: RatingsSummary;
+  feedbacks: RatingFeedbackItem[];
+  reviews: RatingFeedbackItem[];
+}
+
+/**
+ * Admin: Fetch user ratings and feedback reviews
+ */
+export async function apiAdminGetRatings(): Promise<ApiResponse<RatingsResponseData>> {
+  return request<RatingsResponseData>('/api/admin/feedbacks', {
+    method: 'GET',
+  });
+}
+
+/**
+ * Admin: Moderate/delete user feedback review
+ */
+export async function apiAdminDeleteFeedback(id: string): Promise<ApiResponse<any>> {
+  return request<any>(`/api/admin/feedbacks/${id}`, {
+    method: 'DELETE',
+    body: JSON.stringify({ id, action: 'delete' }),
+  });
+}
+
 /**
  * Log in an existing user or admin
  */
@@ -357,8 +434,9 @@ export async function apiLogin(payload: {
     }
   );
 
-  if (res.status === 'success' && res.data?.token) {
-    setAuthToken(res.data.token);
+  const token = res.data?.token || (res as any).token;
+  if (res.status === 'success' && token) {
+    setAuthToken(token);
   }
 
   return res;
@@ -515,11 +593,15 @@ export async function apiGetPlans(network?: string): Promise<ApiResponse<any[]>>
  */
 export async function apiBuyData(payload: {
   network: string;
+  network_key?: string;
   plan_id: string;
+  plan_code?: string;
   plan_name: string;
+  size?: string;
+  validity?: string;
   phone: string;
   amount: number;
-  pin: string;
+  pin?: string;
   api_plan_id?: string;
 }): Promise<ApiResponse<{ reference: string; recipient: string; amount: number; newBalance: number }>> {
   return request('/vtu/buy_data.php', {
@@ -527,6 +609,7 @@ export async function apiBuyData(payload: {
     body: JSON.stringify({
       ...payload,
       api_plan_id: payload.api_plan_id || payload.plan_id,
+      plan_code: payload.plan_code || payload.api_plan_id || payload.plan_id,
     }),
   });
 }
@@ -565,6 +648,13 @@ export async function apiBuyAirtime(payload: {
  */
 export async function apiGetAdminStats(): Promise<ApiResponse<any>> {
   return request('/api/admin/stats', { method: 'GET' });
+}
+
+/**
+ * Fetch Detailed Admin Profit Report & Historical Margins
+ */
+export async function apiGetAdminProfitReport(): Promise<ApiResponse<any>> {
+  return request('/api/admin/profit-report', { method: 'GET' });
 }
 
 /**
@@ -943,11 +1033,93 @@ export async function apiUpdateAdminProfile(payload: {
 }
 
 /**
+ * Fetch strict live Peyflex data networks catalog
+ * Mirrors curl 'https://client.peyflex.com.ng/api/data/networks/'
+ */
+export async function apiGetDataNetworks(): Promise<ApiResponse<{ networks: PeyflexDataNetwork[] }>> {
+  return request('/api/data/networks', { method: 'GET' });
+}
+
+/**
  * Fetch authoritative live VTU catalog with admin customized retail pricing
  */
-export async function apiGetVtuPlans(network?: string): Promise<ApiResponse<DataPlan[]>> {
-  const query = network ? `?network=${encodeURIComponent(network)}` : '';
-  return request(`/api/vtu/plans${query}`, { method: 'GET' });
+export async function apiGetVtuPlans(network?: string, includeInactive = false): Promise<ApiResponse<DataPlan[]>> {
+  const params = new URLSearchParams();
+  if (network) params.append('network', network);
+  if (includeInactive) params.append('include_inactive', '1');
+  const qs = params.toString() ? `?${params.toString()}` : '';
+  return request(`/api/vtu/plans${qs}`, { method: 'GET' });
+}
+
+/**
+ * Admin: Add a new custom data plan
+ */
+export async function apiCreateVtuPlan(plan: {
+  network: string;
+  name?: string;
+  category: string;
+  size: string;
+  validity: string;
+  sellingPrice: number;
+  costPrice?: number;
+  status?: string;
+}): Promise<ApiResponse<any>> {
+  return request('/api/vtu/plans', {
+    method: 'POST',
+    body: JSON.stringify({
+      action: 'add',
+      ...plan,
+    }),
+  });
+}
+
+/**
+ * Admin: Edit an existing VTU plan
+ */
+export async function apiUpdateVtuPlan(plan: {
+  id: string;
+  name?: string;
+  category?: string;
+  size?: string;
+  validity?: string;
+  sellingPrice?: number;
+  costPrice?: number;
+  status?: string;
+}): Promise<ApiResponse<any>> {
+  return request('/api/vtu/plans', {
+    method: 'POST',
+    body: JSON.stringify({
+      action: 'edit',
+      ...plan,
+    }),
+  });
+}
+
+/**
+ * Admin: Hide or Show (toggle status) a VTU plan
+ */
+export async function apiToggleVtuPlanStatus(planId: string, status?: string): Promise<ApiResponse<any>> {
+  return request('/api/vtu/plans', {
+    method: 'POST',
+    body: JSON.stringify({
+      action: 'toggle',
+      planId,
+      status,
+    }),
+  });
+}
+
+/**
+ * Admin: Delete or Deactivate a VTU plan
+ */
+export async function apiDeleteVtuPlan(planId: string): Promise<ApiResponse<any>> {
+  return request('/api/vtu/plans', {
+    method: 'POST',
+    body: JSON.stringify({
+      action: 'delete',
+      planId,
+    }),
+  });
 }
 
 /**

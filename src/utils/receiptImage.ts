@@ -62,7 +62,7 @@ export async function generateReceiptCanvasImage(transaction: Transaction): Prom
       ctx.fillStyle = '#0f172a';
       ctx.font = `bold ${16 * scale}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
       ctx.textAlign = 'left';
-      ctx.fillText("AL'AMIN JAGORA DATA", 80 * scale, headerY + 2 * scale);
+      ctx.fillText("AJDATASUB", 80 * scale, headerY + 2 * scale);
 
       // Brand Tagline
       ctx.fillStyle = '#64748b';

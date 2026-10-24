@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShieldCheck, CheckCircle2, Lock, Radio, Zap, Clock, AlertTriangle, ArrowRight } from 'lucide-react';
+import { SandTimerLoader } from './SandTimerLoader';
 
 interface FintechSpinnerProps {
   size?: number;
@@ -164,104 +165,36 @@ export const TransactionProcessingModal: React.FC<TransactionProcessingModalProp
             />
 
             {!showPendingView ? (
-              <>
-                {/* Active Live Processing View */}
-                <div className="flex flex-col items-center text-center mt-2 mb-4">
-                  <div className="relative w-16 h-16 flex items-center justify-center mb-3">
-                    <div className="absolute inset-0 rounded-2xl bg-[#0047cc]/15 dark:bg-[#0047cc]/30 animate-ping" />
-                    <div className="relative w-14 h-14 rounded-2xl bg-[#0047cc] text-white flex items-center justify-center font-black text-lg shadow-lg border border-blue-400/40">
-                      AJ
-                    </div>
-                  </div>
+              <div className="py-4 px-2 flex flex-col items-center justify-center text-center space-y-4">
+                <SandTimerLoader
+                  size="lg"
+                  color="#0047cc"
+                  sandColor="#f59e0b"
+                  text="Processing Order..."
+                  subtext="Connecting to telecom carrier switch"
+                />
 
-                  <h3 className="font-extrabold text-base tracking-tight text-slate-900 dark:text-white">
-                    Processing Order
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 w-full text-center space-y-1">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
                     {serviceTitle}
-                  </p>
+                  </span>
                   {amount !== undefined && (
-                    <span className="font-mono text-lg font-bold text-[#0047cc] dark:text-blue-400 mt-1">
+                    <span className="font-mono text-sm font-bold text-[#0047cc] dark:text-blue-400 block">
                       ₦{amount.toLocaleString('en-NG', { minimumFractionDigits: 2 })}
                     </span>
                   )}
                   {recipient && (
-                    <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 mt-0.5">
-                      To: {recipient}
+                    <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 block">
+                      Recipient: {recipient}
                     </span>
                   )}
-
-                  {/* Elapsed Timer Tag */}
-                  <div className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900/60 text-[10px] font-mono font-bold text-[#0047cc] dark:text-blue-300">
-                    <FintechSpinner size={10} color="currentColor" />
-                    <span>Securing order... {elapsedSeconds}s</span>
-                  </div>
                 </div>
 
-                {/* Explicit Reassurance Callout */}
-                <div className="mb-4 p-3 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/40 text-center">
-                  <p className="text-[11px] font-semibold text-[#0047cc] dark:text-blue-300">
-                    We are securing your airtime/data with the telecom switch.
-                  </p>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
-                    Please do not close or refresh this window.
-                  </p>
+                <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                  <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
+                  <span>Instant delivery • Wallet auto-refund protection</span>
                 </div>
-
-                {/* Stepper */}
-                <div className="space-y-2.5 bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800/80">
-                  {steps.map((s, idx) => {
-                    const isCompleted = step > idx;
-                    const isCurrent = step === idx;
-                    const Icon = s.icon;
-
-                    return (
-                      <div
-                        key={idx}
-                        className={`flex items-center gap-3 transition-opacity duration-200 ${
-                          isCompleted || isCurrent ? 'opacity-100' : 'opacity-40'
-                        }`}
-                      >
-                        <div
-                          className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-bold transition-all ${
-                            isCompleted
-                              ? 'bg-emerald-500 text-white'
-                              : isCurrent
-                              ? 'bg-[#0047cc] text-white ring-2 ring-blue-300 dark:ring-blue-800'
-                              : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
-                          }`}
-                        >
-                          {isCompleted ? (
-                            <CheckCircle2 size={14} className="stroke-[3]" />
-                          ) : isCurrent ? (
-                            <FintechSpinner size={13} color="currentColor" />
-                          ) : (
-                            <Icon size={12} />
-                          )}
-                        </div>
-                        <span
-                          className={`text-xs ${
-                            isCurrent
-                              ? 'font-bold text-slate-900 dark:text-white'
-                              : isCompleted
-                              ? 'font-medium text-slate-700 dark:text-slate-300'
-                              : 'text-slate-400'
-                          }`}
-                        >
-                          {s.label}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="mt-4 text-center">
-                  <span className="text-[10px] text-slate-400 flex items-center justify-center gap-1">
-                    <ShieldCheck size={12} className="text-emerald-500" />
-                    <span>256-bit automated encryption • Zero-risk protection</span>
-                  </span>
-                </div>
-              </>
+              </div>
             ) : (
               <>
                 {/* Visual PENDING State View */}

@@ -184,7 +184,7 @@ export const SessionLockModal: React.FC<SessionLockModalProps> = ({
           <div className="w-16 h-16 rounded-2xl bg-[#0055ff] p-1 flex items-center justify-center shadow-xl border-2 border-amber-400/60 overflow-hidden">
             <img
               src="/logo.png"
-              alt="Al'amin Jagora Data"
+              alt="AJDATASUB"
               className="w-full h-full object-contain"
             />
           </div>

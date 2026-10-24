@@ -1,5 +1,5 @@
 # ============================================================================
-# Al'amin Jagora Data - Apache .htaccess for cPanel (public_html)
+# AJDATASUB - Apache .htaccess for cPanel (public_html)
 # ============================================================================
 
 Options -Indexes
@@ -52,7 +52,7 @@ DirectoryIndex index.html index.php
   # If customer screens (/home, /login, /bills, /wallet, etc.) are accessed on the staff subdomain,
   # 301 redirect them to the primary customer domain so the staff subdomain remains strictly for staff.
   RewriteCond %{HTTP_HOST} ^(staff|admin)\.(.+)$ [NC]
-  RewriteCond %{REQUEST_URI} ^/(home|login|register|dashboard|wallet|bills|history|profile|support|terms|privacy|buy-data|buy-airtime|data-card|recharge-pin|more-services) [NC]
+  RewriteCond %{REQUEST_URI} ^/(home|login|register|dashboard|wallet|bills|history|profile|support|terms|privacy|buy-data|buy-airtime|cable|electricity|exam-pin|data-card|recharge-pin|vtu-wizard|wizard|more-services) [NC]
   RewriteRule ^(.*)$ https://%2/$1 [R=301,L]
 
   # 3. Route all /api/* calls to the PHP API router

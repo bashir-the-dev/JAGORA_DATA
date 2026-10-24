@@ -106,8 +106,8 @@ if ($existingLog) {
     ], 200);
 }
 
-$checkTx = $pdo->prepare('SELECT id FROM transactions WHERE reference = ? LIMIT 1');
-$checkTx->execute([$txId]);
+$checkTx = $pdo->prepare('SELECT id FROM transactions WHERE reference = ? OR upstream_ref = ? OR upstream_reference = ? LIMIT 1');
+$checkTx->execute([$txId, $txId, $txId]);
 if ($checkTx->fetch()) {
     jsonResponse([
         'status'  => true,

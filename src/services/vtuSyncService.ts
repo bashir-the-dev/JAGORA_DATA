@@ -71,11 +71,11 @@ function extractValidityFromLabel(label: string): string {
  * Network query parameter definitions for gateways requiring per-carrier queries (e.g. Peyflex)
  */
 const CARRIER_TARGETS: Array<{ networkKey: string; networkEnum: VtuNetwork; defaultCategory: string }> = [
-  { networkKey: 'mtn_data_share', networkEnum: 'MTN', defaultCategory: 'Data Share' },
   { networkKey: 'mtn_gifting_data', networkEnum: 'MTN', defaultCategory: 'Gifting Data' },
   { networkKey: 'glo_data', networkEnum: 'GLO', defaultCategory: 'Corporate Gifting' },
-  { networkKey: 'airtel_data', networkEnum: 'AIRTEL', defaultCategory: 'Corporate Gifting' },
-  { networkKey: '9mobile_data', networkEnum: '9MOBILE', defaultCategory: 'SME Bundle' }
+  { networkKey: '9mobile_data', networkEnum: '9MOBILE', defaultCategory: 'Corporate Gifting' },
+  { networkKey: 'airtel_data', networkEnum: 'AIRTEL', defaultCategory: 'Gifting Data' },
+  { networkKey: 'mtn_data_share', networkEnum: 'MTN', defaultCategory: 'Data Share' }
 ];
 
 /**
@@ -103,32 +103,38 @@ export async function syncVtuPlansFromGateway(): Promise<VtuSyncResult> {
   const headers: Record<string, string> = {
     'Authorization': `Token ${config.apiKey}`,
     'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'User-Agent': 'JagoraDataVTU/SyncEngine-1.0'
+    'User-Agent': 'AJDATASUBVTU/SyncEngine-1.0'
   };
 
   const normalizedPlans: Array<Partial<VtuPlanModel> & { provider_id: string; network: VtuNetwork; api_plan_id: string }> = [];
 
   try {
-    // 1. Fetch live plans across telecom carriers
-    // Peyflex and several Nigerian telecom gateways require ?network= query parameters per carrier
-    console.log(`[VTU Sync] Fetching live telecom catalogs from ${config.baseUrl}/${config.plansEndpoint}/ across carriers...`);
+    // 1. Fetch live plans across the 5 Peyflex telecom networks
+    console.log(`[VTU Sync] Fetching live telecom catalogs from ${config.baseUrl}/${config.plansEndpoint}/ across 5 Peyflex networks...`);
 
     const carrierFetchPromises = CARRIER_TARGETS.map(async (target) => {
-      // Trailing slash with query parameter is required by Django REST gateways
       const targetUrl = `${config.baseUrl}/${config.plansEndpoint}/?network=${target.networkKey}`;
 
-      // Try up to 2 attempts with timeout
       for (let attempt = 1; attempt <= 2; attempt++) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 20000);
 
         try {
-          const response = await fetch(targetUrl, {
+          // Official Peyflex Docs: GET https://client.peyflex.com.ng/api/data/plans/?network=...
+          let response = await fetch(targetUrl, {
             method: 'GET',
             headers,
             signal: controller.signal
           });
+
+          if (!response.ok) {
+            response = await fetch(targetUrl, {
+              method: 'POST',
+              headers: { ...headers, 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: '',
+              signal: controller.signal
+            });
+          }
 
           clearTimeout(timeoutId);
 
@@ -147,7 +153,6 @@ export async function syncVtuPlansFromGateway(): Promise<VtuSyncResult> {
         } catch (err: any) {
           clearTimeout(timeoutId);
           if (attempt === 1) {
-            // Wait 1s and retry once before falling back
             await new Promise((r) => setTimeout(r, 1000));
             continue;
           }
@@ -167,39 +172,42 @@ export async function syncVtuPlansFromGateway(): Promise<VtuSyncResult> {
       const plansList = Array.isArray(data.plans) ? data.plans : (Array.isArray(data) ? data : []);
 
       for (const item of plansList) {
-        const apiPlanId = String(item.plan_code || item.plan_id || item.id || item.code || '').trim();
-        if (!apiPlanId) continue;
+        const rawPlanCode = String(item.plan_code || item.plan_id || item.id || item.code || '').trim();
+        if (!rawPlanCode) continue;
+
+        const canonicalId = rawPlanCode.toLowerCase().startsWith(target.networkKey)
+          ? rawPlanCode.toLowerCase()
+          : `${target.networkKey}_${rawPlanCode.toLowerCase()}`;
 
         const label = String(item.label || item.plan_name || item.name || '').trim();
-        const wholesalePrice = Number(item.amount ?? item.wholesale_price ?? item.price ?? 0);
-        if (wholesalePrice <= 0) continue;
+        const rawAmount = Number(item.amount ?? item.wholesale_price ?? item.price ?? 0);
+        if (rawAmount <= 0) continue;
 
-        const size = extractSizeFromName(label, apiPlanId);
+        // Apply Peyflex API Reseller Discount Table (API Users Tier):
+        // mtn_data_share: 3.0%, mtn_gifting_data: 0.5%, airtel_data: 1.0%, glo_data: 1.0%, 9mobile_data: 1.0%
+        const discountRate = target.networkKey === 'mtn_data_share'
+          ? 0.03
+          : target.networkKey === 'mtn_gifting_data'
+          ? 0.005
+          : 0.01;
+        const wholesalePrice = Number((rawAmount * (1 - discountRate)).toFixed(2));
+
+        const size = extractSizeFromName(label, rawPlanCode);
         const validity = extractValidityFromLabel(label);
+        const category = target.defaultCategory;
+        const planName = label || `${target.networkEnum} ${category} ${size} (${validity})`;
 
-        // Determine category: SME, Corporate Gifting, or Data Share
-        let category = target.defaultCategory;
-        if (/sme/i.test(label) || /sme/i.test(apiPlanId)) {
-          category = 'SME';
-        } else if (/cg|corporate/i.test(label) || /cg/i.test(apiPlanId)) {
-          category = 'Corporate Gifting';
-        } else if (/share/i.test(label) || /share/i.test(target.networkKey)) {
-          category = 'Data Share';
-        }
-
-        const planName = `${target.networkEnum} ${category} ${size} (${validity})`;
-
-        // Calculate custom retail price: wholesale + markup (default 6%, minimum ₦15 profit margin)
-        const markup = Math.max(15, Math.ceil(wholesalePrice * (config.defaultMarkupPercent / 100)));
-        const customRetailPrice = wholesalePrice + markup;
+        // Calculate custom retail price: wholesale + 6% default markup
+        const customRetailPrice = Number((wholesalePrice * (1 + config.defaultMarkupPercent / 100)).toFixed(2));
 
         normalizedPlans.push({
+          id: canonicalId,
           provider_id: config.providerId,
           network: target.networkEnum,
           plan_name: planName,
           original_wholesale_price: wholesalePrice,
           custom_retail_price: customRetailPrice,
-          api_plan_id: apiPlanId,
+          api_plan_id: canonicalId,
           status: 'active',
           category,
           size,

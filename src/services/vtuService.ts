@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * AL'AMIN JAGORA DATA - CORE VTU SERVICES & LIVE API INTEGRATION LAYER
+ * AJDATASUB - CORE VTU SERVICES & LIVE API INTEGRATION LAYER
  * ============================================================================
  * Dispatches Virtual Top-Up (VTU) transactions across Nigerian
  * telecommunications networks (MTN, Airtel, Glo, 9mobile) and billers
@@ -96,9 +96,13 @@ export async function apiPurchaseData(
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({
-        network: plan.network,
+        network: plan.networkKey || plan.network,
+        network_key: plan.networkKey || plan.network,
         planId: plan.id,
+        plan_id: plan.id,
+        plan_code: plan.planCode || plan.id,
         size: plan.size,
+        validity: plan.validity,
         phone: cleanPhone,
         amount: plan.price,
         pin: pin || undefined,

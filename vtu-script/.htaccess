@@ -1,0 +1,27 @@
+# ============================================================================
+# VTU SCRIPT - CPANEL APACHE & SECURITY CONFIGURATION (.htaccess)
+# ============================================================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Enforce HTTPS
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Prevent directory indexing
+    Options -Indexes
+
+    # Block sensitive file downloads
+    RewriteRule ^config/(database\.php|.*\.sql|.*\.env) - [F,L]
+    RewriteRule \.(sql|env|log|git)$ - [F,L]
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>

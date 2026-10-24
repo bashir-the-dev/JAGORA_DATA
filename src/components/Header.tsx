@@ -131,7 +131,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             {/* Pristine App Logo Squircle */}
             <div className="relative shrink-0 transition-transform duration-200 group-hover:scale-105">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#0055ff] overflow-hidden shadow-md ring-2 ring-white/30 border border-white/20 flex items-center justify-center p-0.5">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white overflow-hidden shadow-md ring-2 ring-white/30 border border-white/40 flex items-center justify-center p-0.5">
                 <img
                   src="/logo.png"
                   alt="ALAMIN JAGORA DATA"
@@ -151,10 +151,10 @@ export const Header: React.FC<HeaderProps> = ({
                 ) : (
                   <div className="flex flex-col justify-center">
                     <h1 className="font-heading font-black text-white text-sm sm:text-base tracking-tight uppercase whitespace-nowrap leading-tight">
-                      AL'AMIN JAGORA DATA
+                      AJDATA
                     </h1>
-                    <span className="text-[9.5px] font-mono font-bold text-amber-300 tracking-wider uppercase leading-none mt-0.5">
-                      Fast VTU & Telecoms
+                    <span className="text-[10px] font-mono font-bold text-amber-300 tracking-wider uppercase leading-none mt-0.5 truncate max-w-[170px]">
+                      ALAMIN JAGORA DATA
                     </span>
                   </div>
                 )}
@@ -164,10 +164,10 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="hidden md:flex flex-col justify-center shrink-0 select-none">
                 <div className="flex items-center gap-2">
                   <span className="font-heading font-black text-white text-base lg:text-lg tracking-tight uppercase whitespace-nowrap leading-tight">
-                    AL'AMIN JAGORA DATA
+                    ALAMIN JAGORA DATA
                   </span>
                   <span className="inline-flex items-center px-1.5 py-0.2 rounded-xs text-[10px] font-black tracking-wider uppercase bg-amber-400 text-[#002f8a]">
-                    VTU
+                    AJDATA
                   </span>
                 </div>
                 <span className="text-[10px] font-mono font-semibold text-blue-200 tracking-wide mt-0.5">

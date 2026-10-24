@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { subscribeToPlatformSettings } from '../../services/dbService';
 import {
   Wifi,
   Phone,
@@ -56,6 +57,24 @@ export function LandingPage({
   const toggleFaq = (index: number) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
   };
+
+  // Live customizable contact & company info from Admin Dashboard
+  const [supportPhone, setSupportPhone] = useState('+2347048609646');
+  const [supportEmail, setSupportEmail] = useState('support@ajdatasub.com.ng');
+  const [officeAddress, setOfficeAddress] = useState('Katsina, Nigeria');
+  const [supportWhatsapp, setSupportWhatsapp] = useState('+2347048609646');
+
+  useEffect(() => {
+    const unsub = subscribeToPlatformSettings((settings) => {
+      if (settings?.supportContacts) {
+        if (settings.supportContacts.phone) setSupportPhone(settings.supportContacts.phone);
+        if (settings.supportContacts.email) setSupportEmail(settings.supportContacts.email);
+        if (settings.supportContacts.whatsapp) setSupportWhatsapp(settings.supportContacts.whatsapp);
+        if (settings.supportContacts.officeAddress) setOfficeAddress(settings.supportContacts.officeAddress);
+      }
+    });
+    return () => unsub();
+  }, []);
 
   // Pricing data per network matching the mockup layout
   const rateCards = {
@@ -141,7 +160,7 @@ export function LandingPage({
       name: 'Sanusi Abdullahi',
       location: 'Kano',
       quote:
-        "Fast and reliable! I've been using Al'amin Jagora Data for months now, never disappointed.",
+        "Fast and reliable! I've been using AJDATASUB for months now, never disappointed.",
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
       initials: 'SA',
     },
@@ -216,16 +235,16 @@ export function LandingPage({
             className="flex items-center gap-2.5 sm:gap-3 cursor-pointer select-none"
             onClick={() => onNavigate('landing')}
           >
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#0055ff] overflow-hidden shadow-md ring-2 ring-white/25 border border-white/20 shrink-0 flex items-center justify-center p-0.5">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white overflow-hidden shadow-md ring-2 ring-white/25 border border-white/40 shrink-0 flex items-center justify-center p-0.5">
               <img
                 src="/logo.png"
-                alt="Al'amin Jagora Data"
+                alt="AJDATASUB"
                 className="w-full h-full object-contain"
               />
             </div>
             <div className="flex flex-col">
               <span className="font-heading font-extrabold text-sm sm:text-lg tracking-tight text-white leading-tight">
-                Al'amin Jagora Data
+                AJDATASUB
               </span>
               <span className="text-[9px] sm:text-[11px] text-[#F5B014] font-medium tracking-wide">
                 Instant & Automated Telecoms
@@ -518,16 +537,16 @@ export function LandingPage({
                     <div className="my-auto flex flex-col items-center text-center">
                       <div className="relative">
                         <div className="absolute inset-0 rounded-2xl bg-blue-500/30 blur-xl animate-pulse"></div>
-                        <div className="relative w-16 h-16 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl bg-[#0055ff] p-1 shadow-2xl border-2 border-white/25 overflow-hidden flex items-center justify-center">
+                        <div className="relative w-16 h-16 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl bg-white p-1 shadow-2xl border-2 border-white/40 overflow-hidden flex items-center justify-center">
                           <img
                             src="/logo.png"
-                            alt="Al'amin Jagora Data"
+                            alt="AJDATASUB"
                             className="w-full h-full object-contain"
                           />
                         </div>
                       </div>
                       <span className="mt-2.5 sm:mt-3 font-heading font-black text-white text-xs sm:text-lg tracking-wider">
-                        AL'AMIN JAGORA DATA
+                        AJDATASUB
                       </span>
                       <span className="text-[9px] sm:text-xs text-[#F5B014] font-semibold mt-0.5">
                         Nigeria's Premier VTU Switch
@@ -607,7 +626,7 @@ export function LandingPage({
               Fast & Reliable Services
             </h2>
             <p className="text-[11px] sm:text-base text-slate-600">
-              Enjoy seamless transactions for all your digital and utility needs with Al'amin Jagora Data.
+              Enjoy seamless transactions for all your digital and utility needs with AJDATASUB.
             </p>
           </div>
 
@@ -659,138 +678,128 @@ export function LandingPage({
             </p>
           </div>
 
-          {/* Network Selector Tabs Bar (Pill design matching mockup) */}
-          <div className="flex items-center justify-center gap-1.5 sm:gap-3 flex-wrap mb-6 sm:mb-12">
-            {/* MTN Tab */}
-            <button
-              type="button"
-              onClick={() => setActiveNetworkTab('mtn')}
-              className={`px-3.5 py-1.5 sm:px-6 sm:py-2.5 rounded-full text-[11px] sm:text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer min-h-[38px] sm:min-h-[44px] ${
-                activeNetworkTab === 'mtn'
-                  ? 'bg-[#F5B014] text-slate-950 shadow-md ring-2 ring-[#F5B014]/50 font-extrabold'
-                  : 'bg-white/10 text-white hover:bg-white/15'
-              }`}
-            >
-              <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-yellow-400 text-slate-950 font-black text-[8px] sm:text-[9px] flex items-center justify-center">
-                MTN
-              </span>
-              <span>MTN</span>
-            </button>
-
-            {/* Airtel Tab */}
-            <button
-              type="button"
-              onClick={() => setActiveNetworkTab('airtel')}
-              className={`px-3.5 py-1.5 sm:px-6 sm:py-2.5 rounded-full text-[11px] sm:text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer min-h-[38px] sm:min-h-[44px] ${
-                activeNetworkTab === 'airtel'
-                  ? 'bg-red-600 text-white shadow-md ring-2 ring-red-500/50 font-extrabold'
-                  : 'bg-white/10 text-white hover:bg-white/15'
-              }`}
-            >
-              <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-red-600 text-white font-black text-[8px] sm:text-[9px] flex items-center justify-center">
-                air
-              </span>
-              <span>Airtel</span>
-            </button>
-
-            {/* Glo Tab */}
-            <button
-              type="button"
-              onClick={() => setActiveNetworkTab('glo')}
-              className={`px-3.5 py-1.5 sm:px-6 sm:py-2.5 rounded-full text-[11px] sm:text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer min-h-[38px] sm:min-h-[44px] ${
-                activeNetworkTab === 'glo'
-                  ? 'bg-emerald-600 text-white shadow-md ring-2 ring-emerald-500/50 font-extrabold'
-                  : 'bg-white/10 text-white hover:bg-white/15'
-              }`}
-            >
-              <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-emerald-600 text-white font-black text-[8px] sm:text-[9px] flex items-center justify-center">
-                glo
-              </span>
-              <span>Glo</span>
-            </button>
-
-            {/* 9mobile Tab */}
-            <button
-              type="button"
-              onClick={() => setActiveNetworkTab('9mobile')}
-              className={`px-3.5 py-1.5 sm:px-6 sm:py-2.5 rounded-full text-[11px] sm:text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer min-h-[38px] sm:min-h-[44px] ${
-                activeNetworkTab === '9mobile'
-                  ? 'bg-lime-700 text-white shadow-md ring-2 ring-lime-600/50 font-extrabold'
-                  : 'bg-white/10 text-white hover:bg-white/15'
-              }`}
-            >
-              <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-lime-600 text-white font-black text-[8px] sm:text-[9px] flex items-center justify-center">
-                9m
-              </span>
-              <span>9mobile</span>
-            </button>
-
-            {/* Smile / AirTouch Tab */}
-            <button
-              type="button"
-              onClick={() => setActiveNetworkTab('smile')}
-              className={`px-3.5 py-1.5 sm:px-6 sm:py-2.5 rounded-full text-[11px] sm:text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer min-h-[38px] sm:min-h-[44px] ${
-                activeNetworkTab === 'smile'
-                  ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-500/50 font-extrabold'
-                  : 'bg-white/10 text-white hover:bg-white/15'
-              }`}
-            >
-              <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-blue-500 text-white font-black text-[8px] sm:text-[9px] flex items-center justify-center">
-                sm
-              </span>
-              <span>AirTouch</span>
-            </button>
-          </div>
-
-          {/* 4 Pricing Cards (Eye-friendly 2x2 grid on mobile, 4-col on desktop) */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-6 mb-6 sm:mb-12">
-            {rateCards[activeNetworkTab].map((plan, idx) => (
+          {/* Side-by-Side Vertical Rectangles: One for each network (MTN, Airtel, Glo, 9mobile) - Non-clickable informational rate cards (Item 7) */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-8 sm:mb-12">
+            {[
+              {
+                id: 'mtn',
+                name: 'MTN NIGERIA',
+                badgeText: 'MTN',
+                badgeColor: 'bg-yellow-400 text-slate-950',
+                headerBg: 'bg-linear-to-r from-amber-400 to-yellow-500 text-slate-950',
+                borderStyle: 'border-yellow-400/50',
+                plans: [
+                  { size: '500MB', price: '₦140', validity: '30 Days' },
+                  { size: '1.0GB', price: '₦260', validity: '30 Days' },
+                  { size: '2.0GB', price: '₦520', validity: '30 Days' },
+                  { size: '3.0GB', price: '₦780', validity: '30 Days' },
+                  { size: '5.0GB', price: '₦1,300', validity: '30 Days' },
+                  { size: '10.0GB', price: '₦2,600', validity: '30 Days' },
+                ],
+              },
+              {
+                id: 'airtel',
+                name: 'AIRTEL NIGERIA',
+                badgeText: 'AIRTEL',
+                badgeColor: 'bg-red-600 text-white',
+                headerBg: 'bg-linear-to-r from-red-600 to-rose-700 text-white',
+                borderStyle: 'border-red-500/50',
+                plans: [
+                  { size: '500MB', price: '₦150', validity: '30 Days' },
+                  { size: '1.0GB', price: '₦275', validity: '30 Days' },
+                  { size: '2.0GB', price: '₦550', validity: '30 Days' },
+                  { size: '3.0GB', price: '₦825', validity: '30 Days' },
+                  { size: '5.0GB', price: '₦1,375', validity: '30 Days' },
+                  { size: '10.0GB', price: '₦2,750', validity: '30 Days' },
+                ],
+              },
+              {
+                id: 'glo',
+                name: 'GLO NIGERIA',
+                badgeText: 'GLO',
+                badgeColor: 'bg-emerald-600 text-white',
+                headerBg: 'bg-linear-to-r from-emerald-600 to-green-700 text-white',
+                borderStyle: 'border-emerald-500/50',
+                plans: [
+                  { size: '500MB', price: '₦135', validity: '30 Days' },
+                  { size: '1.0GB', price: '₦250', validity: '30 Days' },
+                  { size: '2.0GB', price: '₦500', validity: '30 Days' },
+                  { size: '3.0GB', price: '₦750', validity: '30 Days' },
+                  { size: '5.0GB', price: '₦1,250', validity: '30 Days' },
+                  { size: '10.0GB', price: '₦2,500', validity: '30 Days' },
+                ],
+              },
+              {
+                id: '9mobile',
+                name: '9MOBILE',
+                badgeText: '9MOBILE',
+                badgeColor: 'bg-lime-700 text-white',
+                headerBg: 'bg-linear-to-r from-lime-700 to-green-800 text-white',
+                borderStyle: 'border-lime-500/50',
+                plans: [
+                  { size: '500MB', price: '₦120', validity: '30 Days' },
+                  { size: '1.0GB', price: '₦220', validity: '30 Days' },
+                  { size: '2.0GB', price: '₦440', validity: '30 Days' },
+                  { size: '3.0GB', price: '₦660', validity: '30 Days' },
+                  { size: '5.0GB', price: '₦1,100', validity: '30 Days' },
+                  { size: '10.0GB', price: '₦2,200', validity: '30 Days' },
+                ],
+              },
+            ].map((net) => (
               <div
-                key={idx}
-                className="bg-white rounded-xl sm:rounded-2xl p-2.5 sm:p-6 text-slate-900 flex flex-col items-center text-center shadow-md border border-white/20 hover:scale-[1.02] transition-transform"
+                key={net.id}
+                className={`bg-white rounded-2xl shadow-xl border ${net.borderStyle} overflow-hidden flex flex-col justify-between select-none transition-all hover:shadow-2xl`}
               >
-                {/* Network Pill Badge */}
-                <div className="mb-1.5 sm:mb-4">
-                  <span className="inline-block px-2 py-0.5 sm:px-4 sm:py-1 rounded-full text-[8px] sm:text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
-                    {activeNetworkTab.toUpperCase()}
+                {/* Network Header */}
+                <div className={`${net.headerBg} p-3.5 sm:p-4 text-center`}>
+                  <span className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider ${net.badgeColor} shadow-xs mb-1`}>
+                    {net.badgeText}
+                  </span>
+                  <div className="text-xs sm:text-sm font-black tracking-wide uppercase font-heading">
+                    {net.name}
+                  </div>
+                </div>
+
+                {/* Vertical plan prices (Non-clickable, informational display) */}
+                <div className="p-3 sm:p-4 divide-y divide-slate-100 flex-1 flex flex-col justify-between">
+                  {net.plans.map((p, idx) => (
+                    <div
+                      key={idx}
+                      className="py-2 sm:py-2.5 flex items-center justify-between text-xs sm:text-sm text-slate-800"
+                    >
+                      <span className="font-extrabold text-slate-900 font-sans">
+                        {p.size}
+                      </span>
+                      <div className="text-right">
+                        <span className="font-black font-sans text-slate-950 tabular-nums">
+                          {p.price}
+                        </span>
+                        <span className="block text-[8px] sm:text-[9px] text-slate-400 font-medium">
+                          {p.validity}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Non-clickable info footer */}
+                <div className="px-3 py-2 bg-slate-50 border-t border-slate-100 text-center">
+                  <span className="text-[9px] sm:text-[10px] font-semibold text-slate-500">
+                    ⚡ Instant Automatic Dispense
                   </span>
                 </div>
-
-                {/* Plan Size */}
-                <div className="text-base sm:text-3xl font-black text-[#071838] mb-0.5 sm:mb-1">
-                  {plan.size}
-                </div>
-
-                {/* Price */}
-                <div className="text-xs sm:text-2xl font-black text-slate-900 mb-2 sm:mb-6">
-                  {plan.price}
-                </div>
-
-                {/* Buy Now Button */}
-                <button
-                  type="button"
-                  onClick={() => onNavigate('register')}
-                  className="w-full py-1.5 px-2 sm:py-3 sm:px-4 rounded-lg sm:rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-wider bg-[#F5B014] hover:bg-[#e09e0f] text-slate-950 transition-colors shadow-xs cursor-pointer mb-1.5 sm:mb-3 min-h-[36px] sm:min-h-[44px]"
-                >
-                  Buy Now
-                </button>
-
-                {/* Validity */}
-                <span className="text-[9px] sm:text-xs text-slate-500 font-medium">
-                  {plan.validity}
-                </span>
               </div>
             ))}
           </div>
 
-          {/* Bottom Action Link */}
+          {/* Action Link to Create Account / Sign In */}
           <div className="text-center">
             <button
               onClick={() => onNavigate('register')}
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-white hover:text-[#F5B014] transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#F5B014] hover:bg-[#e09e0f] text-slate-950 font-bold text-xs sm:text-sm shadow-md transition-all cursor-pointer active:scale-95"
             >
-              <span>View More Data Bundles</span>
-              <ArrowRight className="w-3.5 h-3.5 text-[#F5B014]" />
+              <span>Create Account to Buy Data</span>
+              <ArrowRight className="w-4 h-4 text-slate-950" />
             </button>
           </div>
         </div>
@@ -869,20 +878,20 @@ export function LandingPage({
       </section>
 
       {/* ========================================================================= */}
-      {/* 7. WHY AL'AMIN JAGORA DATA (Simple. Fast. Reliable.) */}
+      {/* 7. WHY AJDATASUB (Simple. Fast. Reliable.) */}
       {/* ========================================================================= */}
       <section className="py-8 sm:py-20 bg-[#071838] text-white relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-16">
             <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-[#F5B014] block mb-1">
-              WHY AL'AMIN JAGORA DATA
+              WHY AJDATASUB
             </span>
             <h2 className="text-lg sm:text-4xl font-black text-white tracking-tight mb-1.5">
               Simple. Fast. Reliable.
             </h2>
             <p className="text-[11px] sm:text-base text-slate-300">
-              We built Al'amin Jagora Data to make your digital life easier, safer and more affordable.
+              We built AJDATASUB to make your digital life easier, safer and more affordable.
             </p>
           </div>
 
@@ -1146,16 +1155,16 @@ export function LandingPage({
                 className="flex items-center gap-3 mb-4 cursor-pointer select-none"
                 onClick={() => onNavigate('landing')}
               >
-                <div className="w-10 h-10 rounded-xl bg-[#0055ff] overflow-hidden shadow-sm border border-white/20 shrink-0 flex items-center justify-center p-0.5">
+                <div className="w-10 h-10 rounded-xl bg-white overflow-hidden shadow-sm border border-white/40 shrink-0 flex items-center justify-center p-0.5">
                   <img
                     src="/logo.png"
-                    alt="Al'amin Jagora Data"
+                    alt="AJDATASUB"
                     className="w-full h-full object-contain"
                   />
                 </div>
                 <div>
                   <span className="font-heading font-black text-sm text-white block">
-                    Al'amin Jagora Data
+                    AJDATASUB
                   </span>
                   <span className="text-[10.5px] text-[#F5B014] font-medium tracking-wide">
                     Instant & Automated Telecoms
@@ -1229,15 +1238,26 @@ export function LandingPage({
               <ul className="space-y-2 text-xs">
                 <li className="flex items-center gap-2">
                   <Phone className="w-3.5 h-3.5 text-[#F5B014]" />
-                  <span>+234 803 898 3334</span>
+                  <span>{supportPhone}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="w-3.5 h-3.5 text-[#F5B014] font-bold">@</span>
-                  <span>support@alaminjagoradata.com.ng</span>
+                  <span>{supportEmail}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="w-3.5 h-3.5 text-[#F5B014] font-bold">📍</span>
-                  <span>Kano, Nigeria</span>
+                  <span>{officeAddress}</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 text-emerald-400 font-bold">💬</span>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('register')}
+                    className="text-emerald-400 hover:underline cursor-pointer text-left transition-colors font-medium"
+                    title="Sign in or register to chat with our live support agents"
+                  >
+                    Chat with Live Agent
+                  </button>
                 </li>
               </ul>
             </div>
@@ -1252,7 +1272,7 @@ export function LandingPage({
               </p>
               <div className="flex items-center gap-3">
                 <a
-                  href="https://wa.me/2348038983334"
+                  href={`https://wa.me/${supportWhatsapp.replace(/[^0-9]/g, '') || '2347048609646'}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#F5B014] hover:text-slate-950 flex items-center justify-center text-white transition-colors"
@@ -1287,7 +1307,7 @@ export function LandingPage({
 
           {/* Bottom Copyright & Legal */}
           <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 text-[11px]">
-            <p>© 2026 Al'amin Jagora Data. All rights reserved.</p>
+            <p>© 2026 AJDATASUB. All rights reserved.</p>
             <div className="flex items-center gap-4">
               <span className="hover:text-[#F5B014] cursor-pointer transition-colors" onClick={() => onNavigate('terms')}>
                 Terms of Service

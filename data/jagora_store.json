@@ -15,17 +15,17 @@
         {
           "bank_name": "Wema Bank (Monnify)",
           "account_number": "7829104928",
-          "account_name": "Al'amin Jagora - Al'amin Nura Sani"
+          "account_name": "AJDATASUB - Al'amin Nura Sani"
         },
         {
           "bank_name": "Sterling Bank (Monnify)",
           "account_number": "8103948291",
-          "account_name": "Al'amin Jagora - Al'amin Nura Sani"
+          "account_name": "AJDATASUB - Al'amin Nura Sani"
         },
         {
           "bank_name": "Fidelity Bank (Monnify)",
           "account_number": "6201948271",
-          "account_name": "Al'amin Jagora - Al'amin Nura Sani"
+          "account_name": "AJDATASUB - Al'amin Nura Sani"
         }
       ],
       "referralCode": "AJD1F2D"
@@ -45,12 +45,12 @@
         {
           "bank_name": "Wema Bank (Monnify)",
           "account_number": "7891029384",
-          "account_name": "Al'amin Jagora - Bashir Abubakar"
+          "account_name": "AJDATASUB - Bashir Abubakar"
         },
         {
           "bank_name": "Sterling Bank (Monnify)",
           "account_number": "8192837461",
-          "account_name": "Al'amin Jagora - Bashir Abubakar"
+          "account_name": "AJDATASUB - Bashir Abubakar"
         }
       ],
       "adminRole": "super_admin",
@@ -84,92 +84,8 @@
       "referralCode": "AJD99ED"
     }
   },
-  "tokens": {
-    "ajd_tok_a33559e8efb7ee7bbf4090240ece0ea2c42939542286a03f": {
-      "phone": "08123456789",
-      "createdAt": 1790700234981,
-      "expiresAt": 1791305034981
-    },
-    "ajd_tok_a59a0db0e339d33d8f64d7cff7565b258073873a3beed7a0": {
-      "phone": "08123456789",
-      "createdAt": 1790760834921,
-      "expiresAt": 1791365634921
-    },
-    "ajd_tok_e565d29e2c9a2117b04d079df571809565723811feee99b4": {
-      "phone": "08123456789",
-      "createdAt": 1790859379402,
-      "expiresAt": 1791464179402
-    },
-    "ajd_tok_c958a368e72652b51f9510d43e5c130ff36a6f2347b2ff26": {
-      "phone": "08123456789",
-      "createdAt": 1791117495369,
-      "expiresAt": 1791722295369
-    },
-    "ajd_tok_106b70cb95ede8f58efb01951ff1db581fdde2c899d30afb": {
-      "phone": "08123456789",
-      "createdAt": 1791117501360,
-      "expiresAt": 1791722301360
-    },
-    "ajd_tok_d482e4f520514ca7664533a21678996afa1f004174fca112": {
-      "phone": "08123456789",
-      "createdAt": 1791117507664,
-      "expiresAt": 1791722307664
-    },
-    "ajd_adm_b9ab4b846c371a51ed1f6ca2edbd8b05574816cd4e844601775d35baf21119c0": {
-      "phone": "08123456789",
-      "createdAt": 1791119816524,
-      "expiresAt": 1791724616524
-    },
-    "ajd_adm_b1903e9d45688448df1e6b3b26ff2ea55782f601e22339654a178f2e5980db8b": {
-      "phone": "08123456789",
-      "createdAt": 1791185496052,
-      "expiresAt": 1791790296052
-    }
-  },
-  "transactions": [
-    {
-      "reference": "REF-TEST-VTU-1791117507675",
-      "user_id": "08123456789",
-      "type": "refund",
-      "title": "Auto Refund: MTN 1GB Data",
-      "description": "Auto-refund for failed transaction TEST-VTU-1791117507675",
-      "recipient": "08012345678",
-      "amount": 500,
-      "charged": 500,
-      "balance_before": 0,
-      "balance_after": 0,
-      "status": "SUCCESS",
-      "provider": "Auto-Refund",
-      "id": "tx_1791117507725_706",
-      "created_at": "2026-10-04T12:38:27.725Z"
-    },
-    {
-      "reference": "TEST-VTU-1791117507675",
-      "user_id": "08123456789",
-      "type": "DATA",
-      "title": "MTN 1GB Data",
-      "description": "MTN 1GB Data to 08012345678",
-      "recipient": "08012345678",
-      "amount": 500,
-      "charged": 500,
-      "balance_before": 0,
-      "balance_after": 0,
-      "status": "FAILED",
-      "provider": "DirectBackend",
-      "extra_data": {
-        "reference": "TEST-VTU-1791117507675",
-        "amount": 500,
-        "type": "DATA",
-        "title": "MTN 1GB Data",
-        "description": "MTN 1GB Data to 08012345678",
-        "recipient": "08012345678",
-        "status": "PENDING"
-      },
-      "id": "tx_1791117507681_517",
-      "created_at": "2026-10-04T12:38:27.681Z",
-      "refunded": true
-    }
-  ],
+  "tokens": {},
+  "transactions": [],
   "settings": {
     "maintenanceMode": false,
     "broadcastAnnouncement": {
@@ -304,8 +220,8 @@
       "size": "500MB",
       "validity": "7 Days",
       "created_at": "2026-09-28T05:14:49.382Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-sme-1gb",
@@ -320,8 +236,8 @@
       "size": "1GB",
       "validity": "7Days",
       "created_at": "2026-09-28T05:14:49.382Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-sme-2gb",
@@ -336,8 +252,8 @@
       "size": "2GB",
       "validity": "2 Days",
       "created_at": "2026-09-28T05:14:49.382Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-sme-3gb",
@@ -352,8 +268,8 @@
       "size": "3GB",
       "validity": "7 Days",
       "created_at": "2026-09-28T05:14:49.382Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-sme-5gb",
@@ -368,8 +284,8 @@
       "size": "5GB",
       "validity": "30 Days",
       "created_at": "2026-09-28T05:14:49.382Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-sme-10gb",
@@ -432,8 +348,8 @@
       "size": "1GB",
       "validity": "7Days",
       "created_at": "2026-09-28T05:14:49.382Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-cg-2gb",
@@ -448,8 +364,8 @@
       "size": "2GB",
       "validity": "30Days",
       "created_at": "2026-09-28T05:14:49.382Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-cg-5gb",
@@ -480,8 +396,8 @@
       "size": "10GB",
       "validity": "30Days",
       "created_at": "2026-09-28T05:14:49.382Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "glo-cg-500mb",
@@ -496,8 +412,8 @@
       "size": "500MB",
       "validity": "30 DAYS",
       "created_at": "2026-09-28T05:14:49.382Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "glo-cg-1gb",
@@ -512,8 +428,8 @@
       "size": "1GB",
       "validity": "30 DAYS",
       "created_at": "2026-09-28T05:14:49.382Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "glo-cg-2gb",
@@ -528,8 +444,8 @@
       "size": "2GB",
       "validity": "30 DAYS",
       "created_at": "2026-09-28T05:14:49.382Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "glo-cg-3gb",
@@ -544,8 +460,8 @@
       "size": "3GB",
       "validity": "30 DAYS",
       "created_at": "2026-09-28T05:14:49.382Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "glo-cg-5gb",
@@ -560,8 +476,8 @@
       "size": "5GB",
       "validity": "30 DAYS",
       "created_at": "2026-09-28T05:14:49.382Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "9mob-sme-500mb",
@@ -576,8 +492,8 @@
       "size": "500MB",
       "validity": "30 Days",
       "created_at": "2026-09-28T05:14:49.382Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "9mob-sme-1gb",
@@ -592,8 +508,8 @@
       "size": "1GB",
       "validity": "30 Days",
       "created_at": "2026-09-28T05:14:49.382Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "9mob-sme-2gb",
@@ -608,8 +524,8 @@
       "size": "2GB",
       "validity": "30 Days",
       "created_at": "2026-09-28T05:14:49.382Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "9mob-sme-5gb",
@@ -624,8 +540,8 @@
       "size": "5GB",
       "validity": "30 Days",
       "created_at": "2026-09-28T05:14:49.382Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-data-share-1gb",
@@ -640,8 +556,8 @@
       "size": "1GB",
       "validity": "30 Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-data-share-2gb",
@@ -656,8 +572,8 @@
       "size": "2GB",
       "validity": "30 Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-data-share-3gb",
@@ -672,8 +588,8 @@
       "size": "3GB",
       "validity": "30 Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "glo-corporate-gifting-1gb",
@@ -688,8 +604,8 @@
       "size": "1GB",
       "validity": "3 DAYS",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "glo-corporate-gifting-3gb",
@@ -704,8 +620,8 @@
       "size": "3GB",
       "validity": "3 DAYS",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "glo-corporate-gifting-5gb",
@@ -720,8 +636,8 @@
       "size": "5GB",
       "validity": "3 DAYS",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "glo-corporate-gifting-1gb-g1gb2",
@@ -736,8 +652,8 @@
       "size": "1GB",
       "validity": "7 DAYS",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "glo-corporate-gifting-3gb-g3gb2",
@@ -752,8 +668,8 @@
       "size": "3GB",
       "validity": "7 DAYS",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "glo-corporate-gifting-5gb-g5gb2",
@@ -768,8 +684,8 @@
       "size": "5GB",
       "validity": "7DAYS",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "glo-corporate-gifting-1gb-g1gb3",
@@ -784,8 +700,8 @@
       "size": "1GB",
       "validity": "14 DAYS",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "glo-corporate-gifting-3gb-g3gb3",
@@ -800,8 +716,8 @@
       "size": "3GB",
       "validity": "14 DAYS",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "glo-corporate-gifting-5gb-g5gb3",
@@ -816,8 +732,8 @@
       "size": "5GB",
       "validity": "14 DAYS",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "glo-corporate-gifting-10gb",
@@ -832,8 +748,8 @@
       "size": "10GB",
       "validity": "14 DAYS",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "glo-corporate-gifting-10gb-g10gb2",
@@ -848,8 +764,8 @@
       "size": "10GB",
       "validity": "30 DAYS",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-200mb",
@@ -864,8 +780,8 @@
       "size": "200MB",
       "validity": "2Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-300mb",
@@ -880,8 +796,8 @@
       "size": "300MB",
       "validity": "2Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-1gb",
@@ -896,8 +812,8 @@
       "size": "1GB",
       "validity": "3Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-2gb",
@@ -912,8 +828,8 @@
       "size": "2GB",
       "validity": "2 Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-4gb",
@@ -928,8 +844,8 @@
       "size": "4GB",
       "validity": "2Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-6gb",
@@ -944,8 +860,8 @@
       "size": "6GB",
       "validity": "2Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-15gb",
@@ -960,8 +876,8 @@
       "size": "1.5GB",
       "validity": "7Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-1p5gb-a1a5gbs",
@@ -976,8 +892,8 @@
       "size": "1.5GB",
       "validity": "7Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-35gb",
@@ -992,8 +908,8 @@
       "size": "3.5GB",
       "validity": "7Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-6gb-a6gb",
@@ -1008,8 +924,8 @@
       "size": "6GB",
       "validity": "7Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-8gb",
@@ -1024,8 +940,8 @@
       "size": "8GB",
       "validity": "7Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-10gb",
@@ -1040,8 +956,8 @@
       "size": "10GB",
       "validity": "7Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-20gb",
@@ -1056,8 +972,8 @@
       "size": "20GB",
       "validity": "7Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-35gb-a35gb",
@@ -1072,8 +988,8 @@
       "size": "35GB",
       "validity": "7Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-3gb",
@@ -1088,8 +1004,8 @@
       "size": "3GB",
       "validity": "30Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-4gb-a4gb",
@@ -1104,8 +1020,8 @@
       "size": "4GB",
       "validity": "30Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-8gb-a8gb",
@@ -1120,8 +1036,8 @@
       "size": "8GB",
       "validity": "30Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-13gb",
@@ -1136,8 +1052,8 @@
       "size": "13GB",
       "validity": "30Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-18gb",
@@ -1152,8 +1068,8 @@
       "size": "18GB",
       "validity": "30Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-25gb",
@@ -1168,8 +1084,8 @@
       "size": "25GB",
       "validity": "30Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-60gb",
@@ -1184,8 +1100,8 @@
       "size": "60GB",
       "validity": "30Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-75gb",
@@ -1200,8 +1116,8 @@
       "size": "75GB",
       "validity": "30Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-100gb",
@@ -1216,8 +1132,8 @@
       "size": "100GB",
       "validity": "30Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "airtel-corporate-gifting-160gb",
@@ -1232,8 +1148,8 @@
       "size": "160GB",
       "validity": "1 month",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "9mobile-sme-bundle-300mb",
@@ -1248,8 +1164,8 @@
       "size": "300MB",
       "validity": "30 Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "9mobile-sme-bundle-3gb",
@@ -1264,8 +1180,8 @@
       "size": "3GB",
       "validity": "30 Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "9mobile-sme-bundle-10gb",
@@ -1280,8 +1196,8 @@
       "size": "10GB",
       "validity": "30 Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "9mobile-sme-bundle-15gb",
@@ -1296,8 +1212,8 @@
       "size": "15GB",
       "validity": "30 Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "9mobile-sme-bundle-20gb",
@@ -1312,8 +1228,8 @@
       "size": "20GB",
       "validity": "30 Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "9mobile-sme-bundle-40gb",
@@ -1328,8 +1244,8 @@
       "size": "40GB",
       "validity": "30 Days",
       "created_at": "2026-09-28T05:14:54.661Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-110mb",
@@ -1344,8 +1260,8 @@
       "size": "110MB",
       "validity": "1 Day",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-12gb",
@@ -1360,8 +1276,8 @@
       "size": "1.2GB",
       "validity": "1 month",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-2p5gb-m2m5gb",
@@ -1392,8 +1308,8 @@
       "size": "2.5GB",
       "validity": "2 Days",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-32gb",
@@ -1408,8 +1324,8 @@
       "size": "3.2GB",
       "validity": "2 Days",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-2p5gb-m2m5gbs1",
@@ -1424,8 +1340,8 @@
       "size": "2.5GB",
       "validity": "1 Month",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-27gb",
@@ -1440,8 +1356,8 @@
       "size": "2.7GB",
       "validity": "1Month",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-35gb",
@@ -1456,8 +1372,8 @@
       "size": "3.5GB",
       "validity": "1 Month",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-6gb",
@@ -1472,8 +1388,8 @@
       "size": "6GB",
       "validity": "30 Days",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-7gb",
@@ -1488,8 +1404,8 @@
       "size": "7GB",
       "validity": "1 Month",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-11gb",
@@ -1504,8 +1420,8 @@
       "size": "11GB",
       "validity": "30 Days",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-125gb",
@@ -1520,8 +1436,8 @@
       "size": "12.5GB",
       "validity": "1 Month",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-145gb",
@@ -1536,8 +1452,8 @@
       "size": "14.5GB",
       "validity": "1 Month",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-20gb",
@@ -1552,8 +1468,8 @@
       "size": "20GB",
       "validity": "1MONTH",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-25gb-m25gbs",
@@ -1568,8 +1484,8 @@
       "size": "25GB",
       "validity": "1 Month",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-36gb",
@@ -1584,8 +1500,8 @@
       "size": "36GB",
       "validity": "1 Month",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-65gb",
@@ -1600,8 +1516,8 @@
       "size": "65GB",
       "validity": "1 Month",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-75gb",
@@ -1616,8 +1532,8 @@
       "size": "75GB",
       "validity": "1 Month",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-90gb",
@@ -1632,8 +1548,8 @@
       "size": "90GB",
       "validity": "2 Months",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-150gb",
@@ -1648,8 +1564,8 @@
       "size": "150GB",
       "validity": "2 Months",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-165gb",
@@ -1664,8 +1580,8 @@
       "size": "165GB",
       "validity": "1 Month",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-200gb",
@@ -1680,8 +1596,8 @@
       "size": "200GB",
       "validity": "2 Months",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-250gb",
@@ -1696,8 +1612,8 @@
       "size": "250GB",
       "validity": "1 Month",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
     },
     {
       "id": "mtn-gifting-data-800gb",
@@ -1712,14 +1628,1390 @@
       "size": "800GB",
       "validity": "30 Days",
       "created_at": "2026-10-04T10:30:11.619Z",
-      "updated_at": "2026-10-05T10:12:25.423Z",
-      "last_synced_at": "2026-10-05T10:12:25.423Z"
+      "updated_at": "2026-10-18T10:01:07.467Z",
+      "last_synced_at": "2026-10-18T10:01:07.467Z"
+    },
+    {
+      "id": "mtn_gifting_data_m110mbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "110MB = N99 (1 Day)",
+      "original_wholesale_price": 98.5,
+      "custom_retail_price": 104.41,
+      "api_plan_id": "mtn_gifting_data_m110mbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "110MB",
+      "validity": "1 Day",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m1m2gb",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "1.2GB = N495 (1 month) Access All Social Apps",
+      "original_wholesale_price": 492.52,
+      "custom_retail_price": 522.07,
+      "api_plan_id": "mtn_gifting_data_m1m2gb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "1.2GB",
+      "validity": "1 month",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m2m5gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "2.5GB = N893 (2 Days)",
+      "original_wholesale_price": 888.53,
+      "custom_retail_price": 941.84,
+      "api_plan_id": "mtn_gifting_data_m2m5gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "2.5GB",
+      "validity": "2 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m2gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "2GB = N745 (2 Days)",
+      "original_wholesale_price": 741.27,
+      "custom_retail_price": 785.75,
+      "api_plan_id": "mtn_gifting_data_m2gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "2GB",
+      "validity": "2 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m3m2gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "3.2GB =N990 (2 Days)",
+      "original_wholesale_price": 985.05,
+      "custom_retail_price": 1044.15,
+      "api_plan_id": "mtn_gifting_data_m3m2gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "3.2GB",
+      "validity": "2 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m1gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "1GB = N796 (7Days)",
+      "original_wholesale_price": 792.02,
+      "custom_retail_price": 839.54,
+      "api_plan_id": "mtn_gifting_data_m1gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "1GB",
+      "validity": "7Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m2m5gbs1",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "2.5GB = N2480 (1 Month)",
+      "original_wholesale_price": 2467.6,
+      "custom_retail_price": 2615.66,
+      "api_plan_id": "mtn_gifting_data_m2m5gbs1",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "2.5GB",
+      "validity": "1 Month",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m2m7gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "2.7GB = N1990 (1Month)",
+      "original_wholesale_price": 1980.05,
+      "custom_retail_price": 2098.85,
+      "api_plan_id": "mtn_gifting_data_m2m7gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "2.7GB",
+      "validity": "1Month",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m3m5gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "3.5GB = N2480 (1 Month)",
+      "original_wholesale_price": 2467.6,
+      "custom_retail_price": 2615.66,
+      "api_plan_id": "mtn_gifting_data_m3m5gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "3.5GB",
+      "validity": "1 Month",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m6gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "6GB = N2480 (Weekly)",
+      "original_wholesale_price": 2467.6,
+      "custom_retail_price": 2615.66,
+      "api_plan_id": "mtn_gifting_data_m6gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "6GB",
+      "validity": "30 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m7gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "7GB = N3450 (1 Month) +2GB All Night Streaming",
+      "original_wholesale_price": 3432.75,
+      "custom_retail_price": 3638.72,
+      "api_plan_id": "mtn_gifting_data_m7gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "7GB",
+      "validity": "1 Month",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m11gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "11GB = N3500 (Weekly)",
+      "original_wholesale_price": 3482.5,
+      "custom_retail_price": 3691.45,
+      "api_plan_id": "mtn_gifting_data_m11gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "11GB",
+      "validity": "30 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m12m5gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "12.5GB = N5435(1 Month)",
+      "original_wholesale_price": 5407.82,
+      "custom_retail_price": 5732.29,
+      "api_plan_id": "mtn_gifting_data_m12m5gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "12.5GB",
+      "validity": "1 Month",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m14m5gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "14.5GB = N4950 (1 Month)",
+      "original_wholesale_price": 4925.25,
+      "custom_retail_price": 5220.77,
+      "api_plan_id": "mtn_gifting_data_m14m5gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "14.5GB",
+      "validity": "1 Month",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m20gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "20GB = N7380 (1MONTH) + 4GB All Night Streaming",
+      "original_wholesale_price": 7343.1,
+      "custom_retail_price": 7783.69,
+      "api_plan_id": "mtn_gifting_data_m20gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "20GB",
+      "validity": "1MONTH",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m25gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "25GB = N8850 (1 Month)",
+      "original_wholesale_price": 8805.75,
+      "custom_retail_price": 9334.1,
+      "api_plan_id": "mtn_gifting_data_m25gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "25GB",
+      "validity": "1 Month",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m36gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "36GB = N10850 (1 Month)",
+      "original_wholesale_price": 10795.75,
+      "custom_retail_price": 11443.5,
+      "api_plan_id": "mtn_gifting_data_m36gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "36GB",
+      "validity": "1 Month",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m65gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "65GB = N15800 (1 Month)",
+      "original_wholesale_price": 15721,
+      "custom_retail_price": 16664.26,
+      "api_plan_id": "mtn_gifting_data_m65gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "65GB",
+      "validity": "1 Month",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m75gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "75GB = N17800 (1 Month)",
+      "original_wholesale_price": 17711,
+      "custom_retail_price": 18773.66,
+      "api_plan_id": "mtn_gifting_data_m75gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "75GB",
+      "validity": "1 Month",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m90gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "90GB = N24650 (2 Months)",
+      "original_wholesale_price": 24526.75,
+      "custom_retail_price": 25998.35,
+      "api_plan_id": "mtn_gifting_data_m90gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "90GB",
+      "validity": "2 Months",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m150gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "150GB = N39500 (2 Months)",
+      "original_wholesale_price": 39302.5,
+      "custom_retail_price": 41660.65,
+      "api_plan_id": "mtn_gifting_data_m150gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "150GB",
+      "validity": "2 Months",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m165gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "165GB = N34500 (1 Month)",
+      "original_wholesale_price": 34327.5,
+      "custom_retail_price": 36387.15,
+      "api_plan_id": "mtn_gifting_data_m165gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "165GB",
+      "validity": "1 Month",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m200gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "200GB = N49200 (2 Months)",
+      "original_wholesale_price": 48954,
+      "custom_retail_price": 51891.24,
+      "api_plan_id": "mtn_gifting_data_m200gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "200GB",
+      "validity": "2 Months",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m250gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "250GB  = N54500 (1 Month)",
+      "original_wholesale_price": 54227.5,
+      "custom_retail_price": 57481.15,
+      "api_plan_id": "mtn_gifting_data_m250gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "250GB",
+      "validity": "1 Month",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_gifting_data_m800gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "800GB  = N123500 (1 Year)",
+      "original_wholesale_price": 122882.5,
+      "custom_retail_price": 130255.45,
+      "api_plan_id": "mtn_gifting_data_m800gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "800GB",
+      "validity": "30 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "glo_data_g500mb",
+      "provider_id": "payflex",
+      "network": "GLO",
+      "plan_name": "500MB = N245 (30 DAYS)",
+      "original_wholesale_price": 242.55,
+      "custom_retail_price": 257.1,
+      "api_plan_id": "glo_data_g500mb",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "500MB",
+      "validity": "30 DAYS",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "glo_data_g1gb1",
+      "provider_id": "payflex",
+      "network": "GLO",
+      "plan_name": "1GB = N335 ( 3 DAYS)",
+      "original_wholesale_price": 331.65,
+      "custom_retail_price": 351.55,
+      "api_plan_id": "glo_data_g1gb1",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "1GB",
+      "validity": "3 DAYS",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "glo_data_g3gb1",
+      "provider_id": "payflex",
+      "network": "GLO",
+      "plan_name": "3GB = N850 ( 3 DAYS)",
+      "original_wholesale_price": 841.5,
+      "custom_retail_price": 891.99,
+      "api_plan_id": "glo_data_g3gb1",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "3GB",
+      "validity": "3 DAYS",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "glo_data_g5gb1",
+      "provider_id": "payflex",
+      "network": "GLO",
+      "plan_name": "5GB = N1380 (3 DAYS)",
+      "original_wholesale_price": 1366.2,
+      "custom_retail_price": 1448.17,
+      "api_plan_id": "glo_data_g5gb1",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "5GB",
+      "validity": "3 DAYS",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "glo_data_g1gb2",
+      "provider_id": "payflex",
+      "network": "GLO",
+      "plan_name": "1GB = N360 (7 DAYS)",
+      "original_wholesale_price": 356.4,
+      "custom_retail_price": 377.78,
+      "api_plan_id": "glo_data_g1gb2",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "1GB",
+      "validity": "7 DAYS",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "glo_data_g3gb2",
+      "provider_id": "payflex",
+      "network": "GLO",
+      "plan_name": "3GB = N990 (7 DAYS)",
+      "original_wholesale_price": 980.1,
+      "custom_retail_price": 1038.91,
+      "api_plan_id": "glo_data_g3gb2",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "3GB",
+      "validity": "7 DAYS",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "glo_data_g5gb2",
+      "provider_id": "payflex",
+      "network": "GLO",
+      "plan_name": "5GB = N1580 (7DAYS)",
+      "original_wholesale_price": 1564.2,
+      "custom_retail_price": 1658.05,
+      "api_plan_id": "glo_data_g5gb2",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "5GB",
+      "validity": "7DAYS",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "glo_data_g1gb3",
+      "provider_id": "payflex",
+      "network": "GLO",
+      "plan_name": "1GB = N360 (14 DAYS) Night Plan",
+      "original_wholesale_price": 356.4,
+      "custom_retail_price": 377.78,
+      "api_plan_id": "glo_data_g1gb3",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "1GB",
+      "validity": "14 DAYS",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "glo_data_g3gb3",
+      "provider_id": "payflex",
+      "network": "GLO",
+      "plan_name": "3GB = N990 (14 DAYS) Night Plan",
+      "original_wholesale_price": 980.1,
+      "custom_retail_price": 1038.91,
+      "api_plan_id": "glo_data_g3gb3",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "3GB",
+      "validity": "14 DAYS",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "glo_data_g5gb3",
+      "provider_id": "payflex",
+      "network": "GLO",
+      "plan_name": "5GB = N1640   (14 DAYS)Night Plan",
+      "original_wholesale_price": 1623.6,
+      "custom_retail_price": 1721.02,
+      "api_plan_id": "glo_data_g5gb3",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "5GB",
+      "validity": "14 DAYS",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "glo_data_g10gb1",
+      "provider_id": "payflex",
+      "network": "GLO",
+      "plan_name": "10GB = N3300   (14 DAYS)Night Plan",
+      "original_wholesale_price": 3267,
+      "custom_retail_price": 3463.02,
+      "api_plan_id": "glo_data_g10gb1",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "10GB",
+      "validity": "14 DAYS",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "glo_data_g1gb4",
+      "provider_id": "payflex",
+      "network": "GLO",
+      "plan_name": "1GB = N450 (30 DAYS)",
+      "original_wholesale_price": 445.5,
+      "custom_retail_price": 472.23,
+      "api_plan_id": "glo_data_g1gb4",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "1GB",
+      "validity": "30 DAYS",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "glo_data_g2gb4",
+      "provider_id": "payflex",
+      "network": "GLO",
+      "plan_name": "2GB = N900  (30 DAYS)",
+      "original_wholesale_price": 891,
+      "custom_retail_price": 944.46,
+      "api_plan_id": "glo_data_g2gb4",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "2GB",
+      "validity": "30 DAYS",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "glo_data_g3gb4",
+      "provider_id": "payflex",
+      "network": "GLO",
+      "plan_name": "3GB = N1350 (30 DAYS)",
+      "original_wholesale_price": 1336.5,
+      "custom_retail_price": 1416.69,
+      "api_plan_id": "glo_data_g3gb4",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "3GB",
+      "validity": "30 DAYS",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "glo_data_g5gb4",
+      "provider_id": "payflex",
+      "network": "GLO",
+      "plan_name": "5GB = N2200 (30 DAYS)",
+      "original_wholesale_price": 2178,
+      "custom_retail_price": 2308.68,
+      "api_plan_id": "glo_data_g5gb4",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "5GB",
+      "validity": "30 DAYS",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "glo_data_g10gb2",
+      "provider_id": "payflex",
+      "network": "GLO",
+      "plan_name": "10GB = N4250 (30 DAYS)",
+      "original_wholesale_price": 4207.5,
+      "custom_retail_price": 4459.95,
+      "api_plan_id": "glo_data_g10gb2",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "10GB",
+      "validity": "30 DAYS",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "9mobile_data_e300mb",
+      "provider_id": "payflex",
+      "network": "9MOBILE",
+      "plan_name": "300MB = N200 (30 Days)",
+      "original_wholesale_price": 198,
+      "custom_retail_price": 209.88,
+      "api_plan_id": "9mobile_data_e300mb",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "300MB",
+      "validity": "30 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "9mobile_data_e500mb",
+      "provider_id": "payflex",
+      "network": "9MOBILE",
+      "plan_name": "500MB = NGN300 (30 Days)",
+      "original_wholesale_price": 297,
+      "custom_retail_price": 314.82,
+      "api_plan_id": "9mobile_data_e500mb",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "500MB",
+      "validity": "30 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "9mobile_data_e1gb",
+      "provider_id": "payflex",
+      "network": "9MOBILE",
+      "plan_name": "1GB = NGN500 (30 Days)",
+      "original_wholesale_price": 495,
+      "custom_retail_price": 524.7,
+      "api_plan_id": "9mobile_data_e1gb",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "1GB",
+      "validity": "30 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "9mobile_data_e2gb",
+      "provider_id": "payflex",
+      "network": "9MOBILE",
+      "plan_name": "2GB  = NGN980 (30 Days)",
+      "original_wholesale_price": 970.2,
+      "custom_retail_price": 1028.41,
+      "api_plan_id": "9mobile_data_e2gb",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "2GB",
+      "validity": "30 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "9mobile_data_e3gb",
+      "provider_id": "payflex",
+      "network": "9MOBILE",
+      "plan_name": "3GB = NGN1500 (30 Days)",
+      "original_wholesale_price": 1485,
+      "custom_retail_price": 1574.1,
+      "api_plan_id": "9mobile_data_e3gb",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "3GB",
+      "validity": "30 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "9mobile_data_e5gb",
+      "provider_id": "payflex",
+      "network": "9MOBILE",
+      "plan_name": "5GB = NGN2500 (30 Days)",
+      "original_wholesale_price": 2475,
+      "custom_retail_price": 2623.5,
+      "api_plan_id": "9mobile_data_e5gb",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "5GB",
+      "validity": "30 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "9mobile_data_e10gb",
+      "provider_id": "payflex",
+      "network": "9MOBILE",
+      "plan_name": "10GB = NGN5000 (30 Days)",
+      "original_wholesale_price": 4950,
+      "custom_retail_price": 5247,
+      "api_plan_id": "9mobile_data_e10gb",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "10GB",
+      "validity": "30 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "9mobile_data_e15gb",
+      "provider_id": "payflex",
+      "network": "9MOBILE",
+      "plan_name": "15GB = NGN6950 (30 Days){Gifting}",
+      "original_wholesale_price": 6880.5,
+      "custom_retail_price": 7293.33,
+      "api_plan_id": "9mobile_data_e15gb",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "15GB",
+      "validity": "30 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "9mobile_data_e20gb",
+      "provider_id": "payflex",
+      "network": "9MOBILE",
+      "plan_name": "20GB = NGN9500 (30 Days)",
+      "original_wholesale_price": 9405,
+      "custom_retail_price": 9969.3,
+      "api_plan_id": "9mobile_data_e20gb",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "20GB",
+      "validity": "30 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "9mobile_data_e40gb",
+      "provider_id": "payflex",
+      "network": "9MOBILE",
+      "plan_name": "40GB = NGN18800 (30 Days)",
+      "original_wholesale_price": 18612,
+      "custom_retail_price": 19728.72,
+      "api_plan_id": "9mobile_data_e40gb",
+      "status": "active",
+      "category": "Corporate Gifting",
+      "size": "40GB",
+      "validity": "30 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a200mb",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "200MB =N199 (2Days)  social plan",
+      "original_wholesale_price": 197.01,
+      "custom_retail_price": 208.83,
+      "api_plan_id": "airtel_data_a200mb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "200MB",
+      "validity": "2Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a300mb",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "300MB =N298 (2Days)  social plan",
+      "original_wholesale_price": 295.02,
+      "custom_retail_price": 312.72,
+      "api_plan_id": "airtel_data_a300mb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "300MB",
+      "validity": "2Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a1gbs",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "1GB =N338 (3Days) social plan",
+      "original_wholesale_price": 334.62,
+      "custom_retail_price": 354.7,
+      "api_plan_id": "airtel_data_a1gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "1GB",
+      "validity": "3Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a2gbs",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "2GB =N745 (2 Days)  social plan",
+      "original_wholesale_price": 737.55,
+      "custom_retail_price": 781.8,
+      "api_plan_id": "airtel_data_a2gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "2GB",
+      "validity": "2 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a4gbs",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "4GB = N990 (2Days) Bing plan",
+      "original_wholesale_price": 980.1,
+      "custom_retail_price": 1038.91,
+      "api_plan_id": "airtel_data_a4gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "4GB",
+      "validity": "2Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a6gbs",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "6GB = N1485 (2Days)",
+      "original_wholesale_price": 1470.15,
+      "custom_retail_price": 1558.36,
+      "api_plan_id": "airtel_data_a6gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "6GB",
+      "validity": "2Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a1gb",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "1GB =N795 (7Days)",
+      "original_wholesale_price": 787.05,
+      "custom_retail_price": 834.27,
+      "api_plan_id": "airtel_data_a1gb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "1GB",
+      "validity": "7Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a1a5gb",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "1.5GB =N530 (7Days) Social Plan",
+      "original_wholesale_price": 524.7,
+      "custom_retail_price": 556.18,
+      "api_plan_id": "airtel_data_a1a5gb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "1.5GB",
+      "validity": "7Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a1a5gbs",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "1.5GB =N995 (7Days) Weekly Plan",
+      "original_wholesale_price": 985.05,
+      "custom_retail_price": 1044.15,
+      "api_plan_id": "airtel_data_a1a5gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "1.5GB",
+      "validity": "7Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a3a5gb",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "3.5GB = N1488 (7Days)",
+      "original_wholesale_price": 1473.12,
+      "custom_retail_price": 1561.51,
+      "api_plan_id": "airtel_data_a3a5gb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "3.5GB",
+      "validity": "7Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a6gb",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "6GB = N1970 (7Days)",
+      "original_wholesale_price": 1950.3,
+      "custom_retail_price": 2067.32,
+      "api_plan_id": "airtel_data_a6gb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "6GB",
+      "validity": "7Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a8gbs",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "8GB = N2487 (7Days)",
+      "original_wholesale_price": 2462.13,
+      "custom_retail_price": 2609.86,
+      "api_plan_id": "airtel_data_a8gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "8GB",
+      "validity": "7Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a10gbs",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "10GB = N2975 (7Days)",
+      "original_wholesale_price": 2945.25,
+      "custom_retail_price": 3121.97,
+      "api_plan_id": "airtel_data_a10gbs",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "10GB",
+      "validity": "7Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a20gb",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "20GB =N4950 (7Days)",
+      "original_wholesale_price": 4900.5,
+      "custom_retail_price": 5194.53,
+      "api_plan_id": "airtel_data_a20gb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "20GB",
+      "validity": "7Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a35gb",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "35GB =N9900 (7Days) Ulimited Ultra Router",
+      "original_wholesale_price": 9801,
+      "custom_retail_price": 10389.06,
+      "api_plan_id": "airtel_data_a35gb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "35GB",
+      "validity": "7Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a2gb2",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "2GB = N1478 (30Days)",
+      "original_wholesale_price": 1463.22,
+      "custom_retail_price": 1551.01,
+      "api_plan_id": "airtel_data_a2gb2",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "2GB",
+      "validity": "30Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a3gb",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "3GB =N1980 (30Days)",
+      "original_wholesale_price": 1960.2,
+      "custom_retail_price": 2077.81,
+      "api_plan_id": "airtel_data_a3gb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "3GB",
+      "validity": "30Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a4gb",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "4GB =N2477 (30Days)",
+      "original_wholesale_price": 2452.23,
+      "custom_retail_price": 2599.36,
+      "api_plan_id": "airtel_data_a4gb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "4GB",
+      "validity": "30Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a8gb",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "8GB =N2975 (30Days)",
+      "original_wholesale_price": 2945.25,
+      "custom_retail_price": 3121.97,
+      "api_plan_id": "airtel_data_a8gb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "8GB",
+      "validity": "30Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a10gb",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "10GB =N3950 (30Days)",
+      "original_wholesale_price": 3910.5,
+      "custom_retail_price": 4145.13,
+      "api_plan_id": "airtel_data_a10gb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "10GB",
+      "validity": "30Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a13gb",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "13GB =N4955 (30Days)",
+      "original_wholesale_price": 4905.45,
+      "custom_retail_price": 5199.78,
+      "api_plan_id": "airtel_data_a13gb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "13GB",
+      "validity": "30Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a18gb",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "18GB =N5940 (30Days)",
+      "original_wholesale_price": 5880.6,
+      "custom_retail_price": 6233.44,
+      "api_plan_id": "airtel_data_a18gb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "18GB",
+      "validity": "30Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a25gb",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "25GB =N7900 (30Days)",
+      "original_wholesale_price": 7821,
+      "custom_retail_price": 8290.26,
+      "api_plan_id": "airtel_data_a25gb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "25GB",
+      "validity": "30Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a60gb",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "60GB =N14900 (30Days)",
+      "original_wholesale_price": 14751,
+      "custom_retail_price": 15636.06,
+      "api_plan_id": "airtel_data_a60gb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "60GB",
+      "validity": "30Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a75gb",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "75GB =N14980 (30Days) Router Plan",
+      "original_wholesale_price": 14830.2,
+      "custom_retail_price": 15720.01,
+      "api_plan_id": "airtel_data_a75gb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "75GB",
+      "validity": "30Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a100gb",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "100GB =N19800 (30Days)",
+      "original_wholesale_price": 19602,
+      "custom_retail_price": 20778.12,
+      "api_plan_id": "airtel_data_a100gb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "100GB",
+      "validity": "30Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "airtel_data_a160gb",
+      "provider_id": "payflex",
+      "network": "AIRTEL",
+      "plan_name": "160GB =N29750 (1 month)",
+      "original_wholesale_price": 29452.5,
+      "custom_retail_price": 31219.65,
+      "api_plan_id": "airtel_data_a160gb",
+      "status": "active",
+      "category": "Gifting Data",
+      "size": "160GB",
+      "validity": "1 month",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_data_share_m500mbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "500MB = N350 (7 Days)",
+      "original_wholesale_price": 339.5,
+      "custom_retail_price": 359.87,
+      "api_plan_id": "mtn_data_share_m500mbs",
+      "status": "active",
+      "category": "Data Share",
+      "size": "500MB",
+      "validity": "7 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_data_share_m1gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "1GB = N450 (7 Days)",
+      "original_wholesale_price": 436.5,
+      "custom_retail_price": 462.69,
+      "api_plan_id": "mtn_data_share_m1gbs",
+      "status": "active",
+      "category": "Data Share",
+      "size": "1GB",
+      "validity": "7 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_data_share_m2gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "2GB = N850 (7 Days)",
+      "original_wholesale_price": 824.5,
+      "custom_retail_price": 873.97,
+      "api_plan_id": "mtn_data_share_m2gbs",
+      "status": "active",
+      "category": "Data Share",
+      "size": "2GB",
+      "validity": "7 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_data_share_m3gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "3GB = N1200 (7 Days)",
+      "original_wholesale_price": 1164,
+      "custom_retail_price": 1233.84,
+      "api_plan_id": "mtn_data_share_m3gbs",
+      "status": "active",
+      "category": "Data Share",
+      "size": "3GB",
+      "validity": "7 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_data_share_m1gbs2",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "1GB = N580 (30 Days)",
+      "original_wholesale_price": 562.6,
+      "custom_retail_price": 596.36,
+      "api_plan_id": "mtn_data_share_m1gbs2",
+      "status": "active",
+      "category": "Data Share",
+      "size": "1GB",
+      "validity": "30 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_data_share_m2gbs2",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "2GB = N950 (30 Days)",
+      "original_wholesale_price": 921.5,
+      "custom_retail_price": 976.79,
+      "api_plan_id": "mtn_data_share_m2gbs2",
+      "status": "active",
+      "category": "Data Share",
+      "size": "2GB",
+      "validity": "30 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_data_share_m3gbs2",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "3GB = N1250 (30 Days)",
+      "original_wholesale_price": 1212.5,
+      "custom_retail_price": 1285.25,
+      "api_plan_id": "mtn_data_share_m3gbs2",
+      "status": "active",
+      "category": "Data Share",
+      "size": "3GB",
+      "validity": "30 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
+    },
+    {
+      "id": "mtn_data_share_m5gbs",
+      "provider_id": "payflex",
+      "network": "MTN",
+      "plan_name": "5GB = N1800 (30 Days)",
+      "original_wholesale_price": 1746,
+      "custom_retail_price": 1850.76,
+      "api_plan_id": "mtn_data_share_m5gbs",
+      "status": "active",
+      "category": "Data Share",
+      "size": "5GB",
+      "validity": "30 Days",
+      "created_at": "2026-10-21T15:38:04.411Z",
+      "updated_at": "2026-10-24T16:33:18.002Z",
+      "last_synced_at": "2026-10-24T16:33:18.002Z"
     }
   ],
   "vtuSyncMeta": {
-    "lastSyncedAt": "2026-10-05T10:12:25.423Z",
+    "lastSyncedAt": "2026-10-24T16:33:18.002Z",
     "provider": "payflex",
-    "count": 89,
+    "count": 175,
     "status": "success"
   },
   "notifications": [

@@ -50,6 +50,17 @@ try {
     }
 } catch (\Throwable $t) {}
 
+if (!empty($refSettings['hideFromUsers'])) {
+    jsonResponse([
+        'status'  => 'error',
+        'message' => 'The referral program is currently offline or disabled by administration.',
+        'data'    => [
+            'programSettings' => $refSettings,
+            'isReferralsHidden' => true
+        ]
+    ], 403);
+}
+
 $COMMISSION_AMOUNT = (float)($refSettings['bonusAmount'] ?? 50.00);
 
 // Fetch all referred friends (matches by user referral code, phone, or username)
@@ -95,7 +106,7 @@ foreach ($rows as $row) {
     ];
 }
 
-$domain = defined('APP_DOMAIN') ? APP_DOMAIN : ($_SERVER['HTTP_HOST'] ?? 'alaminjagora.ng');
+$domain = defined('APP_DOMAIN') ? APP_DOMAIN : ($_SERVER['HTTP_HOST'] ?? 'ajdatasub.com.ng');
 $proto = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $referralLink = "{$proto}://{$domain}/register?ref={$userCode}";
 

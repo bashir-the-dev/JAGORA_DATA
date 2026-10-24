@@ -11,13 +11,13 @@ require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/../helpers.php';
 
 $pdo = Database::getConnection();
-$admin = requireAdminUser($pdo);
+$admin = requireAdminPermission($pdo, 'view_finances');
 
 $results = [];
 
 // 1. PAYFLEX (PEYFLEX) - Primary Wholesale Telecom Gateway
 $pfStart = microtime(true);
-$payflexKey = defined('PAYFLEX_API_KEY') ? PAYFLEX_API_KEY : '';
+$payflexKey = function_exists('resolveActivePayflexKey') ? resolveActivePayflexKey() : (defined('PAYFLEX_API_KEY') ? PAYFLEX_API_KEY : '');
 $payflexBase = defined('PAYFLEX_BASE_URL') ? PAYFLEX_BASE_URL : 'https://client.peyflex.com.ng/api';
 
 if (!empty($payflexKey) && !str_starts_with($payflexKey, 'YOUR_')) {
@@ -43,7 +43,7 @@ if (!empty($payflexKey) && !str_starts_with($payflexKey, 'YOUR_')) {
         'fundingAccount' => [
             'bankName' => 'Wema Bank / Sterling Bank',
             'accountNumber' => 'Available on Peyflex Portal',
-            'accountName' => 'Peyflex / Jagora Telecom',
+            'accountName' => 'Peyflex / AJ Telecom',
             'portalUrl' => 'https://client.peyflex.com.ng/',
             'instructions' => 'Log in to your Peyflex wholesale merchant portal to top up your dedicated automated virtual funding account.'
         ]
@@ -63,7 +63,7 @@ if (!empty($payflexKey) && !str_starts_with($payflexKey, 'YOUR_')) {
         'fundingAccount' => [
             'bankName' => 'Wema Bank / Sterling Bank',
             'accountNumber' => 'Available on Peyflex Portal',
-            'accountName' => 'Peyflex / Jagora Telecom',
+            'accountName' => 'Peyflex / AJ Telecom',
             'portalUrl' => 'https://client.peyflex.com.ng/',
             'instructions' => 'Configure PAYFLEX_API_KEY in config.php.'
         ]

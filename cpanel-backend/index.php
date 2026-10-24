@@ -1,9 +1,9 @@
 <?php
 /**
  * ==============================================================================
- * AL'AMIN JAGORA DATA - API SERVER DASHBOARD & HEALTH MONITOR
+ * AJDATASUB - API SERVER DASHBOARD & HEALTH MONITOR
  * ==============================================================================
- * Served when visiting http://localhost/jagora-api/ in the browser.
+ * Served when visiting http://localhost/ajdatasub-api/ in the browser.
  */
 
 header("Access-Control-Allow-Origin: *");
@@ -44,8 +44,14 @@ try {
     $dbMessage = $e->getMessage();
 }
 
+// 0. Render developer-editable PHP landing page if requested or configured
+if ((isset($_GET['landing']) || (isset($_GET['page']) && $_GET['page'] === 'landing')) && file_exists(__DIR__ . '/landing.php')) {
+    require __DIR__ . '/landing.php';
+    exit;
+}
+
 // If index.html exists in public_html and user visits /index.php directly in a browser,
-// redirect to the web app root '/' unless ?api_monitor=1 or ?json=1 is explicitly requested.
+// redirect to the web app root '/' unless ?api_monitor=1 or ?json=1 or ?landing=1 is explicitly requested.
 if (file_exists(__DIR__ . '/index.html') && !isset($_GET['api_monitor']) && !isset($_GET['json']) && (!isset($_SERVER['HTTP_ACCEPT']) || strpos($_SERVER['HTTP_ACCEPT'], 'application/json') === false)) {
     $uriPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
     if (basename($uriPath) === 'index.php') {
@@ -60,7 +66,7 @@ if ($wantsJson) {
     header('Content-Type: application/json');
     echo json_encode([
         'status' => 'success',
-        'service' => "Al'amin Jagora Data REST API",
+        'service' => "AJDATASUB REST API",
         'version' => '1.0.0',
         'timestamp' => date('c'),
         'database' => [
@@ -90,7 +96,7 @@ if ($wantsJson) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Al'amin Jagora Data - REST API Server</title>
+    <title>AJDATASUB - REST API Server</title>
     <style>
         :root {
             --primary: #0047cc;
@@ -140,17 +146,23 @@ if ($wantsJson) {
             gap: 14px;
         }
         .logo-icon {
-            width: 52px;
-            height: 52px;
-            background: linear-gradient(135deg, #0047cc, #00d2ff);
+            width: 54px;
+            height: 54px;
+            background: #ffffff;
+            border: 1px solid rgba(0, 71, 204, 0.15);
             border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 900;
-            font-size: 22px;
-            color: #fff;
-            box-shadow: 0 8px 20px rgba(0, 71, 204, 0.4);
+            overflow: hidden;
+            box-shadow: 0 4px 14px rgba(0, 71, 204, 0.15);
+            padding: 3px;
+        }
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
         }
         .brand h1 {
             font-size: 20px;
@@ -197,6 +209,18 @@ if ($wantsJson) {
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 18px;
+            transition: all 0.2s ease;
+        }
+        @media (max-width: 640px) {
+            .stat-card.wallet-card-preview {
+                aspect-ratio: 16 / 9;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                padding: 20px;
+                background: linear-gradient(135deg, rgba(0, 71, 204, 0.2), rgba(0, 54, 160, 0.05));
+                border-color: rgba(96, 165, 250, 0.25);
+            }
         }
         .stat-label {
             font-size: 11px;
@@ -289,9 +313,11 @@ if ($wantsJson) {
     <div class="container">
         <div class="header">
             <div class="brand">
-                <div class="logo-icon">AJ</div>
+                <div class="logo-icon">
+                    <img src="logo.png" alt="AJDATASUB" />
+                </div>
                 <div>
-                    <h1>Al'amin Jagora Data REST API</h1>
+                    <h1>AJDATASUB REST API</h1>
                     <p>Telecom & VTU Engine • Backend Server Gateway</p>
                 </div>
             </div>
@@ -310,7 +336,7 @@ if ($wantsJson) {
                 <?php if ($dbMessage): ?>
                     <p style="font-size: 11px; color: var(--rose); margin-top: 4px;"><?= htmlspecialchars($dbMessage) ?></p>
                 <?php else: ?>
-                    <p style="font-size: 11px; color: var(--text-sub); margin-top: 4px;">Database: jagora_data</p>
+                    <p style="font-size: 11px; color: var(--text-sub); margin-top: 4px;">Database: ajdatasub_data</p>
                 <?php endif; ?>
             </div>
 

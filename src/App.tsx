@@ -18,6 +18,7 @@ import { NotificationsScreen } from './components/screens/NotificationsScreen';
 import { ProfileScreen } from './components/screens/ProfileScreen';
 import { ReferralsScreen } from './components/screens/ReferralsScreen';
 import { SupportScreen } from './components/screens/SupportScreen';
+import { ChatWithUsScreen } from './components/screens/ChatWithUsScreen';
 import { LoginScreen } from './components/screens/LoginScreen';
 import { RegisterScreen } from './components/screens/RegisterScreen';
 import { AdminDashboardScreen } from './components/screens/AdminDashboardScreen';
@@ -50,6 +51,7 @@ import {
   markNotificationReadInDb,
   markAllNotificationsReadInDb,
   isGenericCustomerName,
+  deduplicateTransactions,
 } from './services/dbService';
 import { ApiSettingsModal } from './components/modals/ApiSettingsModal';
 import { SessionLockModal } from './components/modals/SessionLockModal';
@@ -92,6 +94,7 @@ const VALID_SCREENS: ScreenType[] = [
   'profile',
   'referrals',
   'support',
+  'chat',
   'notifications',
   'login',
   'register',
@@ -160,7 +163,7 @@ const getScreenFromUrl = (): ScreenType | null => {
 
 /**
  * Checks if the current request is accessing via an administrative subdomain
- * (e.g., admin.alaminjagora.ng, ops-desk.alaminjagora.ng, hq.alaminjagora.ng)
+ * (e.g., admin.ajdatasub.com.ng, ops-desk.ajdatasub.com.ng, hq.ajdatasub.com.ng)
  */
 export const isAdminSubdomain = (): boolean => {
   try {
@@ -205,6 +208,13 @@ const resolveInitialScreen = (): ScreenType => {
     const token = localStorage.getItem('jagora_auth_token') || localStorage.getItem('jagora_token');
     const isAdmin = localStorage.getItem('jagora_admin_authenticated') === 'true';
     const isUserLoggedIn = localStorage.getItem('jagora_user_logged_in') === 'true';
+    const hasSavedUser = Boolean(
+      localStorage.getItem('jagora_user_profile') ||
+      localStorage.getItem('jagora_user_identifier') ||
+      localStorage.getItem('jagora_user_phone') ||
+      localStorage.getItem('jagora_has_visited') ||
+      localStorage.getItem('jagora_is_existing_user')
+    );
     const isAuthenticated = Boolean(isUserLoggedIn || token);
 
     // Dedicated Subdomain: Route straight to Admin if authenticated, else to login
@@ -212,7 +222,7 @@ const resolveInitialScreen = (): ScreenType => {
       return isAdmin ? 'admin' : 'login';
     }
 
-    // 1. Direct URL hash / query takes precedence
+    // 1. Direct URL hash / query inspection
     const urlScreen = getScreenFromUrl();
     if (urlScreen) {
       if (urlScreen === 'admin') {
@@ -224,11 +234,28 @@ const resolveInitialScreen = (): ScreenType => {
         }
         return 'login';
       }
-      if (['landing', 'login', 'register', 'support', 'terms', 'privacy'].includes(urlScreen)) {
+
+      // CRITICAL: Landing page is strictly for fresh visitors.
+      // If an existing/returning user hits landing (or default hash), route them to dashboard or login!
+      if (urlScreen === 'landing') {
+        if (isAdmin) {
+          return 'admin';
+        }
+        if (isAuthenticated) {
+          return 'home';
+        }
+        if (hasSavedUser) {
+          return 'login';
+        }
+        return 'landing';
+      }
+
+      if (['login', 'register', 'support',
+  'chat', 'terms', 'privacy'].includes(urlScreen)) {
         return urlScreen;
       }
       if (!isAuthenticated) {
-        return 'login';
+        return hasSavedUser ? 'login' : 'landing';
       }
       return urlScreen;
     }
@@ -236,8 +263,9 @@ const resolveInitialScreen = (): ScreenType => {
     // 2. Check saved screen in localStorage
     const saved = localStorage.getItem('jagora_active_screen') as ScreenType | null;
     if (saved && VALID_SCREENS.includes(saved)) {
-      if (!isAuthenticated && !['landing', 'login', 'register', 'support', 'terms', 'privacy'].includes(saved)) {
-        return 'landing';
+      if (!isAuthenticated && !['login', 'register', 'support',
+  'chat', 'terms', 'privacy'].includes(saved)) {
+        return hasSavedUser ? 'login' : 'landing';
       }
       if (isAuthenticated && saved === 'landing') {
         return isAdmin ? 'admin' : 'home';
@@ -245,16 +273,20 @@ const resolveInitialScreen = (): ScreenType => {
       return saved;
     }
 
-    // 3. Defaults based on active session
+    // 3. Defaults based on active session & returning user status
     if (isAdmin) {
       return 'admin';
     }
     if (isAuthenticated) {
       return 'home';
     }
+    if (hasSavedUser) {
+      // Returning user whose token expired -> direct them to login
+      return 'login';
+    }
   } catch {}
 
-  // 4. Default for fresh visitors
+  // 4. Default ONLY for brand-new fresh visitors before they register or sign in
   return 'landing';
 };
 
@@ -268,7 +300,8 @@ export default function App() {
     try {
       const savedAuth = localStorage.getItem('jagora_user_logged_in');
       const token = localStorage.getItem('jagora_auth_token') || localStorage.getItem('jagora_token');
-      return savedAuth === 'true' || Boolean(token);
+      const savedProfile = localStorage.getItem('jagora_user_profile');
+      return savedAuth === 'true' || Boolean(token) || Boolean(savedProfile);
     } catch {
       return false;
     }
@@ -323,8 +356,25 @@ export default function App() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(true);
-  const [platformSettings, setPlatformSettings] = useState<PlatformSettingsState>({ maintenanceMode: false });
-  const isReferralsHidden = Boolean(platformSettings?.referralSettings?.hideFromUsers);
+  const [platformSettings, setPlatformSettings] = useState<PlatformSettingsState>(() => {
+    try {
+      const raw = localStorage.getItem('jagora_storage_platform_settings') || localStorage.getItem('jagora_platform_settings');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') return parsed;
+      }
+    } catch {}
+    return { maintenanceMode: false };
+  });
+  const isReferralsHidden = Boolean(
+    platformSettings?.referralSettings?.hideFromUsers ||
+    (typeof window !== 'undefined' && (() => {
+      try {
+        const raw = localStorage.getItem('jagora_storage_platform_settings') || localStorage.getItem('jagora_platform_settings');
+        return raw ? Boolean(JSON.parse(raw)?.referralSettings?.hideFromUsers) : false;
+      } catch { return false; }
+    })())
+  );
 
   // Modals
   const [isFundWalletOpen, setIsFundWalletOpen] = useState(false);
@@ -561,6 +611,16 @@ export default function App() {
     };
   }, [isUserLoggedIn, currentScreen]);
 
+  // Global real-time listener for platform maintenance, broadcasts & referral switches (runs immediately for all users)
+  useEffect(() => {
+    const unsubSettings = subscribeToPlatformSettings((settings) => {
+      setPlatformSettings(settings);
+    });
+    return () => {
+      unsubSettings();
+    };
+  }, []);
+
   /**
    * ----------------------------------------------------------------------------
    * SESSION INVALIDATION & IDLE AUTO-LOCK
@@ -573,124 +633,46 @@ export default function App() {
    * 3. Extended Inactivity (>12 hours):
    *    Completely terminates session, redirects to LoginScreen with a friendly notice.
    */
+  /**
+   * Device-Persistent Authentication Session (Task 2):
+   * Users remain logged in perpetually on their device without repeated sign-ins.
+   * Only an explicit user logout or device change ends the session.
+   * Silently refreshes live balances upon app resume or network restoration.
+   */
   useEffect(() => {
-    // Only apply session auto-lock when a consumer user is actively logged in
     if (!isUserLoggedIn || isAdminSubdomain() || currentScreen === 'admin') {
       return;
     }
 
-    const IDLE_LOCK_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes of complete inactivity
-    const BACKGROUND_LOCK_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes in background / another app tab
-    const FULL_LOGOUT_TIMEOUT_MS = 12 * 60 * 60 * 1000; // 12 hours total inactivity
-    const PROLONGED_OFFLINE_MS = 30 * 60 * 1000; // 30 minutes disconnected from network
-
-    let lastActivityTimestamp = Date.now();
-    let offlineStartTimestamp: number | null = !navigator.onLine ? Date.now() : null;
-
-    const resetActivity = () => {
-      if (!isSessionLocked) {
-        lastActivityTimestamp = Date.now();
+    // Generate or retrieve persistent device fingerprint
+    try {
+      let storedId = localStorage.getItem('jagora_device_fingerprint');
+      if (!storedId) {
+        storedId = 'dev_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now().toString(36);
+        localStorage.setItem('jagora_device_fingerprint', storedId);
       }
-    };
+      localStorage.setItem('jagora_active_device', storedId);
+    } catch {}
 
-    // User interaction events to reset activity timer
-    const activityEvents = ['mousedown', 'mousemove', 'keydown', 'touchstart', 'scroll', 'click'];
-    activityEvents.forEach((evt) => {
-      window.addEventListener(evt, resetActivity, { passive: true });
-    });
-
-    // Check timer periodically every 15 seconds
-    const intervalId = setInterval(() => {
-      if (isSessionLocked) return;
-      const elapsed = Date.now() - lastActivityTimestamp;
-
-      // Extended inactivity: full logout
-      if (elapsed >= FULL_LOGOUT_TIMEOUT_MS) {
-        setSessionExpiredNotice('Your session has expired due to 12 hours of inactivity. Please sign in to resume.');
-        setIsUserLoggedIn(false);
-        setUser(initialUser);
-        try {
-          localStorage.removeItem('jagora_token');
-          localStorage.removeItem('jagora_auth_token');
-          localStorage.removeItem('jagora_user_logged_in');
-          localStorage.removeItem('jagora_user_profile');
-          localStorage.setItem('jagora_active_screen', 'login');
-        } catch {}
-        setAuthToken(null);
-        setCurrentScreen('login');
-        showToast('Session expired due to extended inactivity.', 'warning', 'Session Ended');
-        return;
-      }
-
-      // Idle inactivity: lock screen
-      if (elapsed >= IDLE_LOCK_TIMEOUT_MS) {
-        setSessionLockReason('idle');
-        setIsSessionLocked(true);
-      }
-    }, 15000);
-
-    // App Visibility / Tab Switching listener
+    // App Visibility / Foreground Resume: silently refresh live profile without disrupting the user
     const handleVisibilityChange = () => {
-      if (document.hidden) {
-        // App went to background
-        lastActivityTimestamp = Date.now();
-      } else {
-        // App returned to foreground
-        const backgroundElapsed = Date.now() - lastActivityTimestamp;
-        if (backgroundElapsed >= FULL_LOGOUT_TIMEOUT_MS) {
-          setSessionExpiredNotice('Your session expired while the app was in the background. Please sign in.');
-          setIsUserLoggedIn(false);
-          setUser(initialUser);
-          try {
-            localStorage.removeItem('jagora_token');
-            localStorage.removeItem('jagora_auth_token');
-            localStorage.removeItem('jagora_user_logged_in');
-            localStorage.removeItem('jagora_user_profile');
-            localStorage.setItem('jagora_active_screen', 'login');
-          } catch {}
-          setAuthToken(null);
-          setCurrentScreen('login');
-        } else if (backgroundElapsed >= BACKGROUND_LOCK_TIMEOUT_MS && !isSessionLocked) {
-          setSessionLockReason('idle');
-          setIsSessionLocked(true);
-        }
+      if (!document.hidden) {
+        refreshProfileFromApi();
       }
-    };
-
-    // Network connectivity gap listener
-    const handleOffline = () => {
-      offlineStartTimestamp = Date.now();
     };
 
     const handleOnline = () => {
-      if (offlineStartTimestamp) {
-        const offlineDuration = Date.now() - offlineStartTimestamp;
-        offlineStartTimestamp = null;
-        if (offlineDuration >= PROLONGED_OFFLINE_MS && !isSessionLocked) {
-          setSessionLockReason('offline_prolonged');
-          setIsSessionLocked(true);
-          showToast('Network restored. Security lock engaged.', 'info');
-        } else {
-          // Quick refresh of profile and live balance upon reconnection
-          refreshProfileFromApi();
-        }
-      }
+      refreshProfileFromApi();
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('offline', handleOffline);
     window.addEventListener('online', handleOnline);
 
     return () => {
-      activityEvents.forEach((evt) => {
-        window.removeEventListener(evt, resetActivity);
-      });
-      clearInterval(intervalId);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('offline', handleOffline);
       window.removeEventListener('online', handleOnline);
     };
-  }, [isUserLoggedIn, isSessionLocked, currentScreen]);
+  }, [isUserLoggedIn, currentScreen]);
 
   // Load user profile & sync with direct custom backend in real-time (consumer app only)
   useEffect(() => {
@@ -715,7 +697,7 @@ export default function App() {
             if (isMounted && profile) setUser(profile);
           }),
           loadUserTransactionsFromDb(user.phone).then((txs) => {
-            if (isMounted && txs) setTransactions(txs);
+            if (isMounted && txs) setTransactions(deduplicateTransactions(txs));
           }),
           refreshProfileFromApi(),
         ]);
@@ -747,14 +729,7 @@ export default function App() {
     // Real-time listener for user transactions
     const unsubTx = subscribeToUserTransactions(user.phone, (txs) => {
       if (isMounted && txs) {
-        setTransactions(txs);
-      }
-    });
-
-    // Real-time listener for platform maintenance and broadcasts
-    const unsubSettings = subscribeToPlatformSettings((settings) => {
-      if (isMounted) {
-        setPlatformSettings(settings);
+        setTransactions(deduplicateTransactions(txs));
       }
     });
 
@@ -769,7 +744,6 @@ export default function App() {
       isMounted = false;
       unsubUser();
       unsubTx();
-      unsubSettings();
       unsubNotifs();
     };
   }, [user.phone, currentScreen]);
@@ -802,6 +776,7 @@ export default function App() {
           isVerified: true,
           biometricEnabled: user.biometricEnabled,
           hasPin: true,
+          requirePinForTransactions: user.requirePinForTransactions ?? false,
         };
         setUser(updatedUser);
         try {
@@ -809,28 +784,40 @@ export default function App() {
           localStorage.setItem('jagora_user_profile', JSON.stringify(updatedUser));
         } catch {}
 
-        if (u.role === 'admin') {
+        const isUserSuperAdmin = (u.role === 'admin' || u.adminRole === 'super_admin' || u.email?.toLowerCase() === 'bashirabubakar650@gmail.com');
+        if (isUserSuperAdmin) {
           setIsAdminAuthenticated(true);
           try {
             localStorage.setItem('jagora_admin_authenticated', 'true');
           } catch {}
+        } else {
+          setIsAdminAuthenticated(false);
+          try {
+            localStorage.removeItem('jagora_admin_authenticated');
+          } catch {}
         }
 
         if (res.data.recentTransactions && Array.isArray(res.data.recentTransactions)) {
-          const mapped: Transaction[] = res.data.recentTransactions.map((tx: any) => ({
-            id: tx.reference || `tx-${tx.id || Date.now()}`,
-            title: tx.title || (tx.type === 'DATA' ? 'Data Bundle' : tx.type === 'AIRTIME' ? 'Airtime Topup' : 'Wallet Funding'),
-            subtitle: tx.description || `${tx.type} Transaction`,
-            recipient: tx.recipient || '',
-            date: tx.created_at ? new Date(tx.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Today',
-            group: 'Today',
-            amount: parseFloat(tx.amount) || 0,
-            isCredit: tx.type === 'WALLET_FUNDING' || tx.type === 'COMMISSION' || tx.type === 'funding' || !!tx.isCredit,
-            status: (tx.status?.toUpperCase() === 'SUCCESS' ? 'SUCCESS' : tx.status?.toUpperCase() === 'FAILED' ? 'FAILED' : 'PENDING') as any,
-            category: (tx.type?.toLowerCase().includes('data') ? 'data' : tx.type?.toLowerCase().includes('airtime') ? 'airtime' : 'funding') as any,
-            iconType: tx.type?.toLowerCase().includes('data') ? 'wifi' : tx.type?.toLowerCase().includes('airtime') ? 'phone' : 'wallet',
-          }));
-          setTransactions(mapped);
+          const mapped: Transaction[] = res.data.recentTransactions.map((tx: any) => {
+            const txTypeStr = String(tx.type || tx.category || '').toLowerCase();
+            const ref = String(tx.reference || tx.id || '').trim();
+            const id = ref || `tx-${Date.now()}`;
+            return {
+              id: id,
+              reference: ref,
+              title: tx.title || (txTypeStr.includes('data') ? 'Data Bundle' : txTypeStr.includes('airtime') ? 'Airtime Topup' : 'Wallet Funding'),
+              subtitle: tx.description || `${tx.type || tx.category || 'Transaction'}`,
+              recipient: tx.recipient || '',
+              date: tx.created_at ? new Date(tx.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Today',
+              group: 'Today',
+              amount: parseFloat(tx.amount) || 0,
+              isCredit: txTypeStr.includes('funding') || txTypeStr.includes('commission') || txTypeStr.includes('credit') || !!tx.isCredit,
+              status: (String(tx.status || '').toUpperCase() === 'SUCCESS' ? 'SUCCESS' : String(tx.status || '').toUpperCase() === 'FAILED' ? 'FAILED' : 'PENDING') as any,
+              category: (txTypeStr.includes('data') ? 'data' : txTypeStr.includes('airtime') ? 'airtime' : 'funding') as any,
+              iconType: txTypeStr.includes('data') ? 'wifi' : txTypeStr.includes('airtime') ? 'phone' : 'wallet',
+            };
+          });
+          setTransactions((prev) => deduplicateTransactions([...mapped, ...prev]));
         }
       } else if (res.status === 'error' && (res.code === 'UNAUTHORIZED' || res.code === 'INVALID_TOKEN')) {
         window.dispatchEvent(
@@ -918,7 +905,7 @@ export default function App() {
       category: 'funding',
       iconType: 'wallet',
     };
-    setTransactions((prev) => [newTx, ...prev]);
+    setTransactions((prev) => deduplicateTransactions([newTx, ...prev]));
     recordTransactionInDb(newTx, user.phone);
 
     const newNotif: NotificationItem = {
@@ -971,12 +958,16 @@ export default function App() {
       setTransactionStep(2, 'Routing dispatch to telecom operator switch...');
 
       const res = await apiBuyData({
-        network: plan.network,
+        network: plan.networkKey || plan.network,
+        network_key: plan.networkKey || plan.network,
         plan_id: plan.id,
+        plan_code: plan.planCode || plan.id,
         plan_name: `${plan.network.toUpperCase()} ${plan.size} (${plan.type})`,
+        size: plan.size,
+        validity: plan.validity,
         phone,
         amount: plan.price,
-        pin: pin || undefined,
+        pin: pin || '',
       });
 
       if (res.status === 'success' || (res as any).success) {
@@ -1007,8 +998,8 @@ export default function App() {
           category: 'data',
           iconType: 'wifi',
         };
-        setTransactions((prev) => [newTx, ...prev]);
-        recordTransactionInDb(newTx, user.phone);
+        setTransactions((prev) => deduplicateTransactions([newTx, ...prev]));
+        recordTransactionInDb(newTx, user.phone, false);
 
         const newNotif: NotificationItem = {
           id: `notif-${Date.now()}`,
@@ -1116,8 +1107,8 @@ export default function App() {
           category: 'airtime',
           iconType: 'phone',
         };
-        setTransactions((prev) => [newTx, ...prev]);
-        recordTransactionInDb(newTx, user.phone);
+        setTransactions((prev) => deduplicateTransactions([newTx, ...prev]));
+        recordTransactionInDb(newTx, user.phone, false);
 
         const newNotif: NotificationItem = {
           id: `notif-${Date.now()}`,
@@ -1159,7 +1150,7 @@ export default function App() {
     const newBalance = user.balance - tx.amount;
     setUser((prev) => ({ ...prev, balance: newBalance }));
     updateUserBalanceInDb(user.phone, newBalance);
-    setTransactions((prev) => [tx, ...prev]);
+    setTransactions((prev) => deduplicateTransactions([tx, ...prev]));
     recordTransactionInDb(tx, user.phone);
 
     const now = new Date();
@@ -1220,9 +1211,15 @@ export default function App() {
       };
       setUser(updatedProfile);
 
+      const resolvedToken = serverData?.token || serverData?.data?.token || btoa(phone);
+      setAuthToken(resolvedToken);
       try {
+        localStorage.setItem('jagora_auth_token', resolvedToken);
+        localStorage.setItem('jagora_token', resolvedToken);
         localStorage.setItem('jagora_user_logged_in', 'true');
         localStorage.setItem('jagora_user_profile', JSON.stringify(updatedProfile));
+        localStorage.setItem('jagora_is_existing_user', 'true');
+        localStorage.setItem('jagora_has_visited', 'true');
       } catch {}
 
       if (isAdmin) {
@@ -1271,9 +1268,15 @@ export default function App() {
         profile.phone === '08123456789';
 
       setUser(profile);
+      const fallbackToken = btoa(phone);
+      setAuthToken(fallbackToken);
       try {
+        localStorage.setItem('jagora_auth_token', fallbackToken);
+        localStorage.setItem('jagora_token', fallbackToken);
         localStorage.setItem('jagora_user_logged_in', 'true');
         localStorage.setItem('jagora_user_profile', JSON.stringify(profile));
+        localStorage.setItem('jagora_is_existing_user', 'true');
+        localStorage.setItem('jagora_has_visited', 'true');
       } catch {}
 
       if (isAdmin) {
@@ -1323,11 +1326,16 @@ export default function App() {
         role: u.role || 'user',
         virtualAccounts: newUser.serverData.virtualAccounts || [],
       };
-      setUser(updatedProfile);
+      const regTok = newUser.serverData?.token || newUser.serverData?.data?.token || btoa(newUser.phone);
+      setAuthToken(regTok);
       try {
+        localStorage.setItem('jagora_auth_token', regTok);
+        localStorage.setItem('jagora_token', regTok);
         localStorage.setItem('jagora_user_logged_in', 'true');
         localStorage.setItem('jagora_user_profile', JSON.stringify(updatedProfile));
         localStorage.setItem('jagora_active_screen', 'home');
+        localStorage.setItem('jagora_is_existing_user', 'true');
+        localStorage.setItem('jagora_has_visited', 'true');
       } catch {}
       if (u.role === 'admin') {
         setIsAdminAuthenticated(true);
@@ -1357,6 +1365,8 @@ export default function App() {
       localStorage.setItem('jagora_user_logged_in', 'true');
       localStorage.setItem('jagora_user_profile', JSON.stringify(updatedProfile));
       localStorage.setItem('jagora_active_screen', 'home');
+      localStorage.setItem('jagora_is_existing_user', 'true');
+      localStorage.setItem('jagora_has_visited', 'true');
     } catch {}
     saveUserProfileToDb(updatedProfile);
     setTimeout(() => {
@@ -1441,7 +1451,7 @@ export default function App() {
   const getScreenTitle = (screen: ScreenType) => {
     switch (screen) {
       case 'landing':
-        return "Al'amin Jagora Data";
+        return "AJDATASUB";
       case 'data':
         return 'Buy Data';
       case 'airtime':
@@ -1470,8 +1480,10 @@ export default function App() {
         return 'Refer & Earn';
       case 'support':
         return 'Help & Support';
+      case 'chat':
+        return 'Chat With Us';
       default:
-        return "Al'amin Jagora Data";
+        return "AJDATASUB";
     }
   };
 
@@ -1514,40 +1526,6 @@ export default function App() {
 
   // If user is on Auth Screens
   if (currentScreen === 'login') {
-    if (showStaff2FALogin) {
-      return (
-        <>
-          <ProfessionalToastContainer alerts={alerts} onDismiss={dismissAlert} isLightMode={isLightMode} />
-          <AdminLoginScreen
-            onLoginSuccess={(adminUser) => {
-              setIsAdminAuthenticated(true);
-              setAdminProfile(adminUser);
-              setShowStaff2FALogin(false);
-              const adminTok = adminUser?.token || btoa(adminUser?.phone || 'bashirabubakar650@gmail.com');
-              setAuthToken(adminTok);
-              try {
-                localStorage.setItem('jagora_admin_authenticated', 'true');
-                localStorage.setItem('jagora_admin_profile', JSON.stringify(adminUser));
-                localStorage.setItem('jagora_auth_token', adminTok);
-                localStorage.setItem('jagora_admin_token', adminTok);
-                localStorage.setItem('jagora_active_screen', 'admin');
-              } catch {}
-              const roleLabel =
-                adminUser?.adminRole === 'support_agent'
-                  ? 'Support Agent'
-                  : adminUser?.adminRole === 'finance_agent'
-                  ? 'Finance Agent'
-                  : 'Administrator';
-              showToast(`Authenticated as ${roleLabel}. Console unlocked.`);
-              setCurrentScreen('admin');
-            }}
-            onCancel={() => setShowStaff2FALogin(false)}
-            isLightMode={isLightMode}
-          />
-        </>
-      );
-    }
-
     return (
       <>
         <ProfessionalToastContainer alerts={alerts} onDismiss={dismissAlert} isLightMode={isLightMode} />
@@ -1555,7 +1533,6 @@ export default function App() {
           onLoginSuccess={handleLoginSuccess}
           onNavigateRegister={() => setCurrentScreen('register')}
           onNavigateLanding={() => setCurrentScreen('landing')}
-          onAdminLogin={() => setShowStaff2FALogin(true)}
           onOpenApiSettings={isSimulationAllowed() ? () => setIsApiSettingsOpen(true) : undefined}
           onNavigateTerms={() => setCurrentScreen('terms')}
           onNavigatePrivacy={() => setCurrentScreen('privacy')}
@@ -1575,6 +1552,7 @@ export default function App() {
     );
   }
 
+
   if (currentScreen === 'register') {
     return (
       <>
@@ -1586,6 +1564,7 @@ export default function App() {
           onOpenApiSettings={isSimulationAllowed() ? () => setIsApiSettingsOpen(true) : undefined}
           isLightMode={isLightMode}
           onToggleTheme={() => setIsLightMode(!isLightMode)}
+          isReferralsHidden={isReferralsHidden}
         />
         {isSimulationAllowed() && (
           <ApiSettingsModal
@@ -1632,37 +1611,7 @@ export default function App() {
         return null;
       }
 
-      // 2. If staff member selected 2FA Master PIN challenge
-      if (showStaff2FALogin) {
-        return (
-          <>
-            <ProfessionalToastContainer alerts={alerts} onDismiss={dismissAlert} isLightMode={isLightMode} />
-            <AdminLoginScreen
-              onLoginSuccess={(u) => {
-                setIsAdminAuthenticated(true);
-                setAdminProfile(u);
-                setShowStaff2FALogin(false);
-                try {
-                  localStorage.setItem('jagora_admin_authenticated', 'true');
-                  localStorage.setItem('jagora_admin_profile', JSON.stringify(u));
-                  localStorage.setItem('jagora_active_screen', 'admin');
-                } catch {}
-                const roleLabel =
-                  u?.adminRole === 'support_agent'
-                    ? 'Support Agent'
-                    : u?.adminRole === 'finance_agent'
-                    ? 'Finance Agent'
-                    : 'CEO (Master Admin)';
-                showToast(`Authenticated as ${roleLabel}. Console unlocked.`);
-              }}
-              onCancel={() => setShowStaff2FALogin(false)}
-              isLightMode={isLightMode}
-            />
-          </>
-        );
-      }
-
-      // 3. Shared Login Screen: Admin and regular users share the same login screen
+      // Shared Login Screen: Admin and regular users share the same login screen
       return (
         <>
           <ProfessionalToastContainer alerts={alerts} onDismiss={dismissAlert} isLightMode={isLightMode} />
@@ -1670,13 +1619,12 @@ export default function App() {
             onLoginSuccess={handleLoginSuccess}
             onNavigateRegister={() => setCurrentScreen('register')}
             onNavigateLanding={() => setCurrentScreen('landing')}
-            onAdminLogin={() => setShowStaff2FALogin(true)}
             onOpenApiSettings={isSimulationAllowed() ? () => setIsApiSettingsOpen(true) : undefined}
             onNavigateTerms={() => setCurrentScreen('terms')}
             onNavigatePrivacy={() => setCurrentScreen('privacy')}
             isLightMode={isLightMode}
             onToggleTheme={() => setIsLightMode(!isLightMode)}
-            sessionExpiredNotice={sessionExpiredNotice || 'Staff Portal: Sign in with your administrator credentials to access the console.'}
+            sessionExpiredNotice={sessionExpiredNotice || 'Administrator Portal: Sign in with your administrator credentials to access the console.'}
           />
           {isSimulationAllowed() && (
             <ApiSettingsModal
@@ -1755,7 +1703,8 @@ export default function App() {
   }
 
   // Guard Protected Screens from Unauthenticated Visitors
-  if (!isUserLoggedIn && !['landing', 'login', 'register', 'support', 'terms', 'privacy', 'admin'].includes(currentScreen)) {
+  if (!isUserLoggedIn && !['landing', 'login', 'register', 'support',
+  'chat', 'terms', 'privacy', 'admin'].includes(currentScreen)) {
     return (
       <>
         <ProfessionalToastContainer alerts={alerts} onDismiss={dismissAlert} isLightMode={isLightMode} />
@@ -1846,6 +1795,7 @@ export default function App() {
                 onAirtimeSuccess={handleAirtimeSuccess}
                 onPaymentSuccess={handleUtilityOrPinSuccess}
                 onNavigateBack={() => setCurrentScreen('home')}
+                onNavigateFundWallet={() => setCurrentScreen('fund-wallet')}
                 isLightMode={isLightMode}
                 isMaintenanceMode={platformSettings.maintenanceMode}
               />
@@ -1859,6 +1809,7 @@ export default function App() {
                 onAirtimeSuccess={handleAirtimeSuccess}
                 onPaymentSuccess={handleUtilityOrPinSuccess}
                 onNavigateBack={() => setCurrentScreen('home')}
+                onNavigateFundWallet={() => setCurrentScreen('fund-wallet')}
                 isLightMode={isLightMode}
                 isMaintenanceMode={platformSettings.maintenanceMode}
               />
@@ -1870,6 +1821,7 @@ export default function App() {
                 initialServiceType="cable"
                 onPaymentSuccess={handleUtilityOrPinSuccess}
                 onNavigateBack={() => setCurrentScreen('home')}
+                onNavigateFundWallet={() => setCurrentScreen('fund-wallet')}
                 isLightMode={isLightMode}
                 isMaintenanceMode={platformSettings.maintenanceMode}
               />
@@ -1881,6 +1833,7 @@ export default function App() {
                 initialServiceType="electricity"
                 onPaymentSuccess={handleUtilityOrPinSuccess}
                 onNavigateBack={() => setCurrentScreen('home')}
+                onNavigateFundWallet={() => setCurrentScreen('fund-wallet')}
                 isLightMode={isLightMode}
                 isMaintenanceMode={platformSettings.maintenanceMode}
               />
@@ -1892,6 +1845,7 @@ export default function App() {
                 initialServiceType="exam"
                 onPaymentSuccess={handleUtilityOrPinSuccess}
                 onNavigateBack={() => setCurrentScreen('home')}
+                onNavigateFundWallet={() => setCurrentScreen('fund-wallet')}
                 isLightMode={isLightMode}
                 isMaintenanceMode={platformSettings.maintenanceMode}
               />
@@ -1903,6 +1857,7 @@ export default function App() {
                 initialServiceType="recharge-pin"
                 onPaymentSuccess={handleUtilityOrPinSuccess}
                 onNavigateBack={() => setCurrentScreen('home')}
+                onNavigateFundWallet={() => setCurrentScreen('fund-wallet')}
                 isLightMode={isLightMode}
                 isMaintenanceMode={platformSettings.maintenanceMode}
               />
@@ -1914,6 +1869,7 @@ export default function App() {
                 initialServiceType="data-card"
                 onPaymentSuccess={handleUtilityOrPinSuccess}
                 onNavigateBack={() => setCurrentScreen('home')}
+                onNavigateFundWallet={() => setCurrentScreen('fund-wallet')}
                 isLightMode={isLightMode}
                 isMaintenanceMode={platformSettings.maintenanceMode}
               />
@@ -1962,7 +1918,7 @@ export default function App() {
                     recipient,
                     reference,
                   };
-                  setTransactions((prev) => [newTx, ...prev]);
+                  setTransactions((prev) => deduplicateTransactions([newTx, ...prev]));
                   recordTransactionInDb(newTx, user.phone);
                   showToast(`₦${amount.toLocaleString()} transferred to ${recipient}.`, 'success', 'Transfer Sent');
                 }}
@@ -1977,10 +1933,19 @@ export default function App() {
               />
             )}
 
+            {currentScreen === 'chat' && (
+              <ChatWithUsScreen
+                user={user}
+                onNavigateBack={() => setCurrentScreen('support')}
+                isLightMode={isLightMode}
+              />
+            )}
+
             {currentScreen === 'support' && (
               <SupportScreen
                 user={user}
                 isLightMode={isLightMode}
+                onNavigate={setCurrentScreen}
                 supportContacts={platformSettings?.supportContacts}
               />
             )}
@@ -2017,6 +1982,7 @@ export default function App() {
                 onNavigate={setCurrentScreen}
                 isLightMode={isLightMode}
                 onToggleTheme={() => setIsLightMode(!isLightMode)}
+                isReferralsHidden={isReferralsHidden}
               />
             )}
 
@@ -2058,6 +2024,10 @@ export default function App() {
         isOpen={isFundWalletOpen}
         onClose={() => setIsFundWalletOpen(false)}
         onFundSuccess={handleFundSuccess}
+        onRefreshBalance={async () => {
+          await refreshProfileFromApi();
+          showToast('Wallet balance refreshed successfully.', 'success');
+        }}
         virtualAccounts={user.virtualAccounts}
         isLightMode={isLightMode}
       />

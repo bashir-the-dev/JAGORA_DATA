@@ -66,6 +66,11 @@ export const CustomerAccountsTab: React.FC<CustomerAccountsTabProps> = ({
   // Pure customer accounts only (Admins and Staff are managed in Staff Management)
   const customerUsers = users.filter((u) => !isUserAdminOrSelf(u));
 
+  // Role permissions limit: support agents cannot alter wallet funds or freeze accounts
+  const isSupportAgent =
+    (currentAdmin as any)?.role === 'support_agent' ||
+    (currentAdmin as any)?.adminRole === 'support_agent';
+
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'suspended' | 'flagged'>('all');
@@ -477,54 +482,66 @@ export const CustomerAccountsTab: React.FC<CustomerAccountsTabProps> = ({
 
                     {/* Action Buttons Row (min 44px tap targets for mobile usability) */}
                     <div className="flex items-center gap-2 pt-1">
-                      <button
-                        onClick={() => setSelectedUserForAdjust(u)}
-                        className="flex-1 min-h-[44px] px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs active:scale-98 transition-all cursor-pointer"
-                      >
-                        <CreditCard size={15} />
-                        <span>Adjust Balance</span>
-                      </button>
-
-                      {isUserAdminOrSelf(u) ? (
-                        <div
-                          className="min-h-[44px] px-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 text-xs font-semibold flex items-center justify-center gap-1.5"
-                          title="Administrator and staff accounts cannot be suspended"
-                        >
-                          <ShieldCheck size={15} className="text-emerald-500" />
-                          <span>Protected</span>
-                        </div>
-                      ) : (
+                      {isSupportAgent ? (
                         <button
-                          onClick={() => onToggleUserStatus(u.id)}
-                          className={`min-h-[44px] px-3.5 rounded-xl border font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-98 ${
-                            u.status === 'active'
-                              ? 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-rose-600 hover:border-rose-300 bg-white dark:bg-slate-800'
-                              : 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800'
-                          }`}
-                          title={u.status === 'active' ? 'Suspend user' : 'Reactivate user'}
+                          onClick={() => setInspectUser(u)}
+                          className="flex-1 min-h-[44px] px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                         >
-                          {u.status === 'active' ? (
-                            <>
-                              <Lock size={15} className="text-rose-500" />
-                              <span>Freeze</span>
-                            </>
-                          ) : (
-                            <>
-                              <Unlock size={15} className="text-emerald-600" />
-                              <span>Unfreeze</span>
-                            </>
-                          )}
+                          <User size={15} />
+                          <span>View Profile Details</span>
                         </button>
-                      )}
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => setSelectedUserForAdjust(u)}
+                            className="flex-1 min-h-[44px] px-3 rounded-xl bg-[#0047cc] hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs active:scale-98 transition-all cursor-pointer"
+                          >
+                            <CreditCard size={15} />
+                            <span>Adjust Balance</span>
+                          </button>
 
-                      <button
-                        onClick={() => setInspectUser(u)}
-                        className="min-h-[44px] w-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer active:scale-98"
-                        title="View Full Profile Details"
-                        aria-label="View user profile"
-                      >
-                        <User size={16} />
-                      </button>
+                          {isUserAdminOrSelf(u) ? (
+                            <div
+                              className="min-h-[44px] px-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 text-xs font-semibold flex items-center justify-center gap-1.5"
+                              title="Administrator and staff accounts cannot be suspended"
+                            >
+                              <ShieldCheck size={15} className="text-emerald-500" />
+                              <span>Protected</span>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => onToggleUserStatus(u.id)}
+                              className={`min-h-[44px] px-3.5 rounded-xl border font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-98 ${
+                                u.status === 'active'
+                                  ? 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-rose-600 hover:border-rose-300 bg-white dark:bg-slate-800'
+                                  : 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800'
+                              }`}
+                              title={u.status === 'active' ? 'Suspend user' : 'Reactivate user'}
+                            >
+                              {u.status === 'active' ? (
+                                <>
+                                  <Lock size={15} className="text-rose-500" />
+                                  <span>Freeze</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Unlock size={15} className="text-emerald-600" />
+                                  <span>Unfreeze</span>
+                                </>
+                              )}
+                            </button>
+                          )}
+
+                          <button
+                            onClick={() => setInspectUser(u)}
+                            className="min-h-[44px] w-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer active:scale-98"
+                            title="View Full Profile Details"
+                            aria-label="View user profile"
+                          >
+                            <User size={16} />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 );
@@ -642,33 +659,46 @@ export const CustomerAccountsTab: React.FC<CustomerAccountsTabProps> = ({
                         {/* Action Buttons */}
                         <td className="py-3.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              onClick={() => setSelectedUserForAdjust(u)}
-                              className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 text-[#0047cc] dark:text-blue-400 font-semibold text-xs transition-colors flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95"
-                              title="Adjust wallet balance with credit/debit"
-                            >
-                              <span>Adjust</span>
-                            </button>
-
-                            {isUserAdminOrSelf(u) ? (
-                              <span
-                                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-400 bg-slate-100 dark:bg-slate-800/60 inline-flex items-center justify-center"
-                                title="Administrator and staff accounts cannot be suspended"
-                              >
-                                <ShieldCheck size={14} className="text-emerald-500" />
-                              </span>
-                            ) : (
+                            {isSupportAgent ? (
                               <button
-                                onClick={() => onToggleUserStatus(u.id)}
-                                className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
-                                  u.status === 'active'
-                                    ? 'border-slate-200 dark:border-slate-700 text-slate-400 hover:text-rose-600 hover:border-rose-300'
-                                    : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400'
-                                }`}
-                                title={u.status === 'active' ? 'Freeze / Suspend Account' : 'Re-activate Account'}
+                                onClick={() => setInspectUser(u)}
+                                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors flex items-center gap-1 cursor-pointer"
+                                title="Inspect customer account"
                               >
-                                {u.status === 'active' ? <Lock size={14} /> : <Unlock size={14} />}
+                                <User size={12} />
+                                <span>Details</span>
                               </button>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => setSelectedUserForAdjust(u)}
+                                  className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 text-[#0047cc] dark:text-blue-400 font-semibold text-xs transition-colors flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95"
+                                  title="Adjust wallet balance with credit/debit"
+                                >
+                                  <span>Adjust</span>
+                                </button>
+
+                                {isUserAdminOrSelf(u) ? (
+                                  <span
+                                    className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-400 bg-slate-100 dark:bg-slate-800/60 inline-flex items-center justify-center"
+                                    title="Administrator and staff accounts cannot be suspended"
+                                  >
+                                    <ShieldCheck size={14} className="text-emerald-500" />
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={() => onToggleUserStatus(u.id)}
+                                    className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
+                                      u.status === 'active'
+                                        ? 'border-slate-200 dark:border-slate-700 text-slate-400 hover:text-rose-600 hover:border-rose-300'
+                                        : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400'
+                                    }`}
+                                    title={u.status === 'active' ? 'Freeze / Suspend Account' : 'Re-activate Account'}
+                                  >
+                                    {u.status === 'active' ? <Lock size={14} /> : <Unlock size={14} />}
+                                  </button>
+                                )}
+                              </>
                             )}
                           </div>
                         </td>
@@ -792,44 +822,53 @@ export const CustomerAccountsTab: React.FC<CustomerAccountsTabProps> = ({
 
             {/* Quick Actions */}
             <div className="pt-2 flex gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  const target = inspectUser;
-                  setInspectUser(null);
-                  setSelectedUserForAdjust(target);
-                }}
-                className="flex-1 bg-[#0047cc] hover:bg-[#003eb8] text-white py-2.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
-              >
-                <CreditCard size={14} />
-                <span>Adjust Balance</span>
-              </button>
-
-              {isUserAdminOrSelf(inspectUser) ? (
-                <div
-                  className="px-3.5 py-2 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 flex items-center gap-1.5"
-                  title="Administrator and staff accounts cannot be suspended"
-                >
-                  <ShieldCheck size={14} className="text-emerald-500" />
-                  <span>Protected Account</span>
+              {isSupportAgent ? (
+                <div className="w-full py-2.5 px-3 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-center flex items-center justify-center gap-2">
+                  <ShieldCheck size={14} className="text-blue-500" />
+                  <span>Support Role: Wallet adjustments & freezing restricted to Super Admin / Finance</span>
                 </div>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onToggleUserStatus(inspectUser.id);
-                    setInspectUser((prev) =>
-                      prev ? { ...prev, status: prev.status === 'active' ? 'suspended' : 'active' } : null
-                    );
-                  }}
-                  className={`px-4 py-2.5 rounded-lg text-xs font-semibold transition-all border cursor-pointer active:scale-95 ${
-                    inspectUser.status === 'active'
-                      ? 'border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40'
-                      : 'border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
-                  }`}
-                >
-                  {inspectUser.status === 'active' ? 'Freeze Account' : 'Activate Account'}
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const target = inspectUser;
+                      setInspectUser(null);
+                      setSelectedUserForAdjust(target);
+                    }}
+                    className="flex-1 bg-[#0047cc] hover:bg-[#003eb8] text-white py-2.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
+                  >
+                    <CreditCard size={14} />
+                    <span>Adjust Balance</span>
+                  </button>
+
+                  {isUserAdminOrSelf(inspectUser) ? (
+                    <div
+                      className="px-3.5 py-2 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 flex items-center gap-1.5"
+                      title="Administrator and staff accounts cannot be suspended"
+                    >
+                      <ShieldCheck size={14} className="text-emerald-500" />
+                      <span>Protected Account</span>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onToggleUserStatus(inspectUser.id);
+                        setInspectUser((prev) =>
+                          prev ? { ...prev, status: prev.status === 'active' ? 'suspended' : 'active' } : null
+                        );
+                      }}
+                      className={`px-4 py-2.5 rounded-lg text-xs font-semibold transition-all border cursor-pointer active:scale-95 ${
+                        inspectUser.status === 'active'
+                          ? 'border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40'
+                          : 'border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
+                      }`}
+                    >
+                      {inspectUser.status === 'active' ? 'Freeze Account' : 'Activate Account'}
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>

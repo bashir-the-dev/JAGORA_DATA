@@ -39,7 +39,7 @@ $transactions = array_map('formatTransactionRecord', $rawTransactions ?: []);
 
 $rawName = trim($user['name'] ?? ($user['full_name'] ?? ''));
 if (empty($rawName) || preg_match('/^(valued\s*customer|valued\s*partner|customer|user|null|undefined)$/i', $rawName)) {
-    $rawName = !empty($user['username']) ? $user['username'] : (!empty($user['phone']) ? 'Customer' : "Al'amin");
+    $rawName = !empty($user['username']) ? $user['username'] : (!empty($user['phone']) ? 'Customer' : "AJ User");
 }
 $userName = $rawName;
 
@@ -50,12 +50,25 @@ $dbRole = strtolower(trim($user['role'] ?? 'user'));
 $isCEO = (
     $emailClean === 'bashirabubakar650@gmail.com' ||
     $phoneClean === '08123456789' ||
+    $dbRole === 'super_admin' ||
     $dbRole === 'admin' ||
-    $dbRole === 'super_admin'
+    ($user['admin_role'] ?? '') === 'super_admin'
 );
 
-$resolvedRole = $isCEO ? 'admin' : $dbRole;
-$adminRole = $isCEO ? 'super_admin' : ($user['admin_role'] ?? ($resolvedRole === 'admin' ? 'support_agent' : null));
+
+// Explicit administrative or staff role only if designated by admin
+$isStaffAssigned = in_array($dbRole, ['admin', 'staff', 'support_agent', 'finance_agent'], true) || !empty($user['admin_role']);
+
+if ($isCEO || $dbRole === 'admin' || $dbRole === 'super_admin') {
+    $resolvedRole = 'admin';
+    $adminRole = 'super_admin';
+} elseif ($isStaffAssigned && !empty($user['admin_role'])) {
+    $adminRole = strtolower(trim($user['admin_role']));
+    $resolvedRole = ($adminRole === 'super_admin') ? 'admin' : 'user';
+} else {
+    $resolvedRole = 'user';
+    $adminRole = null;
+}
 
 $permissions = $isCEO ? [
     'canViewTransactions' => true,
@@ -84,6 +97,7 @@ jsonResponse([
             'adminRole'    => $adminRole,
             'permissions'  => $permissions,
             'hasPin'       => !empty($user['pin'] ?? $user['transaction_pin'] ?? ''),
+            'requirePinForTransactions' => !empty($user['require_pin_for_transactions']),
         ],
         'virtualAccounts' => $accounts,
         'recentTransactions' => $transactions

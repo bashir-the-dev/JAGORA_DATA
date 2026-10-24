@@ -59,6 +59,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'exam'         => ($settings['service_exam_active'] ?? '1') === '1',
                 'recharge_pin' => ($settings['service_recharge_pin_active'] ?? '1') === '1',
                 'data_card'    => ($settings['service_data_card_active'] ?? '1') === '1',
+            ],
+            'supportContacts' => [
+                'phone'         => $settings['support_phone'] ?? '+2347048609646',
+                'phoneRaw'      => $settings['support_phone_raw'] ?? '07048609646',
+                'whatsapp'      => $settings['support_whatsapp'] ?? '07048609646',
+                'whatsappRaw'   => $settings['support_whatsapp_raw'] ?? '2347048609646',
+                'whatsappLink'  => $settings['support_whatsapp_link'] ?? 'https://wa.me/2347048609646',
+                'email'         => $settings['support_email'] ?? 'support@ajdatasub.com.ng',
+                'address'       => $settings['support_address'] ?? 'Katsina State, Nigeria',
+                'whatsappGroup' => $settings['support_whatsapp_group'] ?? 'https://chat.whatsapp.com/AJDATASUBOfficialGroup',
+                'whatsappGroupLink' => $settings['support_whatsapp_group'] ?? 'https://chat.whatsapp.com/AJDATASUBOfficialGroup',
             ]
         ];
 
@@ -73,10 +84,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     jsonResponse($settingsPayload);
 }
 
-// POST: update settings (Admin only)
-$admin = requireAdminUser($pdo);
-
+// POST: update settings
 $body = getRequestBody();
+
+// Granular permission check: support agents can update broadcast announcements with 'send_broadcast',
+// while gateway switches, service toggles, maintenance mode, and discounts require 'manage_settings'.
+$isOnlyBroadcast = (isset($body['broadcastText']) || isset($body['broadcastActive'])) &&
+    !isset($body['gateway']) && !isset($body['gatewaySwitches']) &&
+    !isset($body['service']) && !isset($body['serviceSwitches']) &&
+    !isset($body['discounts']) && !isset($body['airtimeDiscounts']) &&
+    !isset($body['maintenanceMode']) && !isset($body['referralSettings']);
+
+if ($isOnlyBroadcast) {
+    $admin = requireAdminPermission($pdo, 'send_broadcast');
+} else {
+    $admin = requireAdminPermission($pdo, 'manage_settings');
+}
 
 $upStmt = $pdo->prepare('
     INSERT INTO system_settings (setting_key, setting_value) 
@@ -118,12 +141,15 @@ if (isset($body['serviceSwitches']) && is_array($body['serviceSwitches'])) {
     }
 }
 
-// Handle Telecom Airtime Discounts
+// Handle Telecom Airtime Discounts & Sync to pricing_settings
+$syncedDiscounts = [];
 if (isset($body['discounts']) && is_array($body['discounts'])) {
     foreach ($body['discounts'] as $net => $discVal) {
         $cleanNet = strtolower(preg_replace('/[^a-z0-9_]/', '', (string)$net));
         if (!empty($cleanNet)) {
-            $upStmt->execute(["airtime_discount_{$cleanNet}", (string)max(0, (float)$discVal)]);
+            $val = max(0, (float)$discVal);
+            $upStmt->execute(["airtime_discount_{$cleanNet}", (string)$val]);
+            $syncedDiscounts[$cleanNet] = $val;
         }
     }
 }
@@ -131,9 +157,21 @@ if (isset($body['airtimeDiscounts']) && is_array($body['airtimeDiscounts'])) {
     foreach ($body['airtimeDiscounts'] as $net => $discVal) {
         $cleanNet = strtolower(preg_replace('/[^a-z0-9_]/', '', (string)$net));
         if (!empty($cleanNet)) {
-            $upStmt->execute(["airtime_discount_{$cleanNet}", (string)max(0, (float)$discVal)]);
+            $val = max(0, (float)$discVal);
+            $upStmt->execute(["airtime_discount_{$cleanNet}", (string)$val]);
+            $syncedDiscounts[$cleanNet] = $val;
         }
     }
+}
+if (!empty($syncedDiscounts)) {
+    try {
+        $prRow = $pdo->query("SELECT value_json FROM settings WHERE key_name = 'pricing_settings' LIMIT 1")->fetch();
+        $prData = ($prRow && !empty($prRow['value_json'])) ? json_decode($prRow['value_json'], true) : ['customPricing' => [], 'airtimeDiscounts' => []];
+        $prData['airtimeDiscounts'] = array_merge($prData['airtimeDiscounts'] ?? [], $syncedDiscounts);
+        $prJson = json_encode($prData);
+        $syncPrStmt = $pdo->prepare("INSERT INTO settings (key_name, value_json) VALUES ('pricing_settings', ?) ON DUPLICATE KEY UPDATE value_json = ?");
+        $syncPrStmt->execute([$prJson, $prJson]);
+    } catch (\Throwable $t) {}
 }
 
 if (isset($body['maintenanceMode'])) {
@@ -181,11 +219,31 @@ if (isset($body['referralSettings']) && is_array($body['referralSettings'])) {
     }
 }
 
+if (isset($body['supportContacts']) && is_array($body['supportContacts'])) {
+    $sc = $body['supportContacts'];
+    if (isset($sc['phone'])) $upStmt->execute(['support_phone', trim($sc['phone'])]);
+    if (isset($sc['whatsapp'])) {
+        $upStmt->execute(['support_whatsapp', trim($sc['whatsapp'])]);
+        $cleanWa = preg_replace('/[^0-9]/', '', $sc['whatsapp']);
+        if (strlen($cleanWa) === 11 && str_starts_with($cleanWa, '0')) {
+            $cleanWa = '234' . substr($cleanWa, 1);
+        }
+        $upStmt->execute(['support_whatsapp_raw', $cleanWa]);
+        $upStmt->execute(['support_whatsapp_link', 'https://wa.me/' . $cleanWa]);
+    }
+    if (isset($sc['email'])) $upStmt->execute(['support_email', trim($sc['email'])]);
+    if (isset($sc['whatsappGroup'])) $upStmt->execute(['support_whatsapp_group', trim($sc['whatsappGroup'])]);
+    if (isset($sc['address'])) $upStmt->execute(['support_address', trim($sc['address'])]);
+}
+
 // Sync to settings table platform_info for unified multi-client visibility
 try {
     $pRow = $pdo->query("SELECT value_json FROM settings WHERE key_name = 'platform_info' LIMIT 1")->fetch();
     $pInfo = $pRow ? json_decode($pRow['value_json'], true) : [];
     if (isset($body['maintenanceMode'])) $pInfo['maintenanceMode'] = !empty($body['maintenanceMode']);
+    if (isset($body['supportContacts']) && is_array($body['supportContacts'])) {
+        $pInfo['supportContacts'] = array_merge($pInfo['supportContacts'] ?? [], $body['supportContacts']);
+    }
     if (isset($body['broadcastText'])) {
         if (!isset($pInfo['broadcastAnnouncement'])) $pInfo['broadcastAnnouncement'] = [];
         $pInfo['broadcastAnnouncement']['text'] = trim($body['broadcastText']);

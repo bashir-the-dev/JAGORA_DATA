@@ -1,4 +1,4 @@
-const CACHE_NAME = 'alamin-jagora-v2';
+const CACHE_NAME = 'ajdatasub-v3-cache';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
@@ -18,6 +18,7 @@ self.addEventListener('activate', (event) => {
       Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
+            console.log('[SW] Purging stale cache:', key);
             return caches.delete(key);
           }
         })

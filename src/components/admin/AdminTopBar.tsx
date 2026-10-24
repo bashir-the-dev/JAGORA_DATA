@@ -116,20 +116,20 @@ export const AdminTopBar: React.FC<AdminTopBarProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
-              placeholder="Search customer name, phone number, or email..."
-              className="w-full pl-10 pr-12 py-2 text-xs rounded-xl bg-slate-100/80 dark:bg-slate-900 border border-transparent focus:border-blue-500 focus:bg-white dark:focus:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-hidden transition-all shadow-2xs font-sans"
+              placeholder="Search customers, phone number, or email..."
+              className="w-full pl-10 pr-16 py-2 text-xs rounded-xl bg-slate-100/90 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-hidden transition-all shadow-2xs font-sans"
             />
             {/* Shortcut Badge */}
             {searchQuery ? (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="absolute right-3 p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             ) : (
-              <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono text-slate-400 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 absolute right-3 pointer-events-none">
-                ⌘ K
+              <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-mono text-slate-400 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 absolute right-3 pointer-events-none shadow-2xs">
+                Ctrl + K
               </span>
             )}
           </div>

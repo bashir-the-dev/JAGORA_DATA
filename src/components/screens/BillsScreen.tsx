@@ -528,6 +528,16 @@ export const BillsScreen: React.FC<BillsScreenProps> = ({
         </div>
       )}
 
+      {/* Subtitle matching Screen 10 */}
+      <div className="space-y-1">
+        <h1 className="text-base sm:text-lg font-heading font-black text-slate-900 dark:text-white tracking-tight">
+          All Utilities & Services
+        </h1>
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          Select any service below to open its direct, goal-centered payment window.
+        </p>
+      </div>
+
       {/* 1. TOP UTILITY CATEGORY TABS (Tactile Segmented Bar) */}
       <section className="space-y-2">
         <div className="flex items-center justify-between">

@@ -1,7 +1,7 @@
 <?php
 /**
  * ============================================================================
- * Al'amin Jagora Data - Main Configuration File (cPanel / PHP)
+ * AJDATASUB - Main Configuration File (cPanel / PHP)
  * ============================================================================
  * Edit the database credentials below to match your cPanel MySQL Database.
  */
@@ -16,7 +16,7 @@ if (!defined('AJD_ROOT')) {
 // ----------------------------------------------------------------------------
 define('DB_HOST', 'localhost');
 define('DB_PORT', '3306');
-define('DB_NAME', 'YOUR_CPANEL_DATABASE_NAME'); // e.g. cpaneluser_jagoravtu
+define('DB_NAME', 'YOUR_CPANEL_DATABASE_NAME'); // e.g. cpaneluser_ajdatasub
 define('DB_USER', 'YOUR_CPANEL_DATABASE_USER'); // e.g. cpaneluser_vtuuser
 define('DB_PASS', 'YOUR_CPANEL_DATABASE_PASSWORD');
 define('DB_CHARSET', 'utf8mb4');
@@ -25,7 +25,7 @@ define('DB_CHARSET', 'utf8mb4');
 // 2. Telecom & Wholesale Gateway API Keys
 // ----------------------------------------------------------------------------
 // Payflex (Peyflex) Gateway (PRIMARY WHOLESALE VTU GATEWAY)
-define('PAYFLEX_API_KEY', getenv('PAYFLEX_API_KEY') ?: '42e5cd304b2a6f1b3de3e52a20eb0d812f8d5b31');
+define('PAYFLEX_API_KEY', getenv('PAYFLEX_API_KEY') ?: 'b82ca961a0d15fd3fd09aa394affe9b877c21b60');
 define('PAYFLEX_BASE_URL', getenv('PAYFLEX_BASE_URL') ?: 'https://client.peyflex.com.ng/api');
 
 // ClubKonnect Gateway (Data & Airtime - Secondary / Backup Gateway)
@@ -60,15 +60,15 @@ define('MONNIFY_BASE_URL', 'https://api.monnify.com');
 // Telecom Provider & Gateway Aliases - Payflex is Primary Gateway
 define('VTU_PROVIDER_NAME', getenv('VTU_PROVIDER_NAME') ?: 'PAYFLEX');
 define('VTU_API_TOKEN', getenv('VTU_API_TOKEN') ?: (defined('PAYFLEX_API_KEY') ? PAYFLEX_API_KEY : ''));
-define('APP_NAME', getenv('APP_NAME') ?: "Al'amin Jagora Data");
-define('APP_DOMAIN', getenv('APP_DOMAIN') ?: 'alaminjagoradata.com.ng');
-define('APP_SYSTEM_EMAIL', getenv('APP_SYSTEM_EMAIL') ?: 'support@alaminjagoradata.com.ng');
-define('APP_EMAIL_FROM_NAME', getenv('APP_EMAIL_FROM_NAME') ?: "Al'amin Jagora Data");
+define('APP_NAME', getenv('APP_NAME') ?: "AJDATASUB");
+define('APP_DOMAIN', getenv('APP_DOMAIN') ?: 'ajdatasub.com.ng');
+define('APP_SYSTEM_EMAIL', getenv('APP_SYSTEM_EMAIL') ?: 'support@ajdatasub.com.ng');
+define('APP_EMAIL_FROM_NAME', getenv('APP_EMAIL_FROM_NAME') ?: "AJDATASUB");
 
 // Optional SMTP Server Credentials (Set SMTP_PASS to your cPanel email password for 100% authenticated delivery)
 define('SMTP_HOST', getenv('SMTP_HOST') ?: 'localhost');
 define('SMTP_PORT', (int)(getenv('SMTP_PORT') ?: 587));
-define('SMTP_USER', getenv('SMTP_USER') ?: 'support@alaminjagoradata.com.ng');
+define('SMTP_USER', getenv('SMTP_USER') ?: 'support@ajdatasub.com.ng');
 define('SMTP_PASS', getenv('SMTP_PASS') ?: ''); // Set cPanel webmail password here to send via authenticated SMTP
 define('SMTP_SECURE', getenv('SMTP_SECURE') ?: ''); // 'tls', 'ssl', or ''
 
@@ -77,7 +77,7 @@ define('SMTP_SECURE', getenv('SMTP_SECURE') ?: ''); // 'tls', 'ssl', or ''
 // ----------------------------------------------------------------------------
 define('JWT_SECRET', getenv('JWT_SECRET') ?: 'jagora_super_secure_jwt_token_key_982347293847');
 define('ADMIN_SECRET_PIN', getenv('ADMIN_SECRET_PIN') ?: '1234'); // 4-digit master admin PIN
-define('DEFAULT_ADMIN_PHONE', getenv('DEFAULT_ADMIN_PHONE') ?: '08001234567');
+define('DEFAULT_ADMIN_PHONE', getenv('DEFAULT_ADMIN_PHONE') ?: '07048609646');
 
 // Set Timezone to Lagos (WAT)
 date_default_timezone_set('Africa/Lagos');

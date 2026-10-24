@@ -16,8 +16,6 @@ import {
   RotateCcw,
   CheckCircle2,
   XCircle,
-  Download,
-  FileText,
   Headphones,
   Bell,
   Sparkles,
@@ -26,6 +24,8 @@ import {
   Wifi,
   Users,
   Clock,
+  Tag,
+  Sliders,
 } from 'lucide-react';
 import {
   updatePlatformSettingsInDb,
@@ -41,9 +41,10 @@ interface PlatformSettingsTabProps {
   isLightMode?: boolean;
   showToast: (msg: string) => void;
   onResetStatistics?: (resetBalances: boolean) => Promise<void>;
+  onNavigateTab?: (tab: any) => void;
 }
 
-export const PlatformSettingsTab: React.FC<PlatformSettingsTabProps> = ({ isLightMode, showToast, onResetStatistics }) => {
+export const PlatformSettingsTab: React.FC<PlatformSettingsTabProps> = ({ isLightMode, showToast, onResetStatistics, onNavigateTab }) => {
   // Fresh Start / Reset Stats Modal State
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [resetBalancesOption, setResetBalancesOption] = useState(false);
@@ -61,6 +62,7 @@ export const PlatformSettingsTab: React.FC<PlatformSettingsTabProps> = ({ isLigh
       setIsResetting(false);
     }
   };
+
   // Broadcast Announcement State
   const [announcementText, setAnnouncementText] = useState('');
   const [isAnnouncementActive, setIsAnnouncementActive] = useState(false);
@@ -96,8 +98,8 @@ export const PlatformSettingsTab: React.FC<PlatformSettingsTabProps> = ({ isLigh
   // Live Support Contacts State
   const [supportPhone, setSupportPhone] = useState('+234 814 838 8844');
   const [supportWhatsapp, setSupportWhatsapp] = useState('+234 814 838 8844');
-  const [supportEmail, setSupportEmail] = useState('support@alaminjagora.ng');
-  const [supportGroup, setSupportGroup] = useState('https://chat.whatsapp.com/JagoraOfficialGroup');
+  const [supportEmail, setSupportEmail] = useState('support@ajdatasub.com.ng');
+  const [supportGroup, setSupportGroup] = useState('https://chat.whatsapp.com/AJDATASUBOfficialGroup');
   const [isSavingContacts, setIsSavingContacts] = useState(false);
 
   // Maintenance Mode
@@ -374,6 +376,36 @@ export const PlatformSettingsTab: React.FC<PlatformSettingsTabProps> = ({ isLigh
           }`}
         >
           {isMaintenanceMode ? 'Resume Platform Traffic' : 'Activate Maintenance Mode'}
+        </button>
+      </div>
+
+      {/* VTU Plan Pricing & Margins Management Card */}
+      <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-[#ff6b00] text-white flex items-center justify-center shrink-0 shadow-md shadow-orange-500/20">
+            <Tag size={20} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-heading font-black text-sm text-slate-900 dark:text-white">
+                VTU Plan Pricing & Margins Configuration
+              </h3>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                Advanced
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">
+              Adjust retail selling prices, Wholesale API cost margins, and enable or pause specific data packages. Updates immediately reflect across all user dashboards.
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => onNavigateTab?.('pricing')}
+          className="px-4 py-2.5 rounded-xl bg-[#1668e8] hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-md shadow-blue-600/20 flex items-center gap-2 self-start sm:self-auto cursor-pointer shrink-0 active:scale-95"
+        >
+          <Sliders size={14} />
+          <span>Configure Plan Prices & Margins &rarr;</span>
         </button>
       </div>
 
@@ -942,7 +974,7 @@ export const PlatformSettingsTab: React.FC<PlatformSettingsTabProps> = ({ isLigh
                 type="email"
                 value={supportEmail}
                 onChange={(e) => setSupportEmail(e.target.value)}
-                placeholder="support@alaminjagora.ng"
+                placeholder="support@ajdatasub.com.ng"
                 className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-mono text-slate-900 dark:text-white"
               />
             </div>
@@ -973,34 +1005,6 @@ export const PlatformSettingsTab: React.FC<PlatformSettingsTabProps> = ({ isLigh
         </form>
       </div>
 
-      {/* Production .env & Credentials Setup PDF Guide */}
-      <div className="p-5 rounded-2xl bg-linear-to-r from-blue-50/70 to-indigo-50/70 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200/80 dark:border-blue-800/60 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#0047cc] text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5 sm:mt-0">
-            <FileText size={20} />
-          </div>
-          <div>
-            <h4 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-1.5 font-heading">
-              Production .env &amp; Credentials Setup Guide
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/60 text-[#0047cc] dark:text-blue-300 font-bold">
-                PDF
-              </span>
-            </h4>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-              Step-by-step instructions for filling ClubKonnect VTU, Monnify, PayVessel, and cPanel MySQL credentials.
-            </p>
-          </div>
-        </div>
-
-        <a
-          href="/Alamin_Jagora_ENV_Setup_Guide.pdf"
-          download="Alamin_Jagora_ENV_Setup_Guide.pdf"
-          className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#0047cc] hover:bg-blue-700 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer shrink-0"
-        >
-          <Download size={15} />
-          <span>Download PDF Guide</span>
-        </a>
-      </div>
 
       {/* Fresh Start & Statistics Reset Tool */}
       <div className="p-5 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

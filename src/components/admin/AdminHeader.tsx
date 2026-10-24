@@ -1,8 +1,7 @@
-import React from 'react';
-import { ShieldCheck, RefreshCw, ArrowLeft, Activity, Layers, Server, Tag, Megaphone, Users, LogOut, FileDown, UserCheck, Crown, Headphones, DollarSign, UserCog, Home, Gift, Sliders } from 'lucide-react';
+import { ShieldCheck, RefreshCw, ArrowLeft, Activity, Layers, Server, Tag, Megaphone, Users, LogOut, UserCheck, Crown, Headphones, DollarSign, UserCog, Home, Gift, Sliders, Star } from 'lucide-react';
 import { AdminRole } from '../../types';
 
-export type AdminTabType = 'dashboard' | 'wallets' | 'transactions' | 'providers' | 'users' | 'pricing' | 'staff' | 'broadcast' | 'referrals' | 'settings';
+export type AdminTabType = 'dashboard' | 'wallets' | 'transactions' | 'providers' | 'users' | 'pricing' | 'staff' | 'broadcast' | 'referrals' | 'settings' | 'ratings';
 
 interface AdminHeaderProps {
   activeTab: AdminTabType;
@@ -34,21 +33,30 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   adminProfile,
   onOpenProfile,
 }) => {
-  const currentRole = adminProfile?.adminRole || 'super_admin';
-  const isCEO = currentRole === 'super_admin';
+  const currentRole = adminProfile?.adminRole || ((adminProfile as any)?.isAdmin ? 'super_admin' : 'support_agent');
+  const isCEO = Boolean(
+    currentRole === 'super_admin' ||
+    adminProfile?.email?.toLowerCase() === 'bashirabubakar650@gmail.com' ||
+    adminProfile?.phone === '08123456789' ||
+    adminProfile?.id === 'usr_admin_01' ||
+    (adminProfile as any)?.id == 9
+  );
 
-  const tabs = [
-    { id: 'dashboard' as const, label: 'Dashboard', icon: Home },
-    { id: 'wallets' as const, label: 'Wallet & Float Balances', icon: Layers },
-    { id: 'providers' as const, label: 'API Gateway Switching', icon: Server },
-    { id: 'pricing' as const, label: 'VTU Pricing & Margins', icon: Tag },
-    { id: 'transactions' as const, label: 'Airtime & Data Logs', icon: Activity },
-    { id: 'users' as const, label: 'Customer Accounts', icon: Users },
-    { id: 'referrals' as const, label: 'Referral Controls', icon: Gift },
-    { id: 'staff' as const, label: 'CEO & Staff Agents', icon: UserCheck },
-    { id: 'broadcast' as const, label: 'Bulk Push Notifications', icon: Megaphone },
-    { id: 'settings' as const, label: 'Platform Settings', icon: Sliders },
+  const allTabs = [
+    { id: 'dashboard' as const, label: 'Dashboard', icon: Home, roles: ['super_admin', 'support_agent', 'finance_agent'] },
+    { id: 'wallets' as const, label: 'Wallet & Float Balances', icon: Layers, roles: ['super_admin', 'finance_agent'] },
+    { id: 'providers' as const, label: 'API Gateway Switching', icon: Server, roles: ['super_admin'] },
+    { id: 'pricing' as const, label: 'VTU Pricing & Margins', icon: Tag, roles: ['super_admin'] },
+    { id: 'transactions' as const, label: 'Airtime & Data Logs', icon: Activity, roles: ['super_admin', 'support_agent', 'finance_agent'] },
+    { id: 'users' as const, label: 'Customer Accounts', icon: Users, roles: ['super_admin', 'support_agent', 'finance_agent'] },
+    { id: 'referrals' as const, label: 'Referral Controls', icon: Gift, roles: ['super_admin'] },
+    { id: 'ratings' as const, label: 'User Ratings', icon: Star, roles: ['super_admin'] },
+    { id: 'staff' as const, label: 'CEO & Staff Agents', icon: UserCheck, roles: ['super_admin'] },
+    { id: 'broadcast' as const, label: 'Bulk Push Notifications', icon: Megaphone, roles: ['super_admin', 'support_agent'] },
+    { id: 'settings' as const, label: 'Platform Settings', icon: Sliders, roles: ['super_admin'] },
   ];
+
+  const tabs = allTabs.filter((tab) => isCEO || tab.roles.includes(currentRole));
 
   const adminName = adminProfile?.name || 'Bashir Abubakar';
   const adminEmail = adminProfile?.email || '';
@@ -162,39 +170,30 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           <button
             onClick={onRefreshData}
             disabled={isRefreshing}
-            className="min-h-[36px] min-w-[36px] sm:min-w-0 sm:h-9 px-2 sm:px-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/70 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors flex items-center justify-center gap-1.5 text-xs font-semibold shadow-2xs cursor-pointer"
+            className="min-h-[44px] min-w-[44px] sm:min-w-0 sm:h-9 px-2.5 sm:px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/70 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors flex items-center justify-center gap-1.5 text-xs font-semibold shadow-2xs cursor-pointer active:scale-95"
             title="Refresh All Gateway Balances"
           >
-            <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-[#0047cc]' : 'text-slate-500'} />
+            <RefreshCw size={15} className={isRefreshing ? 'animate-spin text-[#0047cc]' : 'text-slate-500'} />
             <span className="hidden md:inline">Sync</span>
           </button>
 
-          <a
-            href="/api/docs/api-guide.pdf"
-            download="Alamin_Jagora_Data_API_Integration_Manual.pdf"
-            className="hidden xs:flex min-h-[36px] min-w-[36px] sm:min-w-0 sm:h-9 px-2 sm:px-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/70 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors items-center justify-center gap-1.5 text-xs font-semibold shadow-2xs"
-            title="Download PDF Manual for API Integration"
-          >
-            <FileDown size={14} className="text-[#0047cc] dark:text-blue-400" />
-            <span className="hidden lg:inline">API Manual</span>
-          </a>
 
           <button
             onClick={onExitAdmin}
-            className="min-h-[36px] min-w-[36px] sm:min-w-0 sm:h-9 px-2 sm:px-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/70 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
+            className="min-h-[44px] min-w-[44px] sm:min-w-0 sm:h-9 px-2.5 sm:px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/70 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
             title="Return to user view"
           >
-            <ArrowLeft size={14} />
+            <ArrowLeft size={15} />
             <span className="hidden sm:inline">App</span>
           </button>
 
           <button
             id="admin-logout-btn"
             onClick={onLogoutAdmin}
-            className="min-h-[36px] px-2.5 sm:px-3.5 sm:h-9 rounded-lg bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs font-semibold transition-all shadow-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+            className="min-h-[44px] px-3 sm:px-3.5 sm:h-9 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs font-semibold transition-all shadow-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
             title="Securely exit and lock admin console"
           >
-            <LogOut size={14} />
+            <LogOut size={15} />
             <span className="hidden sm:inline">Lock & Log Out</span>
             <span className="sm:hidden">Lock</span>
           </button>

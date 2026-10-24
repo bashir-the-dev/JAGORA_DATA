@@ -20,78 +20,110 @@ export interface AuthoritativeDataPlan {
 
 export const SERVER_DATA_PLANS: Record<string, AuthoritativeDataPlan> = {
   // -------------------------------------------------------------------------
-  // MTN PLANS (SME, Corporate Gifting, Data Share / Gifting)
+  // 1. MTN GIFTING DATA (mtn_gifting_data - 25 Plans)
   // -------------------------------------------------------------------------
-  'mtn-500mb': { id: 'mtn-500mb', network: 'mtn', size: '500MB', validity: '30 Days', type: 'SME Bundle', price: 150, providerCode: 'M500MBS' },
-  'mtn-1gb': { id: 'mtn-1gb', network: 'mtn', size: '1GB', validity: '30 Days', type: 'SME Bundle', price: 290, providerCode: 'M1GBS' },
-  'mtn-2gb': { id: 'mtn-2gb', network: 'mtn', size: '2GB', validity: '30 Days', type: 'SME Bundle', price: 580, providerCode: 'M2GBS' },
-  'mtn-3gb': { id: 'mtn-3gb', network: 'mtn', size: '3GB', validity: '30 Days', type: 'SME Bundle', price: 870, providerCode: 'M3GBS' },
-  'mtn-5gb': { id: 'mtn-5gb', network: 'mtn', size: '5GB', validity: '30 Days', type: 'SME Bundle', price: 1450, providerCode: 'M5GBS' },
-  'mtn-10gb': { id: 'mtn-10gb', network: 'mtn', size: '10GB', validity: '30 Days', type: 'SME Bundle', price: 2900, providerCode: 'M10GBS' },
-
-  'mtn-cg-500mb': { id: 'mtn-cg-500mb', network: 'mtn', size: '500MB', validity: '30 Days', type: 'Corporate Gifting', price: 160, providerCode: 'M500MBS' },
-  'mtn-cg-1gb': { id: 'mtn-cg-1gb', network: 'mtn', size: '1GB', validity: '30 Days', type: 'Corporate Gifting', price: 295, providerCode: 'M1GBS' },
-  'mtn-cg-2gb': { id: 'mtn-cg-2gb', network: 'mtn', size: '2GB', validity: '30 Days', type: 'Corporate Gifting', price: 590, providerCode: 'M2GBS' },
-  'mtn-cg-3gb': { id: 'mtn-cg-3gb', network: 'mtn', size: '3GB', validity: '30 Days', type: 'Corporate Gifting', price: 885, providerCode: 'M3GBS' },
-  'mtn-cg-5gb': { id: 'mtn-cg-5gb', network: 'mtn', size: '5GB', validity: '30 Days', type: 'Corporate Gifting', price: 1475, providerCode: 'M5GBS' },
-  'mtn-cg-10gb': { id: 'mtn-cg-10gb', network: 'mtn', size: '10GB', validity: '30 Days', type: 'Corporate Gifting', price: 2950, providerCode: 'M10GBS' },
-  'mtn-cg-15gb': { id: 'mtn-cg-15gb', network: 'mtn', size: '15GB', validity: '30 Days', type: 'Corporate Gifting', price: 4400, providerCode: 'M15GBS' },
-  'mtn-cg-20gb': { id: 'mtn-cg-20gb', network: 'mtn', size: '20GB', validity: '30 Days', type: 'Corporate Gifting', price: 5850, providerCode: 'M20GBS' },
-
-  'mtn-share-1gb-7d': { id: 'mtn-share-1gb-7d', network: 'mtn', size: '1GB', validity: '7 Days', type: 'Data Share', price: 450, providerCode: 'M1GBS' },
-  'mtn-share-2gb-7d': { id: 'mtn-share-2gb-7d', network: 'mtn', size: '2GB', validity: '7 Days', type: 'Data Share', price: 850, providerCode: 'M2GBS' },
-  'mtn-share-3gb-7d': { id: 'mtn-share-3gb-7d', network: 'mtn', size: '3GB', validity: '7 Days', type: 'Data Share', price: 1200, providerCode: 'M3GBS' },
-  'mtn-share-5gb-30d': { id: 'mtn-share-5gb-30d', network: 'mtn', size: '5GB', validity: '30 Days', type: 'Data Share', price: 1800, providerCode: 'M5GBS' },
-  'mtn-gifting-25gb': { id: 'mtn-gifting-25gb', network: 'mtn', size: '25GB', validity: '30 Days', type: 'Direct Gifting', price: 7500, providerCode: 'M25GB' },
-  'mtn-gifting-40gb': { id: 'mtn-gifting-40gb', network: 'mtn', size: '40GB', validity: '30 Days', type: 'Direct Gifting', price: 11500, providerCode: 'M40GB' },
-  
-  // -------------------------------------------------------------------------
-  // AIRTEL PLANS (Corporate Gifting, Gifting)
-  // -------------------------------------------------------------------------
-  'airtel-500mb': { id: 'airtel-500mb', network: 'airtel', size: '500MB', validity: '30 Days', type: 'Corporate Gifting', price: 160, providerCode: 'A500MB' },
-  'airtel-1gb': { id: 'airtel-1gb', network: 'airtel', size: '1GB', validity: '30 Days', type: 'Corporate Gifting', price: 295, providerCode: 'A1GB' },
-  'airtel-2gb': { id: 'airtel-2gb', network: 'airtel', size: '2GB', validity: '30 Days', type: 'Corporate Gifting', price: 590, providerCode: 'A2GB2' },
-  'airtel-3gb': { id: 'airtel-3gb', network: 'airtel', size: '3GB', validity: '30 Days', type: 'Corporate Gifting', price: 885, providerCode: 'A3GB' },
-  'airtel-4gb': { id: 'airtel-4gb', network: 'airtel', size: '4GB', validity: '30 Days', type: 'Corporate Gifting', price: 1180, providerCode: 'A4GB' },
-  'airtel-5gb': { id: 'airtel-5gb', network: 'airtel', size: '5GB', validity: '30 Days', type: 'Corporate Gifting', price: 1475, providerCode: 'A5GB' },
-  'airtel-10gb': { id: 'airtel-10gb', network: 'airtel', size: '10GB', validity: '30 Days', type: 'Corporate Gifting', price: 2950, providerCode: 'A10GB' },
-  'airtel-15gb': { id: 'airtel-15gb', network: 'airtel', size: '15GB', validity: '30 Days', type: 'Corporate Gifting', price: 4400, providerCode: 'A13GB' },
-  'airtel-20gb': { id: 'airtel-20gb', network: 'airtel', size: '20GB', validity: '30 Days', type: 'Corporate Gifting', price: 5850, providerCode: 'A20GB' },
-
-  'airtel-gift-1gb-7d': { id: 'airtel-gift-1gb-7d', network: 'airtel', size: '1GB', validity: '7 Days', type: 'Direct Gifting', price: 795, providerCode: 'A1GB' },
-  'airtel-gift-1.5gb-7d': { id: 'airtel-gift-1.5gb-7d', network: 'airtel', size: '1.5GB', validity: '7 Days', type: 'Direct Gifting', price: 995, providerCode: 'A1a5GBS' },
-  'airtel-gift-8gb-30d': { id: 'airtel-gift-8gb-30d', network: 'airtel', size: '8GB', validity: '30 Days', type: 'Direct Gifting', price: 2975, providerCode: 'A8GB' },
-  'airtel-gift-25gb-30d': { id: 'airtel-gift-25gb-30d', network: 'airtel', size: '25GB', validity: '30 Days', type: 'Direct Gifting', price: 7900, providerCode: 'A25GB' },
+  'mtn_gifting_data_m110mbs': { id: 'mtn_gifting_data_m110mbs', network: 'mtn', size: '110MB', validity: '1 Day', type: 'Gifting Data', price: 102.31, providerCode: 'M110MBS' },
+  'mtn_gifting_data_m230mbs': { id: 'mtn_gifting_data_m230mbs', network: 'mtn', size: '230MB', validity: '1 Day', type: 'Gifting Data', price: 205.67, providerCode: 'M230MBS' },
+  'mtn_gifting_data_m500mbs': { id: 'mtn_gifting_data_m500mbs', network: 'mtn', size: '500MB', validity: '1 Day', type: 'Gifting Data', price: 363.84, providerCode: 'M500MBS' },
+  'mtn_gifting_data_m1gb': { id: 'mtn_gifting_data_m1gb', network: 'mtn', size: '1GB + 1.5Mins', validity: '1 Day', type: 'Gifting Data', price: 511.56, providerCode: 'M1GB' },
+  'mtn_gifting_data_m1a5gb': { id: 'mtn_gifting_data_m1a5gb', network: 'mtn', size: '1.5GB', validity: '2 Days', type: 'Gifting Data', price: 617.02, providerCode: 'M1a5GB' },
+  'mtn_gifting_data_m2gb2': { id: 'mtn_gifting_data_m2gb2', network: 'mtn', size: '2GB', validity: '2 Days', type: 'Gifting Data', price: 769.95, providerCode: 'M2GB2' },
+  'mtn_gifting_data_m2a5gb': { id: 'mtn_gifting_data_m2a5gb', network: 'mtn', size: '2.5GB', validity: '2 Days', type: 'Gifting Data', price: 922.87, providerCode: 'M2a5GB' },
+  'mtn_gifting_data_m1gbs': { id: 'mtn_gifting_data_m1gbs', network: 'mtn', size: '1GB + 5Mins', validity: '7 Days', type: 'Gifting Data', price: 817.41, providerCode: 'M1GBS' },
+  'mtn_gifting_data_m1a5gbs': { id: 'mtn_gifting_data_m1a5gbs', network: 'mtn', size: '1.5GB', validity: '7 Days', type: 'Gifting Data', price: 1028.34, providerCode: 'M1a5GBS' },
+  'mtn_gifting_data_m3a5gb': { id: 'mtn_gifting_data_m3a5gb', network: 'mtn', size: '3.2GB', validity: '2 Days', type: 'Gifting Data', price: 1028.34, providerCode: 'M3a5GB' },
+  'mtn_gifting_data_m3a5gbs': { id: 'mtn_gifting_data_m3a5gbs', network: 'mtn', size: '3.5GB', validity: '7 Days', type: 'Gifting Data', price: 1550.42, providerCode: 'M3a5GBS' },
+  'mtn_gifting_data_m6gb': { id: 'mtn_gifting_data_m6gb', network: 'mtn', size: '6GB', validity: '7 Days', type: 'Gifting Data', price: 2578.76, providerCode: 'M6GB' },
+  'mtn_gifting_data_m11gb': { id: 'mtn_gifting_data_m11gb', network: 'mtn', size: '11GB', validity: '7 Days', type: 'Gifting Data', price: 3601.84, providerCode: 'M11GB' },
+  'mtn_gifting_data_m20gb': { id: 'mtn_gifting_data_m20gb', network: 'mtn', size: '20GB', validity: '7 Days', type: 'Gifting Data', price: 5152.26, providerCode: 'M20GB' },
+  'mtn_gifting_data_m2gbs': { id: 'mtn_gifting_data_m2gbs', network: 'mtn', size: '2GB + 2Mins', validity: '30 Days', type: 'Gifting Data', price: 1550.42, providerCode: 'M2GBS' },
+  'mtn_gifting_data_m2a7gb': { id: 'mtn_gifting_data_m2a7gb', network: 'mtn', size: '2.7GB + 2Mins', validity: '30 Days', type: 'Gifting Data', price: 2067.21, providerCode: 'M2a7GB' },
+  'mtn_gifting_data_m3a5gb2': { id: 'mtn_gifting_data_m3a5gb2', network: 'mtn', size: '3.5GB + 5Mins', validity: '30 Days', type: 'Gifting Data', price: 2578.76, providerCode: 'M3a5GB2' },
+  'mtn_gifting_data_m7gb': { id: 'mtn_gifting_data_m7gb', network: 'mtn', size: '7GB', validity: '30 Days', type: 'Gifting Data', price: 3601.84, providerCode: 'M7GB' },
+  'mtn_gifting_data_m10gb': { id: 'mtn_gifting_data_m10gb', network: 'mtn', size: '10GB + 10Mins', validity: '30 Days', type: 'Gifting Data', price: 4630.18, providerCode: 'M10GB' },
+  'mtn_gifting_data_m12a5gb': { id: 'mtn_gifting_data_m12a5gb', network: 'mtn', size: '12.5GB', validity: '30 Days', type: 'Gifting Data', price: 5658.52, providerCode: 'M12a5GB' },
+  'mtn_gifting_data_m16a5gb': { id: 'mtn_gifting_data_m16a5gb', network: 'mtn', size: '16.5GB + 10Mins', validity: '30 Days', type: 'Gifting Data', price: 6686.85, providerCode: 'M16a5GB' },
+  'mtn_gifting_data_m20gbs': { id: 'mtn_gifting_data_m20gbs', network: 'mtn', size: '20GB', validity: '30 Days', type: 'Gifting Data', price: 7715.19, providerCode: 'M20GBS' },
+  'mtn_gifting_data_m25gb': { id: 'mtn_gifting_data_m25gb', network: 'mtn', size: '25GB', validity: '30 Days', type: 'Gifting Data', price: 9254.99, providerCode: 'M25GB' },
+  'mtn_gifting_data_m36gb': { id: 'mtn_gifting_data_m36gb', network: 'mtn', size: '36GB', validity: '30 Days', type: 'Gifting Data', price: 11311.65, providerCode: 'M36GB' },
+  'mtn_gifting_data_m75gb': { id: 'mtn_gifting_data_m75gb', network: 'mtn', size: '75GB', validity: '30 Days', type: 'Gifting Data', price: 18510.78, providerCode: 'M75GB' },
 
   // -------------------------------------------------------------------------
-  // GLO PLANS (Corporate Gifting, Gifting Bundles)
+  // 2. GLO DATA (glo_data - 16 Plans)
   // -------------------------------------------------------------------------
-  'glo-500mb': { id: 'glo-500mb', network: 'glo', size: '500MB', validity: '30 Days', type: 'Corporate Gifting', price: 150, providerCode: 'G500MB' },
-  'glo-1gb': { id: 'glo-1gb', network: 'glo', size: '1GB', validity: '30 Days', type: 'Corporate Gifting', price: 285, providerCode: 'G1GB4' },
-  'glo-2gb': { id: 'glo-2gb', network: 'glo', size: '2GB', validity: '30 Days', type: 'Corporate Gifting', price: 570, providerCode: 'G2GB4' },
-  'glo-3gb': { id: 'glo-3gb', network: 'glo', size: '3GB', validity: '30 Days', type: 'Corporate Gifting', price: 855, providerCode: 'G3GB4' },
-  'glo-5gb': { id: 'glo-5gb', network: 'glo', size: '5GB', validity: '30 Days', type: 'Corporate Gifting', price: 1425, providerCode: 'G5GB4' },
-  'glo-10gb': { id: 'glo-10gb', network: 'glo', size: '10GB', validity: '30 Days', type: 'Corporate Gifting', price: 2850, providerCode: 'G10GB2' },
+  'glo_data_g500mb': { id: 'glo_data_g500mb', network: 'glo', size: '500MB', validity: '30 Days', type: 'Corporate Gifting', price: 230.87, providerCode: 'G500MB' },
+  'glo_data_g1gb4': { id: 'glo_data_g1gb4', network: 'glo', size: '1GB', validity: '30 Days', type: 'Corporate Gifting', price: 461.74, providerCode: 'G1GB4' },
+  'glo_data_g2gb4': { id: 'glo_data_g2gb4', network: 'glo', size: '2GB', validity: '30 Days', type: 'Corporate Gifting', price: 923.47, providerCode: 'G2GB4' },
+  'glo_data_g3gb4': { id: 'glo_data_g3gb4', network: 'glo', size: '3GB', validity: '30 Days', type: 'Corporate Gifting', price: 1385.21, providerCode: 'G3GB4' },
+  'glo_data_g5gb4': { id: 'glo_data_g5gb4', network: 'glo', size: '5GB', validity: '30 Days', type: 'Corporate Gifting', price: 2308.68, providerCode: 'G5GB4' },
+  'glo_data_g10gb2': { id: 'glo_data_g10gb2', network: 'glo', size: '10GB', validity: '30 Days', type: 'Corporate Gifting', price: 4617.36, providerCode: 'G10GB2' },
+  'glo_data_g200mb': { id: 'glo_data_g200mb', network: 'glo', size: '200MB', validity: '14 Days', type: 'Corporate Gifting', price: 99.69, providerCode: 'G200MB' },
+  'glo_data_g750mb': { id: 'glo_data_g750mb', network: 'glo', size: '750MB', validity: '1 Day', type: 'Corporate Gifting', price: 204.63, providerCode: 'G750MB' },
+  'glo_data_g1a5gb': { id: 'glo_data_g1a5gb', network: 'glo', size: '1.5GB', validity: '1 Day', type: 'Corporate Gifting', price: 309.57, providerCode: 'G1a5GB' },
+  'glo_data_g2a5gb': { id: 'glo_data_g2a5gb', network: 'glo', size: '2.5GB', validity: '2 Days', type: 'Corporate Gifting', price: 514.21, providerCode: 'G2a5GB' },
+  'glo_data_g1gb3': { id: 'glo_data_g1gb3', network: 'glo', size: '1GB', validity: '3 Days', type: 'Corporate Gifting', price: 299.08, providerCode: 'G1GB3' },
+  'glo_data_g3gb3': { id: 'glo_data_g3gb3', network: 'glo', size: '3GB', validity: '3 Days', type: 'Corporate Gifting', price: 897.24, providerCode: 'G3GB3' },
+  'glo_data_g5gb3': { id: 'glo_data_g5gb3', network: 'glo', size: '5GB', validity: '3 Days', type: 'Corporate Gifting', price: 1495.39, providerCode: 'G5GB3' },
+  'glo_data_g1gb2': { id: 'glo_data_g1gb2', network: 'glo', size: '1GB', validity: '7 Days', type: 'Corporate Gifting', price: 356.79, providerCode: 'G1GB2' },
+  'glo_data_g3gb2': { id: 'glo_data_g3gb2', network: 'glo', size: '3GB', validity: '7 Days', type: 'Corporate Gifting', price: 1070.39, providerCode: 'G3GB2' },
+  'glo_data_g5gb2': { id: 'glo_data_g5gb2', network: 'glo', size: '5GB', validity: '7 Days', type: 'Corporate Gifting', price: 1783.98, providerCode: 'G5GB2' },
 
-  'glo-1.5gb': { id: 'glo-1.5gb', network: 'glo', size: '1.5GB', validity: '30 Days', type: 'Gifting Bundle', price: 530, providerCode: 'G1GB4' },
-  'glo-3gb-gift': { id: 'glo-3gb-gift', network: 'glo', size: '3GB', validity: '30 Days', type: 'Gifting Bundle', price: 1000, providerCode: 'G3GB4' },
-  'glo-7gb': { id: 'glo-7gb', network: 'glo', size: '7GB', validity: '30 Days', type: 'Gifting Bundle', price: 2000, providerCode: 'G5GB4' },
-  'glo-14gb': { id: 'glo-14gb', network: 'glo', size: '14GB', validity: '30 Days', type: 'Gifting Bundle', price: 3900, providerCode: 'G10GB2' },
+  // -------------------------------------------------------------------------
+  // 3. 9MOBILE DATA (9mobile_data - 10 Plans)
+  // -------------------------------------------------------------------------
+  '9mobile_data_e300mb': { id: '9mobile_data_e300mb', network: '9mobile', size: '300MB', validity: '30 Days', type: 'Corporate Gifting', price: 141.67, providerCode: 'E300MB' },
+  '9mobile_data_e500mb': { id: '9mobile_data_e500mb', network: '9mobile', size: '500MB', validity: '30 Days', type: 'Corporate Gifting', price: 236.12, providerCode: 'E500MB' },
+  '9mobile_data_e1gb': { id: '9mobile_data_e1gb', network: '9mobile', size: '1GB', validity: '30 Days', type: 'Corporate Gifting', price: 472.23, providerCode: 'E1GB' },
+  '9mobile_data_e2gb': { id: '9mobile_data_e2gb', network: '9mobile', size: '2GB', validity: '30 Days', type: 'Corporate Gifting', price: 944.46, providerCode: 'E2GB' },
+  '9mobile_data_e3gb': { id: '9mobile_data_e3gb', network: '9mobile', size: '3GB', validity: '30 Days', type: 'Corporate Gifting', price: 1416.69, providerCode: 'E3GB' },
+  '9mobile_data_e5gb': { id: '9mobile_data_e5gb', network: '9mobile', size: '5GB', validity: '30 Days', type: 'Corporate Gifting', price: 2361.15, providerCode: 'E5GB' },
+  '9mobile_data_e10gb': { id: '9mobile_data_e10gb', network: '9mobile', size: '10GB', validity: '30 Days', type: 'Corporate Gifting', price: 4722.30, providerCode: 'E10GB' },
+  '9mobile_data_e15gb': { id: '9mobile_data_e15gb', network: '9mobile', size: '15GB', validity: '30 Days', type: 'Corporate Gifting', price: 7083.45, providerCode: 'E15GB' },
+  '9mobile_data_e20gb': { id: '9mobile_data_e20gb', network: '9mobile', size: '20GB', validity: '30 Days', type: 'Corporate Gifting', price: 9864.36, providerCode: 'E20GB' },
+  '9mobile_data_e40gb': { id: '9mobile_data_e40gb', network: '9mobile', size: '40GB', validity: '30 Days', type: 'Corporate Gifting', price: 19728.72, providerCode: 'E40GB' },
 
   // -------------------------------------------------------------------------
-  // 9MOBILE PLANS (SME, Corporate Gifting)
+  // 4. AIRTEL DATA (airtel_data - 27 Plans)
   // -------------------------------------------------------------------------
-  '9mob-500mb': { id: '9mob-500mb', network: '9mobile', size: '500MB', validity: '30 Days', type: 'SME Bundle', price: 150, providerCode: 'E500MB' },
-  '9mob-1gb': { id: '9mob-1gb', network: '9mobile', size: '1GB', validity: '30 Days', type: 'SME Bundle', price: 250, providerCode: 'E1GB' },
-  '9mob-1.5gb': { id: '9mob-1.5gb', network: '9mobile', size: '1.5GB', validity: '30 Days', type: 'SME Bundle', price: 375, providerCode: 'E1GB' },
-  '9mob-2gb': { id: '9mob-2gb', network: '9mobile', size: '2GB', validity: '30 Days', type: 'SME Bundle', price: 500, providerCode: 'E2GB' },
-  '9mob-3gb': { id: '9mob-3gb', network: '9mobile', size: '3GB', validity: '30 Days', type: 'SME Bundle', price: 750, providerCode: 'E3GB' },
-  '9mob-4gb': { id: '9mob-4gb', network: '9mobile', size: '4GB', validity: '30 Days', type: 'SME Bundle', price: 1000, providerCode: 'E3GB' },
-  '9mob-5gb': { id: '9mob-5gb', network: '9mobile', size: '5GB', validity: '30 Days', type: 'SME Bundle', price: 1250, providerCode: 'E5GB' },
-  '9mob-10gb': { id: '9mob-10gb', network: '9mobile', size: '10GB', validity: '30 Days', type: 'SME Bundle', price: 2500, providerCode: 'E10GB' },
-  '9mob-15gb': { id: '9mob-15gb', network: '9mobile', size: '15GB', validity: '30 Days', type: 'SME Bundle', price: 3750, providerCode: 'E15GB' },
-  '9mob-20gb': { id: '9mob-20gb', network: '9mobile', size: '20GB', validity: '30 Days', type: 'SME Bundle', price: 5000, providerCode: 'E20GB' },
-  '9mob-40gb': { id: '9mob-40gb', network: '9mobile', size: '40GB', validity: '30 Days', type: 'SME Bundle', price: 9900, providerCode: 'E40GB' },
+  'airtel_data_a200mb': { id: 'airtel_data_a200mb', network: 'airtel', size: '200MB', validity: '1 Day', type: 'Gifting Data', price: 208.83, providerCode: 'A200MB' },
+  'airtel_data_a300mb': { id: 'airtel_data_a300mb', network: 'airtel', size: '300MB', validity: '2 Days', type: 'Gifting Data', price: 313.77, providerCode: 'A300MB' },
+  'airtel_data_a600mb': { id: 'airtel_data_a600mb', network: 'airtel', size: '600MB', validity: '2 Days', type: 'Gifting Data', price: 523.65, providerCode: 'A600MB' },
+  'airtel_data_a1gb': { id: 'airtel_data_a1gb', network: 'airtel', size: '1GB', validity: '1 Day', type: 'Gifting Data', price: 523.65, providerCode: 'A1GB' },
+  'airtel_data_a1a5gb': { id: 'airtel_data_a1a5gb', network: 'airtel', size: '1.5GB', validity: '1 Day', type: 'Gifting Data', price: 628.59, providerCode: 'A1a5GB' },
+  'airtel_data_a1a5gbs': { id: 'airtel_data_a1a5gbs', network: 'airtel', size: '1.5GB', validity: '2 Days', type: 'Gifting Data', price: 785.99, providerCode: 'A1a5GBS' },
+  'airtel_data_a2gb': { id: 'airtel_data_a2gb', network: 'airtel', size: '2GB', validity: '1 Day', type: 'Gifting Data', price: 785.99, providerCode: 'A2GB' },
+  'airtel_data_a3a2gb': { id: 'airtel_data_a3a2gb', network: 'airtel', size: '3.2GB', validity: '2 Days', type: 'Gifting Data', price: 1048.35, providerCode: 'A3a2GB' },
+  'airtel_data_a5gb': { id: 'airtel_data_a5gb', network: 'airtel', size: '5GB', validity: '2 Days', type: 'Gifting Data', price: 1573.04, providerCode: 'A5GB' },
+  'airtel_data_a500mb': { id: 'airtel_data_a500mb', network: 'airtel', size: '500MB', validity: '7 Days', type: 'Gifting Data', price: 523.65, providerCode: 'A500MB' },
+  'airtel_data_a1a5gb2': { id: 'airtel_data_a1a5gb2', network: 'airtel', size: '1.5GB', validity: '7 Days', type: 'Gifting Data', price: 1048.35, providerCode: 'A1a5GB2' },
+  'airtel_data_a3a5gb': { id: 'airtel_data_a3a5gb', network: 'airtel', size: '3.5GB', validity: '7 Days', type: 'Gifting Data', price: 1573.04, providerCode: 'A3a5GB' },
+  'airtel_data_a6gb': { id: 'airtel_data_a6gb', network: 'airtel', size: '6GB', validity: '7 Days', type: 'Gifting Data', price: 2622.45, providerCode: 'A6GB' },
+  'airtel_data_a10gb': { id: 'airtel_data_a10gb', network: 'airtel', size: '10GB', validity: '7 Days', type: 'Gifting Data', price: 3147.14, providerCode: 'A10GB' },
+  'airtel_data_a18gb': { id: 'airtel_data_a18gb', network: 'airtel', size: '18GB', validity: '7 Days', type: 'Gifting Data', price: 5245.94, providerCode: 'A18GB' },
+  'airtel_data_a2gb2': { id: 'airtel_data_a2gb2', network: 'airtel', size: '2GB', validity: '30 Days', type: 'Gifting Data', price: 1573.04, providerCode: 'A2GB2' },
+  'airtel_data_a3gb': { id: 'airtel_data_a3gb', network: 'airtel', size: '3GB', validity: '30 Days', type: 'Gifting Data', price: 2097.74, providerCode: 'A3GB' },
+  'airtel_data_a4gb': { id: 'airtel_data_a4gb', network: 'airtel', size: '4GB', validity: '30 Days', type: 'Gifting Data', price: 2622.45, providerCode: 'A4GB' },
+  'airtel_data_a8gb': { id: 'airtel_data_a8gb', network: 'airtel', size: '8GB', validity: '30 Days', type: 'Gifting Data', price: 3147.14, providerCode: 'A8GB' },
+  'airtel_data_a10gb2': { id: 'airtel_data_a10gb2', network: 'airtel', size: '10GB', validity: '30 Days', type: 'Gifting Data', price: 4196.54, providerCode: 'A10GB2' },
+  'airtel_data_a13gb': { id: 'airtel_data_a13gb', network: 'airtel', size: '13GB', validity: '30 Days', type: 'Gifting Data', price: 5245.94, providerCode: 'A13GB' },
+  'airtel_data_a18gb2': { id: 'airtel_data_a18gb2', network: 'airtel', size: '18GB', validity: '30 Days', type: 'Gifting Data', price: 6295.34, providerCode: 'A18GB2' },
+  'airtel_data_a25gb': { id: 'airtel_data_a25gb', network: 'airtel', size: '25GB', validity: '30 Days', type: 'Gifting Data', price: 8394.14, providerCode: 'A25GB' },
+  'airtel_data_a35gb': { id: 'airtel_data_a35gb', network: 'airtel', size: '35GB', validity: '30 Days', type: 'Gifting Data', price: 10492.94, providerCode: 'A35GB' },
+  'airtel_data_a60gb': { id: 'airtel_data_a60gb', network: 'airtel', size: '60GB', validity: '30 Days', type: 'Gifting Data', price: 15739.94, providerCode: 'A60GB' },
+  'airtel_data_a100gb': { id: 'airtel_data_a100gb', network: 'airtel', size: '100GB', validity: '30 Days', type: 'Gifting Data', price: 20986.94, providerCode: 'A100GB' },
+  'airtel_data_a160gb': { id: 'airtel_data_a160gb', network: 'airtel', size: '160GB', validity: '30 Days', type: 'Gifting Data', price: 31480.94, providerCode: 'A160GB' },
+
+  // -------------------------------------------------------------------------
+  // 5. MTN DATA SHARE (mtn_data_share - 8 Plans)
+  // -------------------------------------------------------------------------
+  'mtn_data_share_m500mbs': { id: 'mtn_data_share_m500mbs', network: 'mtn', size: '500MB', validity: '7 Days', type: 'Data Share', price: 359.87, providerCode: 'M500MBS' },
+  'mtn_data_share_m1gbs': { id: 'mtn_data_share_m1gbs', network: 'mtn', size: '1GB', validity: '7 Days', type: 'Data Share', price: 462.69, providerCode: 'M1GBS' },
+  'mtn_data_share_m2gbs': { id: 'mtn_data_share_m2gbs', network: 'mtn', size: '2GB', validity: '7 Days', type: 'Data Share', price: 873.97, providerCode: 'M2GBS' },
+  'mtn_data_share_m3gbs': { id: 'mtn_data_share_m3gbs', network: 'mtn', size: '3GB', validity: '7 Days', type: 'Data Share', price: 1233.84, providerCode: 'M3GBS' },
+  'mtn_data_share_m5gbs': { id: 'mtn_data_share_m5gbs', network: 'mtn', size: '5GB', validity: '30 Days', type: 'Data Share', price: 1850.76, providerCode: 'M5GBS' },
+  'mtn_data_share_m1gv': { id: 'mtn_data_share_m1gv', network: 'mtn', size: '1GB + 3Mins', validity: '7 Days', type: 'Data Share', price: 616.92, providerCode: 'M1GV' },
+  'mtn_data_share_m1g1': { id: 'mtn_data_share_m1g1', network: 'mtn', size: '1GB', validity: '30 Days', type: 'Data Share', price: 534.66, providerCode: 'M1G1' },
+  'mtn_data_share_m2g1': { id: 'mtn_data_share_m2g1', network: 'mtn', size: '2GB', validity: '30 Days', type: 'Data Share', price: 1028.20, providerCode: 'M2G1' },
 };
 
 export function getServerDataPlan(planIdOrCode: string, network?: string): AuthoritativeDataPlan | null {
@@ -102,13 +134,30 @@ export function getServerDataPlan(planIdOrCode: string, network?: string): Autho
     return SERVER_DATA_PLANS[key];
   }
 
-  // Fallback match by network and size/providerCode
   const net = String(network || '').trim().toLowerCase();
+  // Check if network is a Peyflex identifier like mtn_gifting_data
+  if (net && net.includes('_data')) {
+    const compositeKey = `${net}_${key}`;
+    if (SERVER_DATA_PLANS[compositeKey]) {
+      return SERVER_DATA_PLANS[compositeKey];
+    }
+  }
+
+  const carrier = net.startsWith('mtn')
+    ? 'mtn'
+    : net.startsWith('glo')
+    ? 'glo'
+    : net.startsWith('9mobile')
+    ? '9mobile'
+    : net.startsWith('airtel')
+    ? 'airtel'
+    : net;
+
   for (const plan of Object.values(SERVER_DATA_PLANS)) {
-    if (net && plan.network !== net) continue;
+    if (carrier && plan.network !== carrier) continue;
     if (
       plan.id.toLowerCase() === key ||
-      plan.providerCode === key ||
+      plan.providerCode.toLowerCase() === key ||
       plan.size.toLowerCase() === key ||
       `${plan.network}-${plan.size}`.toLowerCase() === key
     ) {

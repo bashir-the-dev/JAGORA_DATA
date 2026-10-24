@@ -10,7 +10,7 @@ require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/../helpers.php';
 
 $pdo = Database::getConnection();
-$admin = requireAdminUser($pdo);
+$admin = requireAdminPermission($pdo, 'manage_users');
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -21,7 +21,7 @@ if ($method === 'POST') {
     $forcedStatus = $body['status'] ?? null;
 
     if (empty($phone)) {
-        jsonResponse(['status' => 'error', 'message' => 'Phone number required'], 400);
+        jsonResponse(['status' => 'error', 'message' => 'Customer phone number is required.'], 400);
     }
 
     $uStmt = $pdo->prepare('SELECT id, phone, role, status FROM users WHERE phone = ? LIMIT 1');
@@ -29,7 +29,7 @@ if ($method === 'POST') {
     $user = $uStmt->fetch();
 
     if (!$user) {
-        jsonResponse(['status' => 'error', 'message' => 'User not found with phone: ' . $phone], 404);
+        jsonResponse(['status' => 'error', 'message' => 'Customer account not found with phone: ' . $phone], 404);
     }
 
     // Safety checks against admin / self suspension
@@ -78,7 +78,7 @@ try {
 }
 
 $users = [];
-$adminEmails = ['bashirabubakar650@gmail.com', 'admin@alaminjagoradata.com.ng', 'admin@jagoradata.com'];
+$adminEmails = ['bashirabubakar650@gmail.com', 'admin@ajdatasub.com.ng', 'admin@ajdatasub.com'];
 $adminPhones = ['08123456789', '08001234567'];
 
 foreach ($rawUsers as $u) {
@@ -100,12 +100,32 @@ foreach ($rawUsers as $u) {
     $ordersCount = 0;
     $totalSpent = 0.0;
     try {
-        $tStmt = $pdo->prepare('SELECT COUNT(*) as cnt, COALESCE(SUM(amount), 0) as total FROM transactions WHERE user_id = ? OR recipient = ? OR recipient = ?');
-        $tStmt->execute([$u['id'], $u['phone'] ?? '', $phone]);
+        $normPhone = function_exists('normalizePhone') ? normalizePhone($phone) : $phone;
+        $intlPhone = !empty($normPhone) ? ('234' . substr($normPhone, 1)) : '';
+        $intlPlus = !empty($normPhone) ? ('+234' . substr($normPhone, 1)) : '';
+        $localNoZero = !empty($normPhone) ? substr($normPhone, 1) : '';
+
+        $tStmt = $pdo->prepare('
+            SELECT COUNT(*) as cnt, COALESCE(SUM(ABS(COALESCE(NULLIF(charged, 0), amount))), 0) as total 
+            FROM transactions 
+            WHERE (user_id = ? OR user_id = ? OR user_phone IN (?, ?, ?, ?, ?))
+              AND UPPER(status) IN ("SUCCESS", "COMPLETED", "DELIVERED", "PAID")
+              AND (refunded IS NULL OR refunded = 0)
+              AND UPPER(type) NOT IN ("FUNDING", "WALLET_FUNDING", "BONUS_TRANSFER", "REFUND", "CREDIT", "DEPOSIT")
+        ');
+        $tStmt->execute([
+            (string)$u['id'],
+            $normPhone,
+            $phone,
+            $normPhone,
+            $intlPhone,
+            $intlPlus,
+            $localNoZero
+        ]);
         $tRow = $tStmt->fetch();
         if ($tRow) {
             $ordersCount = (int)($tRow['cnt'] ?? 0);
-            $totalSpent = (float)($tRow['total'] ?? 0);
+            $totalSpent = round((float)($tRow['total'] ?? 0), 2);
         }
     } catch (Exception $te) {}
 

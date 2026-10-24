@@ -96,7 +96,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             </div>
 
             <p className="text-[10px] text-center text-slate-400 font-mono">
-              Al'amin Jagora Data • Resilient Mode
+              AJDATASUB • Resilient Mode
             </p>
           </div>
         </div>

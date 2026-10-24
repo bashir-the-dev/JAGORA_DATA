@@ -7,7 +7,7 @@ import {
   getAuthToken,
   DEFAULT_API_BASE_URL,
 } from '../../services/apiClient';
-import { Server, CheckCircle2, AlertTriangle, RefreshCw, Database, Key, Download, FileText } from 'lucide-react';
+import { Server, CheckCircle2, AlertTriangle, RefreshCw, Database, Key } from 'lucide-react';
 
 interface ApiSettingsModalProps {
   isOpen: boolean;
@@ -63,8 +63,9 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
   };
 
   return (
-    <ModalWrapper isOpen={isOpen} onClose={onClose} title="Backend API Connection" isLightMode={isLightMode}>
+    <ModalWrapper isOpen={isOpen} onClose={onClose} title="Backend API & Server Connectivity" isLightMode={isLightMode}>
       <div className="space-y-4 font-sans text-xs">
+
         {/* Explanation */}
         <div className="p-3.5 rounded-xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/60 text-slate-700 dark:text-slate-300 space-y-1">
           <div className="flex items-center gap-1.5 font-bold text-[#0047cc] dark:text-blue-400">
@@ -154,7 +155,7 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
               VTU Provider:
             </span>
             <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-blue-100 dark:border-blue-900 text-[11px]">
-              ClubKonnect (CK101290315)
+              Peyflex Live Gateway
             </span>
           </div>
           <div className="flex items-center justify-between text-xs">
@@ -163,31 +164,12 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
               Automated Funding:
             </span>
             <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-blue-100 dark:border-blue-900 text-[11px]">
-              Monnify (Y1NYAQEH8RD5)
+              Monnify / PayVessel / XixaPay
             </span>
           </div>
         </div>
 
-        {/* PDF Integration Manual Download */}
-        <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
-              <FileText size={16} />
-            </div>
-            <div className="min-w-0">
-              <p className="font-bold text-slate-800 dark:text-slate-200 text-xs">API Integration Manual</p>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">Step-by-step PDF guide with code samples</p>
-            </div>
-          </div>
-          <a
-            href="/api/docs/api-guide.pdf"
-            download="Alamin_Jagora_Data_API_Integration_Manual.pdf"
-            className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 shadow-2xs transition-all active:scale-95"
-          >
-            <Download size={13} />
-            <span>Download PDF</span>
-          </a>
-        </div>
+
 
         {/* Active Auth Token status */}
         <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">

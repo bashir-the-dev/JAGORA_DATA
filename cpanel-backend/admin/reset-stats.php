@@ -1,7 +1,7 @@
 <?php
 /**
  * ==============================================================================
- * AL'AMIN JAGORA DATA - ADMIN RESET PLATFORM STATISTICS & TRANSACTIONS
+ * AJDATASUB - ADMIN RESET PLATFORM STATISTICS & TRANSACTIONS
  * Fresh Start Utility for Administrator
  * ==============================================================================
  */
@@ -11,7 +11,7 @@ require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/../helpers.php';
 
 $pdo = Database::getConnection();
-$admin = requireAdminUser($pdo);
+$admin = requireAdminPermission($pdo, 'reset_stats');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse([
@@ -29,14 +29,16 @@ try {
     $pdo->beginTransaction();
 
     // 1. Wipe transaction logs to reset Lifetime Turnover, Today Sales, Orders Count & Profit to 0
-    $pdo->exec("TRUNCATE TABLE transactions");
+    try {
+        $pdo->exec("TRUNCATE TABLE transactions");
+    } catch (\Throwable $e) {
+        $pdo->exec("DELETE FROM transactions");
+    }
 
     // 2. Wipe auxiliary webhook logs
     try {
         $pdo->exec("TRUNCATE TABLE webhook_logs");
-    } catch (\Throwable $e) {
-        // Ignore if table does not exist
-    }
+    } catch (\Throwable $e) {}
 
     // 3. Wipe feedback and temporary brute-force attempts
     try {
@@ -47,10 +49,28 @@ try {
         $pdo->exec("TRUNCATE TABLE login_attempts");
     } catch (\Throwable $e) {}
 
-    // 4. Optionally reset customer balances to 0.00 if requested (sparing admin account)
+    // 3b. Wipe notifications
+    try {
+        $pdo->exec("TRUNCATE TABLE notifications");
+    } catch (\Throwable $e) {}
+
+    // 4. Reset customer balances to 0.00 if requested or during fresh start
     if ($resetBalances) {
-        $pdo->exec("UPDATE users SET balance = 0.00, bonus_balance = 0.00 WHERE role != 'admin' AND is_admin != 1");
+        try {
+            $pdo->exec("UPDATE users SET balance = 0.00, bonus_balance = 0.00 WHERE (role IS NULL OR role != 'admin') AND (admin_role IS NULL OR admin_role = '')");
+        } catch (\Throwable $e) {
+            try {
+                $pdo->exec("UPDATE users SET balance = 0.00, bonus_balance = 0.00 WHERE role != 'admin'");
+            } catch (\Throwable $e2) {}
+        }
     }
+
+    // 4b. Record stats reset timestamp so profit report tracks from this point onwards
+    $nowStr = date('Y-m-d H:i:s');
+    try {
+        $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('stats_last_reset_at', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = NOW()")->execute([$nowStr]);
+        $pdo->prepare("INSERT INTO settings (key_name, value_json) VALUES ('stats_last_reset_at', ?) ON DUPLICATE KEY UPDATE value_json = VALUES(value_json)")->execute([json_encode($nowStr)]);
+    } catch (\Throwable $t) {}
 
     $pdo->commit();
 

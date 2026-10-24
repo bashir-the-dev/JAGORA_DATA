@@ -28,7 +28,7 @@ if ($recipientPhone === $sender['phone']) {
 // Enforce strictly positive integer financial amount (no negatives, decimals, zero)
 $rawAmount = $body['amount'] ?? 0;
 if (!is_numeric($rawAmount) || (int)$rawAmount != $rawAmount || (int)$rawAmount < 50 || (int)$rawAmount > 500000) {
-    jsonResponse(['status' => 'error', 'message' => 'Transfer amount must be a positive integer between ₦50 and ₦500,000 (decimals are not permitted).'], 400);
+    jsonResponse(['status' => 'error', 'message' => 'Transfer amount must be between ₦50 and ₦500,000.'], 400);
 }
 $amount = (float)(int)$rawAmount;
 

@@ -14,9 +14,8 @@ import {
   ShieldCheck,
   Sparkles,
   Gift,
+  History,
 } from 'lucide-react';
-import { WalletTransferModal } from '../modals/WalletTransferModal';
-import { WithdrawalModal } from '../modals/WithdrawalModal';
 import { playTapSound, triggerHaptic } from '../../utils/soundEffects';
 
 interface WalletScreenProps {
@@ -49,53 +48,29 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({
   isReferralsHidden = false,
 }) => {
   const [showBalance, setShowBalance] = useState(true);
-  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
-  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [actionAlert, setActionAlert] = useState<{ message: string; type: 'success' | 'info' } | null>(null);
 
   // Real user balances directly from verified database profile
   const realBalance = typeof user?.balance === 'number' ? user.balance : 0;
   const realBonus = typeof user?.bonusBalance === 'number' ? user.bonusBalance : 0;
 
-  const handleQuickAction = (actionName: 'Transfer' | 'Request' | 'Withdraw') => {
+  const handleCopyPaymentLink = () => {
     playTapSound();
     triggerHaptic('light');
 
-    if (actionName === 'Transfer') {
-      setIsTransferModalOpen(true);
-    } else if (actionName === 'Request') {
-      const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://jagora.ng';
-      const cleanPhone = user?.phone ? user.phone.replace(/\D/g, '') : '';
-      const paymentLink = `${baseUrl}/?pay=${encodeURIComponent(cleanPhone)}`;
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://jagora.ng';
+    const cleanPhone = user?.phone ? user.phone.replace(/\D/g, '') : '';
+    const paymentLink = `${baseUrl}/?pay=${encodeURIComponent(cleanPhone)}`;
 
-      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(paymentLink).catch(() => {});
-      }
-
-      setActionAlert({
-        message: `Payment link copied: ${paymentLink}. Share to receive instant wallet transfers!`,
-        type: 'success',
-      });
-      setTimeout(() => setActionAlert(null), 4500);
-    } else if (actionName === 'Withdraw') {
-      setIsWithdrawModalOpen(true);
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(paymentLink).catch(() => {});
     }
-  };
 
-  const handleLocalTransferSuccess = (
-    recipient: string,
-    amount: number,
-    reference: string,
-    newBalance: number
-  ) => {
-    if (onTransferSuccess) {
-      onTransferSuccess(recipient, amount, reference, newBalance);
-    }
     setActionAlert({
-      message: `₦${amount.toLocaleString()} transferred successfully to ${recipient}!`,
+      message: `Payment link copied: ${paymentLink}. Share to receive instant automated wallet top-ups!`,
       type: 'success',
     });
-    setTimeout(() => setActionAlert(null), 5000);
+    setTimeout(() => setActionAlert(null), 4500);
   };
 
   return (
@@ -114,59 +89,47 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({
         </div>
       </div>
 
-      {/* BALANCE CARD (Bespoke Obsidian Metal with Sapphire Depth) */}
+      {/* BALANCE CARD (16:9 on mobile, clean, simple and uncrowded) */}
       <section
         id="wallet-balance-card"
-        className="rounded-3xl p-6 text-white shadow-xl relative overflow-hidden transition-all bg-gradient-to-br from-[#0a1224] via-[#0e172e] to-[#070b16] border border-white/10 ring-1 ring-white/[0.05]"
+        className="rounded-2xl sm:rounded-3xl p-5 sm:p-6 text-white shadow-xl relative overflow-hidden transition-all bg-gradient-to-br from-[#0a1224] via-[#0e172e] to-[#070b16] border border-white/10 ring-1 ring-white/[0.05] aspect-video sm:aspect-auto sm:min-h-[170px] flex flex-col justify-between"
       >
         <div className="absolute -right-8 -top-8 w-44 h-44 rounded-full border-[16px] border-white/[0.03] pointer-events-none" />
-        <div className="flex flex-col gap-1 z-10 relative">
-          <div className="flex items-center justify-between">
-            <span className="text-[10.5px] font-mono font-bold uppercase tracking-widest text-slate-400">
-              Available Balance
-            </span>
-            <button
-              type="button"
-              onClick={() => setShowBalance(!showBalance)}
-              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors cursor-pointer"
-              title={showBalance ? 'Hide balance' : 'Show balance'}
-            >
-              {showBalance ? <EyeOff size={14} /> : <Eye size={14} />}
-            </button>
-          </div>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="font-mono text-3xl sm:text-4xl font-black text-white tracking-tight">
-              {showBalance
-                ? `₦ ${realBalance.toLocaleString('en-NG', { minimumFractionDigits: 2 })}`
-                : '₦ ••••••••'}
-            </span>
+
+        {/* Top: Label and Visibility Toggle */}
+        <div className="flex items-center justify-between z-10 relative">
+          <span className="text-xs sm:text-sm font-medium text-slate-300 tracking-wide">
+            Available Balance
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowBalance(!showBalance)}
+            className="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors cursor-pointer shrink-0"
+            title={showBalance ? 'Hide balance' : 'Show balance'}
+          >
+            {showBalance ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        </div>
+
+        {/* Center: Large Balance */}
+        <div className="z-10 relative my-auto py-1">
+          <div className="font-mono text-3xl sm:text-4xl font-black text-white tracking-tight truncate">
+            {showBalance
+              ? `₦ ${realBalance.toLocaleString('en-NG', { minimumFractionDigits: 2 })}`
+              : '₦ ••••••••'}
           </div>
         </div>
 
-        <div className="flex justify-between items-end z-10 relative pt-4 mt-3 border-t border-white/10">
-          <button
-            type="button"
-            onClick={() => {
-              playTapSound();
-              if (!isReferralsHidden && onNavigate) onNavigate('referrals');
-            }}
-            className="flex flex-col text-left hover:opacity-90 active:scale-95 transition-all cursor-pointer p-1 -m-1 rounded-lg"
-            title={isReferralsHidden ? "Bonus Balance" : "View referral bonus details"}
-          >
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10.5px] font-mono font-medium text-slate-400">Bonus Balance</span>
-              {!isReferralsHidden && (
-                <span className="text-[9px] px-1.5 py-0.2 rounded-xs bg-amber-400 text-blue-950 font-black uppercase tracking-tight">
-                  Refer & Earn
-                </span>
-              )}
-            </div>
-            <span className="font-mono text-sm font-bold text-emerald-400">
+        {/* Bottom: Bonus info + Fund Wallet Button */}
+        <div className="flex justify-between items-center z-10 relative pt-2 border-t border-white/10">
+          <div className="flex flex-col text-left">
+            <span className="text-[10px] font-mono text-slate-400">Bonus</span>
+            <span className="font-mono text-xs sm:text-sm font-bold text-emerald-400">
               {showBalance
                 ? `₦${realBonus.toLocaleString('en-NG', { minimumFractionDigits: 2 })}`
                 : '₦••••'}
             </span>
-          </button>
+          </div>
 
           <button
             id="fund-wallet-main-btn"
@@ -178,65 +141,72 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({
                 onOpenFundWallet();
               }
             }}
-            className="bg-blue-600 hover:bg-blue-500 text-white font-heading text-xs font-bold px-4 py-2.5 rounded-xl transition-all active:scale-95 shadow-md shadow-blue-600/25 flex items-center gap-1.5 cursor-pointer border border-blue-400/30"
+            className="min-h-[44px] bg-blue-600 hover:bg-blue-500 text-white font-heading text-xs font-bold px-4 py-2 rounded-xl transition-all active:scale-95 shadow-md shadow-blue-600/25 flex items-center gap-1.5 cursor-pointer border border-blue-400/30"
           >
-            <Plus size={15} className="stroke-[3]" />
-            <span>+ Add Money</span>
+            <Plus size={16} className="stroke-[3]" />
+            <span>Fund Wallet</span>
           </button>
         </div>
       </section>
 
-      {/* QUICK ACTIONS (Transfer, Request, Withdraw, Refer & Earn) */}
+      {/* QUICK ACTIONS (Fund Wallet, History, Pay Link, Rewards) */}
       <section className="grid grid-cols-4 gap-2">
-        {/* Transfer */}
+        {/* 1. Fund Wallet */}
         <button
-          id="quick-action-transfer"
-          onClick={() => handleQuickAction('Transfer')}
+          id="quick-action-fund"
+          onClick={() => {
+            playTapSound();
+            if (onNavigateFundWallet) onNavigateFundWallet();
+            else onOpenFundWallet();
+          }}
+          className={`rounded-2xl p-2.5 sm:p-3 flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 group border shadow-2xs cursor-pointer min-h-[44px] ${
+            isLightMode
+              ? 'bg-white border-blue-100 hover:border-blue-300'
+              : 'bg-[#0c1322] border-blue-900/40 hover:border-blue-700'
+          }`}
+        >
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#0047cc] dark:bg-blue-950/60 dark:text-blue-400 group-hover:scale-105 transition-all flex items-center justify-center border border-blue-200/80 dark:border-blue-900/60">
+            <Plus size={18} className="stroke-[2.5]" />
+          </div>
+          <span className="text-[11px] font-heading font-bold text-slate-900 dark:text-white truncate">Fund</span>
+        </button>
+
+        {/* 2. History */}
+        <button
+          id="quick-action-history"
+          onClick={() => {
+            playTapSound();
+            onNavigateHistory();
+          }}
           className={`rounded-2xl p-2.5 sm:p-3 flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 group border shadow-2xs cursor-pointer min-h-[44px] ${
             isLightMode
               ? 'bg-white border-slate-200/90 hover:border-slate-300'
               : 'bg-[#0c1322] border-slate-800/90 hover:border-slate-700'
           }`}
         >
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400 group-hover:scale-105 transition-all flex items-center justify-center border border-blue-200/80 dark:border-blue-900/60">
-            <Send size={17} />
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#0047cc] dark:bg-blue-950/60 dark:text-blue-400 group-hover:scale-105 transition-all flex items-center justify-center border border-blue-200/80 dark:border-blue-900/60">
+            <History size={17} />
           </div>
-          <span className="text-[11px] font-heading font-bold text-slate-900 dark:text-white truncate">Transfer</span>
+          <span className="text-[11px] font-heading font-bold text-slate-900 dark:text-white truncate">History</span>
         </button>
 
-        {/* Request */}
+        {/* 3. Request / Payment Link */}
         <button
           id="quick-action-request"
-          onClick={() => handleQuickAction('Request')}
+          onClick={handleCopyPaymentLink}
           className={`rounded-2xl p-2.5 sm:p-3 flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 group border shadow-2xs cursor-pointer min-h-[44px] ${
             isLightMode
               ? 'bg-white border-slate-200/90 hover:border-slate-300'
               : 'bg-[#0c1322] border-slate-800/90 hover:border-slate-700'
           }`}
         >
-          <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 group-hover:scale-105 transition-all flex items-center justify-center border border-emerald-200/80 dark:border-emerald-900/60">
-            <ArrowDownLeft size={18} />
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#0047cc] dark:bg-blue-950/60 dark:text-blue-400 group-hover:scale-105 transition-all flex items-center justify-center border border-blue-200/80 dark:border-blue-900/60">
+            <Copy size={17} />
           </div>
-          <span className="text-[11px] font-heading font-bold text-slate-900 dark:text-white truncate">Request</span>
+          <span className="text-[11px] font-heading font-bold text-slate-900 dark:text-white truncate">Pay Link</span>
         </button>
 
-        {/* Withdraw */}
-        <button
-          id="quick-action-withdraw"
-          onClick={() => handleQuickAction('Withdraw')}
-          className={`rounded-2xl p-2.5 sm:p-3 flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 group border shadow-2xs cursor-pointer min-h-[44px] ${
-            isLightMode
-              ? 'bg-white border-slate-200/90 hover:border-slate-300'
-              : 'bg-[#0c1322] border-slate-800/90 hover:border-slate-700'
-          }`}
-        >
-          <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400 group-hover:scale-105 transition-all flex items-center justify-center border border-purple-200/80 dark:border-purple-900/60">
-            <ArrowUpRight size={18} />
-          </div>
-          <span className="text-[11px] font-heading font-bold text-slate-900 dark:text-white truncate">Withdraw</span>
-        </button>
-
-        {/* Refer & Earn */}
+        {/* 4. Refer & Earn */}
         {!isReferralsHidden && (
           <button
             id="quick-action-refer"
@@ -246,14 +216,14 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({
             }}
             className={`rounded-2xl p-2.5 sm:p-3 flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 group border shadow-2xs cursor-pointer min-h-[44px] ${
               isLightMode
-                ? 'bg-amber-50/60 border-amber-200 hover:border-amber-300'
-                : 'bg-amber-950/20 border-amber-800/70 hover:border-amber-700'
+                ? 'bg-blue-50/60 border-blue-200/80 hover:border-blue-300'
+                : 'bg-blue-950/20 border-blue-900/60 hover:border-blue-700'
             }`}
           >
-            <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300 group-hover:scale-105 transition-all flex items-center justify-center border border-amber-300 dark:border-amber-700/80">
+            <div className="w-10 h-10 rounded-2xl bg-blue-100 text-[#0047cc] dark:bg-blue-900/60 dark:text-blue-300 group-hover:scale-105 transition-all flex items-center justify-center border border-blue-300 dark:border-blue-700/80">
               <Gift size={18} />
             </div>
-            <span className="text-[11px] font-heading font-bold text-amber-800 dark:text-amber-300 truncate">Refer & Earn</span>
+            <span className="text-[11px] font-heading font-bold text-[#0047cc] dark:text-blue-300 truncate">Rewards</span>
           </button>
         )}
       </section>
@@ -333,29 +303,6 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({
           ))}
         </div>
       </section>
-
-      {/* Integrated Real Transfer Modal */}
-      <WalletTransferModal
-        isOpen={isTransferModalOpen}
-        onClose={() => setIsTransferModalOpen(false)}
-        currentBalance={realBalance}
-        userPhone={user?.phone}
-        onTransferSuccess={handleLocalTransferSuccess}
-        isLightMode={isLightMode}
-        biometricEnabled={user?.biometricEnabled}
-        isMaintenanceMode={isMaintenanceMode}
-      />
-
-      {/* Integrated Real Bank Withdrawal Modal */}
-      <WithdrawalModal
-        isOpen={isWithdrawModalOpen}
-        onClose={() => setIsWithdrawModalOpen(false)}
-        currentBalance={realBalance}
-        userName={user?.name}
-        isLightMode={isLightMode}
-        onNavigateSupport={onNavigateSupport}
-        isMaintenanceMode={isMaintenanceMode}
-      />
     </div>
   );
 };

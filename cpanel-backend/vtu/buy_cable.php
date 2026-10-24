@@ -45,8 +45,8 @@ if (!$bouquetInfo) {
 $amount = (float) $bouquetInfo['price'];
 $planName = $bouquetInfo['name'];
 
-// Verify PIN
-if (!verifyTransactionPin($user, $pin)) {
+// Verify PIN (Optional - PIN requirement removed from transaction checkout)
+if (!empty($pin) && !verifyTransactionPin($user, $pin)) {
     jsonResponse([
         'status'  => 'error',
         'message' => 'Incorrect 4-digit transaction PIN.'
@@ -199,6 +199,6 @@ if ($isSuccess) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
-        jsonResponse(['status' => 'error', 'message' => $refErr->getMessage()], 500);
+        jsonResponse(['status' => 'error', 'message' => 'Cable provider error. Please contact support with reference ' . $reference . ' if your wallet was not refunded.'], 500);
     }
 }

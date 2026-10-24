@@ -63,7 +63,7 @@ if ($action === 'initiate') {
 
     if ($isAdminAccount && ($user['status'] ?? '') !== 'active') {
         try {
-            $pdo->prepare('UPDATE users SET status = "active", role = "admin" WHERE id = ?')->execute([$user['id']]);
+            $pdo->prepare('UPDATE users SET status = "active" WHERE id = ?')->execute([$user['id']]);
             $user['status'] = 'active';
         } catch (Exception $e) {}
     }
@@ -92,7 +92,7 @@ if ($action === 'initiate') {
     $to = $user['email'];
     $bodyHtml = '
       <p style="font-size:15px;color:#0f172a;margin-top:0;">Hello <strong>' . htmlspecialchars(($user['name'] ?? ($user['full_name'] ?? '')) ?: 'Customer') . '</strong>,</p>
-      <p style="font-size:14px;color:#334155;line-height:1.6;">We received an automated request to reset the login password for your Al\'amin Jagora Data account. Use the single-use 6-digit verification code below:</p>
+      <p style="font-size:14px;color:#334155;line-height:1.6;">We received an automated request to reset the login password for your Al\'amin AJDATASUB account. Use the single-use 6-digit verification code below:</p>
       <div style="text-align:center;margin:24px 0;background-color:#f0fdf4;border:2px dashed #059669;border-radius:12px;padding:20px;">
         <div style="font-size:11px;font-weight:bold;color:#047857;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">6-Digit Security OTP</div>
         <div style="font-size:36px;font-weight:bold;letter-spacing:10px;color:#059669;font-family:monospace;">' . $otpCode . '</div>
@@ -103,7 +103,7 @@ if ($action === 'initiate') {
 
     sendAppNotificationEmail(
         $to,
-        "Your Password Reset Code: {$otpCode} - Al'amin Jagora Data",
+        "Your Password Reset Code: {$otpCode} - AJDATASUB",
         "Password Reset Request",
         $bodyHtml
     );
@@ -161,7 +161,7 @@ if ($action === 'resend') {
 
     sendAppNotificationEmail(
         $to,
-        "Your New Password Reset Code: {$otpCode} - Al'amin Jagora Data",
+        "Your New Password Reset Code: {$otpCode} - AJDATASUB",
         "New Password Reset Code",
         $bodyHtml
     );
@@ -235,7 +235,7 @@ if ($action === 'reset') {
         $confirmBody = '
             <p>Your password for <strong>' . htmlspecialchars(APP_NAME) . '</strong> was successfully changed just now.</p>
             <p>All previous login sessions have been invalidated. You can now log into your account using your new password.</p>
-            <p style="font-size:12.5px;color:#fca5a5;background:rgba(239,68,68,0.1);padding:10px 14px;border-radius:6px;margin:16px 0;"><strong>Didn\'t make this change?</strong> If you did not authorize this password reset, please contact support immediately at support@alaminjagoradata.com.ng to safeguard your wallet.</p>
+            <p style="font-size:12.5px;color:#fca5a5;background:rgba(239,68,68,0.1);padding:10px 14px;border-radius:6px;margin:16px 0;"><strong>Didn\'t make this change?</strong> If you did not authorize this password reset, please contact support immediately at support@ajdatasub.com.ng to safeguard your wallet.</p>
         ';
         sendAppNotificationEmail(
             $resetReq['email'],
@@ -243,7 +243,7 @@ if ($action === 'reset') {
             "Password Changed Successfully",
             $confirmBody,
             "Log In Now",
-            "https://" . (defined('APP_DOMAIN') ? APP_DOMAIN : "alaminjagoradata.com.ng") . "/login"
+            "https://" . (defined('APP_DOMAIN') ? APP_DOMAIN : "ajdatasub.com.ng") . "/login"
         );
     } catch (Exception $mailErr) {}
 

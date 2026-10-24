@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * AL'AMIN JAGORA DATA - PHONE NUMBER NORMALIZATION & VALIDATION
+ * AJDATASUB - PHONE NUMBER NORMALIZATION & VALIDATION
  * ============================================================================
  * Handles Nigerian phone number formats:
  * - Local: 08012345678, 080 1234 5678, 080-1234-5678

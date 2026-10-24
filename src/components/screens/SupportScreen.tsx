@@ -17,7 +17,10 @@ import { playTapSound, triggerHaptic } from '../../utils/soundEffects';
 import { UserProfile } from '../../types';
 import { RateUsModal } from '../modals/RateUsModal';
 
+import { ScreenType } from '../../types';
+
 interface SupportScreenProps {
+  onNavigate?: (screen: ScreenType) => void;
   user: UserProfile;
   isLightMode?: boolean;
   onOpenRateUs?: () => void;
@@ -33,6 +36,7 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({
   user,
   isLightMode,
   onOpenRateUs,
+  onNavigate,
   supportContacts: customContacts,
 }) => {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -41,9 +45,9 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({
 
   const phone = customContacts?.phone || '+234 814 838 8844';
   const whatsapp = customContacts?.whatsapp || '+234 814 838 8844';
-  const email = customContacts?.email || 'support@alaminjagora.ng';
+  const email = customContacts?.email || 'support@ajdatasub.com.ng';
   const whatsappGroupLink =
-    customContacts?.whatsappGroup || 'https://chat.whatsapp.com/JagoraOfficialGroup';
+    customContacts?.whatsappGroup || 'https://chat.whatsapp.com/AJDATASUBOfficialGroup';
 
   const phoneDigits = phone.replace(/\D/g, '');
   const phoneRaw = phoneDigits.startsWith('0')
@@ -61,7 +65,7 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({
     email,
     whatsapp,
     whatsappLink: `https://wa.me/${whatsappRaw}?text=${encodeURIComponent(
-      `Hello Support, my name is ${user.name || 'Customer'} (${user.phone}). I need assistance with my Al'amin Jagora Data account.`
+      `Hello Support, my name is ${user.name || 'Customer'} (${user.phone}). I need assistance with my AJDATASUB account.`
     )}`,
     whatsappGroupLink,
   };
@@ -238,6 +242,39 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({
         <h2 className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider uppercase">
           More Channels
         </h2>
+
+        {/* In-App Live Support Chat */}
+        <div
+          onClick={() => {
+            playTapSound();
+            if (onNavigate) onNavigate('chat');
+          }}
+          className={`p-3.5 rounded-2xl border flex items-center justify-between transition-all active:scale-[0.99] cursor-pointer shadow-2xs ${
+            isLightMode
+              ? 'bg-white border-slate-200 hover:border-blue-400'
+              : 'bg-[#0c152a] border-slate-800 hover:border-blue-600'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <Headphones size={20} className="stroke-[2.2]" />
+            </div>
+            <div>
+              <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
+                In-App Live Chat
+              </h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Direct help & instant assistance from our support desk
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="px-3 py-1.5 rounded-full text-xs font-bold bg-blue-600 text-white shadow-xs cursor-pointer hover:bg-blue-700 shrink-0"
+          >
+            Open Chat →
+          </button>
+        </div>
 
         {/* WhatsApp Group */}
         <a
@@ -416,7 +453,7 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({
       {/* Footer Trust Indicator */}
       <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500 pt-1">
         <ShieldCheck size={14} className="text-emerald-500" />
-        <span>Official Support Desk • Al'amin Jagora Data</span>
+        <span>Official Support Desk • AJDATASUB</span>
       </div>
 
       {/* Rate Us Modal */}

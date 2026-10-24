@@ -21,14 +21,14 @@ $pin      = trim($body['pin'] ?? '');
 
 $allowedNetworks = ['mtn', 'airtel', 'glo', '9mobile'];
 if (!in_array($network, $allowedNetworks, true)) {
-    jsonResponse(['status' => 'error', 'message' => 'Invalid network selected'], 400);
+    jsonResponse(['status' => 'error', 'message' => 'Please select a valid network provider.'], 400);
 }
 
 if (!is_numeric($amount) || $amount < 200 || $amount > 500000) {
-    jsonResponse(['status' => 'error', 'message' => 'Invalid data card order amount.'], 400);
+    jsonResponse(['status' => 'error', 'message' => 'Please select a valid data card package amount.'], 400);
 }
 
-if (!verifyTransactionPin($user, $pin)) {
+if (!empty($pin) && !verifyTransactionPin($user, $pin)) {
     jsonResponse(['status' => 'error', 'message' => 'Incorrect 4-digit transaction PIN.'], 403);
 }
 

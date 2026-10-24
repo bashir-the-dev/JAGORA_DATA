@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Transaction, TransactionCategory } from '../../types';
+import { deduplicateTransactions } from '../../services/dbService';
 import {
   Search,
   X,
@@ -57,8 +58,13 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
     { label: 'Refunded', value: 'REFUNDED' },
   ];
 
+  // Deduplicate transactions to guarantee no duplicate history entries
+  const uniqueTransactions = useMemo(() => {
+    return deduplicateTransactions(transactions);
+  }, [transactions]);
+
   // Filter transactions
-  const filtered = transactions.filter((tx) => {
+  const filtered = uniqueTransactions.filter((tx) => {
     // Category match
     if (selectedCategory !== 'All' && tx.category !== selectedCategory) {
       return false;
@@ -142,7 +148,7 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
     }
     if (titleLower.includes('dstv') || titleLower.includes('gotv') || titleLower.includes('startimes') || titleLower.includes('cable')) {
       return (
-        <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400 border border-purple-200 dark:border-purple-800/80 flex items-center justify-center shrink-0 shadow-2xs">
+        <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-400 border border-sky-200 dark:border-sky-800/80 flex items-center justify-center shrink-0 shadow-2xs">
           <Tv size={18} className="stroke-[2.5]" />
         </div>
       );

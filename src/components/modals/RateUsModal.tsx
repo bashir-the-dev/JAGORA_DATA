@@ -58,7 +58,7 @@ const RATING_FEEDBACK: Record<
   },
   5: {
     label: 'Exceptional & Super Fast!',
-    description: 'Awesome! Thank you for trusting Al\'amin Jagora Data.',
+    description: 'Awesome! Thank you for trusting Al\'amin AJDATASUB.',
     emoji: '🌟',
     badgeColor: 'text-amber-600 bg-amber-50 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-800',
   },
@@ -179,7 +179,7 @@ export const RateUsModal: React.FC<RateUsModalProps> = ({
                   <Sparkles size={14} className="text-amber-300" />
                 </h3>
                 <p className="text-[11px] text-blue-100 font-medium">
-                  Help us make Al'amin Jagora Data even better
+                  Help us make AJDATASUB even better
                 </p>
               </div>
             </div>
@@ -228,7 +228,7 @@ export const RateUsModal: React.FC<RateUsModalProps> = ({
                 {/* Community or Close buttons */}
                 <div className="pt-2 space-y-2">
                   <a
-                    href="https://chat.whatsapp.com/JagoraOfficialGroup"
+                    href="https://chat.whatsapp.com/AJDATASUBOfficialGroup"
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => {

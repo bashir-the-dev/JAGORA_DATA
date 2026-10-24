@@ -141,7 +141,7 @@ export const SystemStatusModal: React.FC<SystemStatusModalProps> = ({ isLightMod
                   <p className="text-[11px] mt-0.5 opacity-90 leading-relaxed">
                     {!isOnline
                       ? 'No internet connection detected. Vending operations are paused to protect your wallet balance.'
-                      : 'Direct low-latency socket connection to the core Jagora Data transaction switch.'}
+                      : 'Direct low-latency socket connection to the core AJDATASUB transaction switch.'}
                   </p>
                 </div>
               </div>

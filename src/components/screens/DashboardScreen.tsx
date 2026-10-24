@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { ScreenType, Transaction, UserProfile } from '../../types';
+import { ScreenType, Transaction, UserProfile, DataPlan } from '../../types';
+import { dataPlans } from '../../data/mockData';
 import {
   Wifi,
   Smartphone,
@@ -41,8 +42,8 @@ import { TelecomLogo } from '../common/TelecomLogo';
 import { playTapSound, triggerHaptic, playSuccessChime, triggerConfetti } from '../../utils/soundEffects';
 import { Skeleton, TransactionItemSkeleton } from '../common/Skeleton';
 import { useSystemStatus } from '../../context/SystemStatusContext';
-import { apiGenerateVirtualAccounts } from '../../services/apiClient';
-import { isGenericCustomerName } from '../../services/dbService';
+import { apiGenerateVirtualAccounts, apiGetVtuPlans } from '../../services/apiClient';
+import { isGenericCustomerName, deduplicateTransactions } from '../../services/dbService';
 
 interface DashboardScreenProps {
   user: UserProfile;
@@ -179,8 +180,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
     setTimeout(() => setCopiedAccount(false), 2200);
   };
 
-  // Recent 5 transactions for scannable ledger
-  const recentTransactions = transactions.slice(0, 5);
+  // Recent 5 transactions for scannable ledger (strictly deduplicated)
+  const recentTransactions = useMemo(() => {
+    return deduplicateTransactions(transactions).slice(0, 5);
+  }, [transactions]);
 
   // Frequent Purchases derived dynamically from real ledger transactions
   const frequentRecharges = useMemo(() => {
@@ -334,12 +337,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   const userInitial = (user?.name && !isGeneric(user.name)) ? user.name.charAt(0).toUpperCase() : (user?.username ? user.username.charAt(0).toUpperCase() : 'A');
 
   const isAdminUser = Boolean(
-    user?.role === 'admin' ||
-    user?.role === 'support_agent' ||
-    user?.role === 'finance_agent' ||
     user?.email?.toLowerCase() === 'bashirabubakar650@gmail.com' ||
     user?.phone === '08123456789' ||
-    localStorage.getItem('jagora_admin_authenticated') === 'true'
+    (user?.role === 'admin' && user?.adminRole === 'super_admin')
   );
 
   return (
@@ -347,10 +347,18 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
       {/* 1. WELCOMING USER SALUTATION */}
       <section className="flex items-center justify-between pt-1">
         <div className="min-w-0 flex-1 pr-2">
-          <h2 className="font-heading text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100 truncate">
-            <span>{timeGreeting}, </span>
-            <span className="font-black text-[#0047cc] dark:text-blue-400">{firstName}</span>
-          </h2>
+          <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium block">
+            {timeGreeting},
+          </span>
+          <div className="flex items-center gap-2 mt-0.5">
+            <h2 className="font-heading text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-slate-100 truncate">
+              {firstName}
+            </h2>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
+              <Check size={11} className="stroke-[3]" />
+              Verified User
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -428,6 +436,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         </section>
       )}
 
+
       {/* Maintenance Mode Banner */}
       {isMaintenanceMode && (
         <section
@@ -459,179 +468,98 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-12 gap-5 lg:gap-6 items-start">
         {/* Left Column: FinTech Wallet Card, Services Hub, Frequent Recharges */}
         <div className="md:col-span-7 lg:col-span-8 space-y-5">
-          {/* 2A. BESPOKE FINTECH WALLET INSTRUMENT */}
+          {/* 2A. BESPOKE FINTECH WALLET INSTRUMENT (Compact horizontal layout, reduced height) */}
           <section
             id="dashboard-wallet-card"
-            className="rounded-2xl sm:rounded-[24px] p-5 sm:p-6 text-white bg-gradient-to-r from-[#0052e0] via-[#0047cc] to-[#003bb3] shadow-lg shadow-blue-900/20 relative overflow-hidden transition-all card-interactive"
+            className="rounded-2xl sm:rounded-[22px] text-white bg-gradient-to-br from-[#0052e0] via-[#0047cc] to-[#0038a8] shadow-lg shadow-blue-900/20 relative overflow-hidden transition-all card-interactive p-4 sm:p-5 flex flex-col justify-between gap-3"
           >
-            <div className="flex items-center justify-between relative z-10 gap-3">
-              {/* Left Column: Balance & Actions */}
-              <div className="flex-1 min-w-0">
-                {/* Label */}
-                <span className="text-xs sm:text-sm font-medium text-white/90 block">
+            {/* Subtle atmospheric design accents */}
+            <div className="absolute -right-10 -bottom-10 w-44 h-44 rounded-full bg-white/[0.06] blur-2xl pointer-events-none" />
+            <div className="absolute -left-12 -top-12 w-36 h-36 rounded-full bg-blue-300/[0.1] blur-xl pointer-events-none" />
+
+            {/* Top row: Label + Eye Toggle + Subtle Active badge */}
+            <div className="flex items-center justify-between relative z-10">
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm font-medium text-white/85 tracking-wide">
                   Wallet Balance
                 </span>
-
-                {/* Amount + Eye Icon */}
-                <div className="flex items-center gap-2 mt-1">
-                  {isLoading || isRefreshing ? (
-                    <Skeleton variant="blue" className="w-36 sm:w-44 h-9 rounded-lg bg-white/20" />
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl sm:text-3xl font-heading font-black tracking-tight text-white whitespace-nowrap">
-                        {hideBalance
-                          ? '₦••••••••'
-                          : `₦${(typeof user?.balance === 'number' ? user.balance : 0).toLocaleString('en-NG', { minimumFractionDigits: 2 })}`}
-                      </span>
-
-                      <button
-                        id="toggle-balance-visibility-btn"
-                        type="button"
-                        onClick={() => {
-                          playTapSound();
-                          triggerHaptic('light');
-                          setHideBalance(!hideBalance);
-                        }}
-                        className="text-white/80 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10 active:scale-95 cursor-pointer shrink-0"
-                        aria-label="Toggle Balance Visibility"
-                        title="Hide or show balance"
-                      >
-                        {hideBalance ? <EyeOff size={18} /> : <Eye size={18} />}
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Bottom Row: + Fund Wallet button & Bonus */}
-                <div className="flex items-center gap-3.5 mt-4 pt-0.5">
-                  <button
-                    id="wallet-card-fund-btn"
-                    type="button"
-                    onClick={() => {
-                      playTapSound();
-                      triggerHaptic('medium');
-                      onNavigate('fund-wallet');
-                    }}
-                    className="min-h-[40px] px-3.5 sm:px-4 py-2 bg-white hover:bg-slate-50 text-[#0047cc] font-heading font-bold text-xs sm:text-[13px] rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95 transition-all cursor-pointer shrink-0"
-                  >
-                    <Plus size={15} className="stroke-[3]" />
-                    <span>Fund Wallet</span>
-                  </button>
-
-                  {!isReferralsHidden && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        playTapSound();
-                        triggerHaptic('light');
-                        onNavigate('referrals');
-                      }}
-                      className="flex flex-col justify-center text-left hover:opacity-90 active:scale-95 transition-all cursor-pointer p-1 -m-1 rounded-lg"
-                      title="View referral earnings & share invite link"
-                    >
-                      <div className="flex items-center gap-1">
-                        <span className="text-[11px] text-white/80 font-medium leading-tight">
-                          Bonus
-                        </span>
-                        <span className="text-[9px] px-1.5 py-0.2 rounded-xs bg-amber-400 text-blue-950 font-black uppercase tracking-tight">
-                          Earn ₦50
-                        </span>
-                      </div>
-                      <span className="text-xs sm:text-sm font-bold text-white font-mono leading-tight">
-                        {hideBalance
-                          ? '₦•••'
-                          : `₦${(typeof user?.bonusBalance === 'number' ? user.bonusBalance : 0).toFixed(2)}`}
-                      </span>
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Right Column: Stylized Wallet Illustration */}
-              <div className="shrink-0 flex items-center justify-center pointer-events-none select-none pr-1">
-                <svg
-                  className="w-24 h-20 sm:w-28 sm:h-22"
-                  viewBox="0 0 100 80"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+                <button
+                  id="toggle-balance-visibility-btn"
+                  type="button"
+                  onClick={() => {
+                    playTapSound();
+                    triggerHaptic('light');
+                    setHideBalance(!hideBalance);
+                  }}
+                  className="text-white/75 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10 active:scale-95 cursor-pointer shrink-0"
+                  aria-label="Toggle Balance Visibility"
+                  title="Hide or show balance"
                 >
-                  <rect
-                    x="30"
-                    y="10"
-                    width="42"
-                    height="26"
-                    rx="5"
-                    transform="rotate(-10 30 10)"
-                    fill="white"
-                    fillOpacity="0.16"
-                    stroke="white"
-                    strokeWidth="2.2"
-                    strokeOpacity="0.45"
-                  />
-                  <rect
-                    x="40"
-                    y="6"
-                    width="40"
-                    height="26"
-                    rx="5"
-                    transform="rotate(6 40 6)"
-                    fill="white"
-                    fillOpacity="0.22"
-                    stroke="white"
-                    strokeWidth="2.2"
-                    strokeOpacity="0.55"
-                  />
-                  <rect
-                    x="12"
-                    y="22"
-                    width="76"
-                    height="50"
-                    rx="12"
-                    fill="white"
-                    fillOpacity="0.18"
-                    stroke="white"
-                    strokeWidth="2.6"
-                    strokeOpacity="0.45"
-                  />
-                  <circle cx="24" cy="34" r="2" fill="white" fillOpacity="0.4" />
-                  <rect
-                    x="62"
-                    y="36"
-                    width="26"
-                    height="22"
-                    rx="6"
-                    fill="#0047cc"
-                    stroke="white"
-                    strokeWidth="2.2"
-                    strokeOpacity="0.6"
-                  />
-                  <circle cx="71" cy="47" r="3.5" fill="white" fillOpacity="0.75" />
-                </svg>
+                  {hideBalance ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
+
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[10.5px] font-mono font-medium text-white/90">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Active</span>
+              </div>
+            </div>
+
+            {/* Horizontal Middle/Action Row: Balance Numbers on Left, + Fund Wallet on Right */}
+            <div className="flex items-center justify-between gap-3 relative z-10">
+              <div className="min-w-0 flex-1">
+                {isLoading || isRefreshing ? (
+                  <Skeleton variant="blue" className="w-40 h-9 rounded-lg bg-white/20" />
+                ) : (
+                  <div className="font-heading font-black tracking-tight text-white text-2xl sm:text-3xl lg:text-4xl truncate">
+                    {hideBalance
+                      ? '₦ ••••••••'
+                      : `₦ ${(typeof user?.balance === 'number' ? user.balance : 0).toLocaleString('en-NG', { minimumFractionDigits: 2 })}`}
+                  </div>
+                )}
+              </div>
+
+              <button
+                id="wallet-card-fund-btn"
+                type="button"
+                onClick={() => {
+                  playTapSound();
+                  triggerHaptic('medium');
+                  onNavigate('fund-wallet');
+                }}
+                className="min-h-[44px] px-4 py-2.5 bg-[#ff6b00] hover:bg-[#ff7b1a] text-white font-heading font-bold text-xs sm:text-sm rounded-xl flex items-center gap-1.5 shadow-md shadow-orange-950/20 active:scale-95 transition-all cursor-pointer shrink-0"
+              >
+                <Plus size={16} className="stroke-[3]" />
+                <span>+ Fund Wallet</span>
+              </button>
             </div>
           </section>
 
-          {/* Low Balance Warning Banner (if applicable) */}
+          {/* Low Balance Warning Banner (matching Screen 1) */}
           {user.balance < 500 && (
             <div
               id="dashboard-low-balance-banner"
-              className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-700 dark:text-amber-300 text-xs font-mono"
+              onClick={onOpenFundWallet}
+              className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-amber-500/10 dark:bg-amber-950/40 border border-amber-500/25 text-amber-900 dark:text-amber-200 cursor-pointer hover:bg-amber-500/15 transition-all active:scale-[0.99]"
             >
-              <div className="flex items-center gap-2 min-w-0">
-                <AlertTriangle size={15} className="text-amber-500 shrink-0" />
-                <span className="truncate">Low Balance (₦{user.balance.toFixed(2)}) • Top up to avoid failed orders</span>
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-orange-500/20 text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/30">
+                  <AlertTriangle size={18} className="stroke-[2.5]" />
+                </div>
+                <div className="min-w-0">
+                  <div className="font-heading font-bold text-xs sm:text-sm text-orange-950 dark:text-orange-200">
+                    Low Balance (₦{Number(user.balance || 0).toLocaleString('en-NG', { minimumFractionDigits: 2 })})
+                  </div>
+                  <div className="text-[11px] text-slate-600 dark:text-slate-400 truncate">
+                    Top up your wallet to enjoy uninterrupted services.
+                  </div>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={onOpenFundWallet}
-                className="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline cursor-pointer shrink-0 ml-1"
-              >
-                Fund Now
-              </button>
+              <ChevronRight size={18} className="text-orange-500 shrink-0" />
             </div>
           )}
 
-          {/* 3. SERVICES HUB (Matched to Uploaded Mobile Design & Optimized for Desktop Grid) */}
+          {/* 3. SERVICES HUB (Unified Brand Color Consistency Across All VTU Service Buttons) */}
           <section className="space-y-3 pt-1">
             <h3 className="font-heading text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight">
               What Would You Like To Do Today?
@@ -648,20 +576,20 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
                   triggerHaptic('light');
                   onNavigate('data');
                 }}
-                className="relative group flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl sm:rounded-[20px] bg-white dark:bg-[#0c1322] border border-blue-100/90 dark:border-blue-900/30 hover:border-blue-400 dark:hover:border-blue-500 shadow-2xs hover:shadow-md transition-all active:scale-95 cursor-pointer min-h-[96px] card-interactive overflow-hidden"
+                className="relative group flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl sm:rounded-[20px] bg-white dark:bg-[#0c1322] border border-blue-100/90 dark:border-blue-900/40 hover:border-blue-500 dark:hover:border-blue-500 shadow-2xs hover:shadow-md hover:shadow-blue-500/10 transition-all active:scale-95 cursor-pointer min-h-[96px] card-interactive overflow-hidden"
               >
                 {isMaintenanceMode && (
                   <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25 text-[9px] font-mono font-bold tracking-tight uppercase">
                     Paused
                   </span>
                 )}
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-700 text-white flex items-center justify-center shadow-md shadow-blue-500/25 group-hover:scale-108 transition-transform duration-200">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0052e0] via-[#0047cc] to-[#0038a8] text-white flex items-center justify-center shadow-md shadow-blue-500/25 group-hover:scale-108 transition-transform duration-200">
                   <Wifi size={22} className="stroke-[2.4]" />
                 </div>
-                <span className="mt-2.5 text-xs sm:text-[13px] font-heading font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors whitespace-nowrap">
+                <span className="mt-2.5 text-xs sm:text-[13px] font-heading font-bold text-slate-900 dark:text-slate-100 group-hover:text-[#0047cc] dark:group-hover:text-blue-400 transition-colors whitespace-nowrap">
                   Buy Data
                 </span>
-                <span className="text-[10px] text-blue-600 dark:text-blue-400 font-medium">SME / CG</span>
+                <span className="text-[10px] text-[#0047cc] dark:text-blue-400 font-medium">SME / CG</span>
               </button>
 
               {/* 2. Buy Airtime */}
@@ -673,20 +601,20 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
                   triggerHaptic('light');
                   onNavigate('airtime');
                 }}
-                className="relative group flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl sm:rounded-[20px] bg-white dark:bg-[#0c1322] border border-emerald-100/90 dark:border-emerald-900/30 hover:border-emerald-400 dark:hover:border-emerald-500 shadow-2xs hover:shadow-md transition-all active:scale-95 cursor-pointer min-h-[96px] card-interactive overflow-hidden"
+                className="relative group flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl sm:rounded-[20px] bg-white dark:bg-[#0c1322] border border-blue-100/90 dark:border-blue-900/40 hover:border-blue-500 dark:hover:border-blue-500 shadow-2xs hover:shadow-md hover:shadow-blue-500/10 transition-all active:scale-95 cursor-pointer min-h-[96px] card-interactive overflow-hidden"
               >
                 {isMaintenanceMode && (
                   <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25 text-[9px] font-mono font-bold tracking-tight uppercase">
                     Paused
                   </span>
                 )}
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-600 to-emerald-700 text-white flex items-center justify-center shadow-md shadow-emerald-500/25 group-hover:scale-108 transition-transform duration-200">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0052e0] via-[#0047cc] to-[#0038a8] text-white flex items-center justify-center shadow-md shadow-blue-500/25 group-hover:scale-108 transition-transform duration-200">
                   <Smartphone size={22} className="stroke-[2.4]" />
                 </div>
-                <span className="mt-2.5 text-xs sm:text-[13px] font-heading font-bold text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors whitespace-nowrap">
+                <span className="mt-2.5 text-xs sm:text-[13px] font-heading font-bold text-slate-900 dark:text-slate-100 group-hover:text-[#0047cc] dark:group-hover:text-blue-400 transition-colors whitespace-nowrap">
                   Buy Airtime
                 </span>
-                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">Up to 4.5% OFF</span>
+                <span className="text-[10px] text-[#0047cc] dark:text-blue-400 font-medium">Up to 4.5% OFF</span>
               </button>
 
               {/* 3. Recharge PIN */}
@@ -698,20 +626,20 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
                   triggerHaptic('light');
                   onNavigate('recharge-pin');
                 }}
-                className="relative group flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl sm:rounded-[20px] bg-white dark:bg-[#0c1322] border border-amber-100/90 dark:border-amber-900/30 hover:border-amber-400 dark:hover:border-amber-500 shadow-2xs hover:shadow-md transition-all active:scale-95 cursor-pointer min-h-[96px] card-interactive overflow-hidden"
+                className="relative group flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl sm:rounded-[20px] bg-white dark:bg-[#0c1322] border border-blue-100/90 dark:border-blue-900/40 hover:border-blue-500 dark:hover:border-blue-500 shadow-2xs hover:shadow-md hover:shadow-blue-500/10 transition-all active:scale-95 cursor-pointer min-h-[96px] card-interactive overflow-hidden"
               >
                 {isMaintenanceMode && (
                   <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25 text-[9px] font-mono font-bold tracking-tight uppercase">
                     Paused
                   </span>
                 )}
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 text-white flex items-center justify-center shadow-md shadow-amber-500/25 group-hover:scale-108 transition-transform duration-200">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0052e0] via-[#0047cc] to-[#0038a8] text-white flex items-center justify-center shadow-md shadow-blue-500/25 group-hover:scale-108 transition-transform duration-200">
                   <ClipboardList size={22} className="stroke-[2.4]" />
                 </div>
-                <span className="mt-2.5 text-xs sm:text-[13px] font-heading font-bold text-slate-900 dark:text-slate-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors whitespace-nowrap">
+                <span className="mt-2.5 text-xs sm:text-[13px] font-heading font-bold text-slate-900 dark:text-slate-100 group-hover:text-[#0047cc] dark:group-hover:text-blue-400 transition-colors whitespace-nowrap">
                   Recharge PIN
                 </span>
-                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">Print E-PINs</span>
+                <span className="text-[10px] text-[#0047cc] dark:text-blue-400 font-medium">Print E-PINs</span>
               </button>
 
               {/* 4. Data Card */}
@@ -723,20 +651,20 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
                   triggerHaptic('light');
                   onNavigate('data-card');
                 }}
-                className="relative group flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl sm:rounded-[20px] bg-white dark:bg-[#0c1322] border border-purple-100/90 dark:border-purple-900/30 hover:border-purple-400 dark:hover:border-purple-500 shadow-2xs hover:shadow-md transition-all active:scale-95 cursor-pointer min-h-[96px] card-interactive overflow-hidden"
+                className="relative group flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl sm:rounded-[20px] bg-white dark:bg-[#0c1322] border border-blue-100/90 dark:border-blue-900/40 hover:border-[#0047cc] dark:hover:border-blue-500 shadow-2xs hover:shadow-md hover:shadow-blue-500/10 transition-all active:scale-95 cursor-pointer min-h-[96px] card-interactive overflow-hidden"
               >
                 {isMaintenanceMode && (
                   <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25 text-[9px] font-mono font-bold tracking-tight uppercase">
                     Paused
                   </span>
                 )}
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 via-violet-600 to-indigo-700 text-white flex items-center justify-center shadow-md shadow-purple-500/25 group-hover:scale-108 transition-transform duration-200">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0052e0] via-[#0047cc] to-[#0038a8] text-white flex items-center justify-center shadow-md shadow-blue-500/25 group-hover:scale-108 transition-transform duration-200">
                   <CreditCard size={22} className="stroke-[2.4]" />
                 </div>
-                <span className="mt-2.5 text-xs sm:text-[13px] font-heading font-bold text-slate-900 dark:text-slate-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors whitespace-nowrap">
+                <span className="mt-2.5 text-xs sm:text-[13px] font-heading font-bold text-slate-900 dark:text-slate-100 group-hover:text-[#0047cc] dark:group-hover:text-blue-400 transition-colors whitespace-nowrap">
                   Data Card
                 </span>
-                <span className="text-[10px] text-purple-600 dark:text-purple-400 font-medium">Scratch Cards</span>
+                <span className="text-[10px] text-[#0047cc] dark:text-blue-400 font-medium">Scratch Cards</span>
               </button>
 
               {/* 5. Fund Wallet */}
@@ -748,15 +676,15 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
                   triggerHaptic('light');
                   onNavigate('fund-wallet');
                 }}
-                className="relative group flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl sm:rounded-[20px] bg-white dark:bg-[#0c1322] border border-cyan-100/90 dark:border-cyan-900/30 hover:border-cyan-400 dark:hover:border-cyan-500 shadow-2xs hover:shadow-md transition-all active:scale-95 cursor-pointer min-h-[96px] card-interactive overflow-hidden"
+                className="relative group flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl sm:rounded-[20px] bg-white dark:bg-[#0c1322] border border-blue-100/90 dark:border-blue-900/40 hover:border-blue-500 dark:hover:border-blue-500 shadow-2xs hover:shadow-md hover:shadow-blue-500/10 transition-all active:scale-95 cursor-pointer min-h-[96px] card-interactive overflow-hidden"
               >
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-600 via-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-cyan-500/25 group-hover:scale-108 transition-transform duration-200">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0052e0] via-[#0047cc] to-[#0038a8] text-white flex items-center justify-center shadow-md shadow-blue-500/25 group-hover:scale-108 transition-transform duration-200">
                   <Wallet size={22} className="stroke-[2.4]" />
                 </div>
-                <span className="mt-2.5 text-xs sm:text-[13px] font-heading font-bold text-slate-900 dark:text-slate-100 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors whitespace-nowrap">
+                <span className="mt-2.5 text-xs sm:text-[13px] font-heading font-bold text-slate-900 dark:text-slate-100 group-hover:text-[#0047cc] dark:group-hover:text-blue-400 transition-colors whitespace-nowrap">
                   Fund Wallet
                 </span>
-                <span className="text-[10px] text-cyan-600 dark:text-cyan-400 font-medium">Auto-Virtual Acct</span>
+                <span className="text-[10px] text-[#0047cc] dark:text-blue-400 font-medium">Auto-Virtual Acct</span>
               </button>
 
               {/* 6. More Services */}
@@ -768,63 +696,23 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
                   triggerHaptic('light');
                   onOpenMoreServices();
                 }}
-                className="relative group flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl sm:rounded-[20px] bg-white dark:bg-[#0c1322] border border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-600 shadow-2xs hover:shadow-md transition-all active:scale-95 cursor-pointer min-h-[96px] card-interactive overflow-hidden"
+                className="relative group flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl sm:rounded-[20px] bg-white dark:bg-[#0c1322] border border-blue-100/90 dark:border-blue-900/40 hover:border-blue-500 dark:hover:border-blue-500 shadow-2xs hover:shadow-md hover:shadow-blue-500/10 transition-all active:scale-95 cursor-pointer min-h-[96px] card-interactive overflow-hidden"
               >
                 {isMaintenanceMode && (
                   <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25 text-[9px] font-mono font-bold tracking-tight uppercase">
                     Paused
                   </span>
                 )}
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 dark:from-slate-700 dark:to-slate-850 text-white flex items-center justify-center shadow-md shadow-slate-500/20 group-hover:scale-108 transition-transform duration-200">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0052e0] via-[#0047cc] to-[#0038a8] text-white flex items-center justify-center shadow-md shadow-blue-500/25 group-hover:scale-108 transition-transform duration-200">
                   <LayoutGrid size={22} className="stroke-[2.4]" />
                 </div>
-                <span className="mt-2.5 text-xs sm:text-[13px] font-heading font-bold text-slate-900 dark:text-slate-100 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors whitespace-nowrap">
+                <span className="mt-2.5 text-xs sm:text-[13px] font-heading font-bold text-slate-900 dark:text-slate-100 group-hover:text-[#0047cc] dark:group-hover:text-blue-400 transition-colors whitespace-nowrap">
                   More Services
                 </span>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Bills & Utilities</span>
+                <span className="text-[10px] text-[#0047cc] dark:text-blue-400 font-medium">Bills & Utilities</span>
               </button>
             </div>
           </section>
-
-          {/* 3B. REFER & EARN ₦50 PROMO BANNER */}
-          {!isReferralsHidden && (
-            <section
-              id="dashboard-referral-banner"
-              onClick={() => {
-                playTapSound();
-                triggerHaptic('light');
-                onNavigate('referrals');
-              }}
-              className="p-4 rounded-2xl bg-gradient-to-r from-[#0038a8] via-[#0047cc] to-[#0a1128] text-white border border-blue-500/30 shadow-md flex items-center justify-between gap-3 cursor-pointer group active:scale-[0.99] transition-all"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-11 h-11 rounded-2xl bg-amber-400/20 text-amber-300 border border-amber-400/30 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                  <Gift size={22} className="stroke-[2.5]" />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-300 bg-amber-400/20 px-1.5 py-0.2 rounded border border-amber-400/30">
-                      ₦50 BONUS
-                    </span>
-                    <span className="text-xs font-bold text-white truncate">
-                      Refer & Earn Cash
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-blue-100/90 font-medium truncate mt-0.5">
-                    Invite friends & earn ₦50 on their 1st transaction!
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                className="min-h-[44px] px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-blue-950 font-heading text-xs font-bold shrink-0 flex items-center gap-1 shadow-sm transition-all"
-              >
-                <span>Get Link</span>
-                <ArrowRight size={13} />
-              </button>
-            </section>
-          )}
 
           {/* 4. FREQUENT PURCHASES (Quick-Repeat Carousel) - ONLY when user has prior recharges */}
           {frequentRecharges.length > 0 && (

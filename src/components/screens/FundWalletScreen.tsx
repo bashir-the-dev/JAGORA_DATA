@@ -168,7 +168,7 @@ export const FundWalletScreen: React.FC<FundWalletScreenProps> = ({
                 <span>Alternative Instant Funding:</span>
               </div>
               <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                Contact our verified Al'amin Jagora Customer Support for direct manual transfer verification, or wait for automated gateway KYC activation.
+                Contact our verified AJDATASUB Customer Support for direct manual transfer verification, or wait for automated gateway KYC activation.
               </p>
             </div>
 
@@ -192,7 +192,7 @@ export const FundWalletScreen: React.FC<FundWalletScreenProps> = ({
             {activeAccounts.map((acc, i) => {
               const bankName = (acc as any).bank_name || (acc as any).bank || 'Virtual Bank';
               const accNum = (acc as any).account_number || (acc as any).number || '0000000000';
-              const accHolder = (acc as any).account_name || (acc as any).name || "Al'amin Jagora";
+              const accHolder = (acc as any).account_name || (acc as any).name || "AJDATASUB";
               const isCopied = copiedBank === bankName;
 
               return (

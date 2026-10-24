@@ -58,7 +58,7 @@ export const ReferralsScreen: React.FC<ReferralsScreenProps> = ({
 
   const activeReferralLink = useMemo(() => {
     if (referralData?.referralLink) return referralData.referralLink;
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://alaminjagora.ng';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://ajdatasub.com.ng';
     return `${origin}/register?ref=${encodeURIComponent(activeReferralCode)}`;
   }, [referralData?.referralLink, activeReferralCode]);
 
@@ -117,7 +117,7 @@ export const ReferralsScreen: React.FC<ReferralsScreenProps> = ({
     }, 2500);
   };
 
-  const shareText = `Hey! I use Al'amin Jagora Data for instant, cheapest SME & Corporate data bundles, airtime, and utility bills. Sign up using my link to get started: ${activeReferralLink}`;
+  const shareText = `Hey! I use AJDATASUB for instant, cheapest SME & Corporate data bundles, airtime, and utility bills. Sign up using my link to get started: ${activeReferralLink}`;
 
   const handleWhatsAppShare = () => {
     playTapSound();
@@ -134,7 +134,7 @@ export const ReferralsScreen: React.FC<ReferralsScreenProps> = ({
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({
-          title: "Join Al'amin Jagora Data",
+          title: "Join AJDATASUB",
           text: "Get cheapest data bundles & 24/7 VTU services in Nigeria!",
           url: activeReferralLink,
         });
@@ -699,7 +699,7 @@ export const ReferralsScreen: React.FC<ReferralsScreenProps> = ({
                 No referrals yet
               </h4>
               <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
-                Be the first to introduce friends to Al'amin Jagora Data! Tap "Share to WhatsApp" or copy your referral link above.
+                Be the first to introduce friends to AJDATASUB! Tap "Share to WhatsApp" or copy your referral link above.
               </p>
             </div>
             <button

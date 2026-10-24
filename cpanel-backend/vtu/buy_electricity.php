@@ -47,8 +47,8 @@ if (!is_numeric($amount) || (int)$amount != $amount || (int)$amount < 500 || (in
 }
 $amount = (int)$amount;
 
-// PIN Validation
-if (!verifyTransactionPin($user, $pin)) {
+// PIN Validation (Optional - PIN requirement removed from transaction checkout)
+if (!empty($pin) && !verifyTransactionPin($user, $pin)) {
     jsonResponse([
         'status'  => 'error',
         'message' => 'Incorrect 4-digit transaction PIN.'
@@ -246,6 +246,6 @@ if ($isSuccess) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
-        jsonResponse(['status' => 'error', 'message' => $refErr->getMessage()], 500);
+        jsonResponse(['status' => 'error', 'message' => 'Electricity provider error. Please contact support with reference ' . $reference . ' if your wallet was not refunded.'], 500);
     }
 }

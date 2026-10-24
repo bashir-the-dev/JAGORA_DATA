@@ -84,7 +84,7 @@ if (!$user) {
     ');
     $unmatchedStmt->execute([$reference, $amountPaid, $rawPayload]);
 
-    jsonResponse(['status' => false, 'message' => 'User account not matched with any Jagora profile'], 200);
+    jsonResponse(['status' => false, 'message' => 'User account not matched with any AJDATASUB profile'], 200);
 }
 
 $chargeFee = (defined('FUNDING_FLAT_FEE') && $amountPaid > 100) ? (float)FUNDING_FLAT_FEE : 0.00;

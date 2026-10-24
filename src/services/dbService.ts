@@ -331,6 +331,7 @@ export async function getOrCreateUserProfile(phone: string): Promise<UserProfile
       bonusBalance: newUser.bonusBalance,
       role: newUser.role,
       virtualAccounts: newUser.virtualAccounts,
+      requirePinForTransactions: newUser.requirePinForTransactions ?? false,
     })
   });
 
@@ -395,7 +396,8 @@ export async function saveUserProfileToDb(profile: UserProfile): Promise<boolean
         balance: profile.balance,
         bonusBalance: profile.bonusBalance,
         role: profile.role,
-        virtualAccounts: profile.virtualAccounts
+        virtualAccounts: profile.virtualAccounts,
+        requirePinForTransactions: profile.requirePinForTransactions ?? false,
       })
     });
 
@@ -476,11 +478,72 @@ export function subscribeToUserProfile(
 }
 
 /**
+ * Strictly deduplicate transactions based on reference, ID, and transaction signature.
+ * Prevents identical VTU transactions or wallet funding entries from appearing multiple times.
+ */
+export function deduplicateTransactions(transactions: Transaction[]): Transaction[] {
+  if (!Array.isArray(transactions) || transactions.length === 0) return [];
+
+  const seenIds = new Set<string>();
+  const seenRefs = new Set<string>();
+  const seenSignatures = new Set<string>();
+  const result: Transaction[] = [];
+
+  for (const tx of transactions) {
+    if (!tx) continue;
+
+    const rawId = String(tx.id || '').trim();
+    const rawRef = String(tx.reference || '').trim();
+
+    // Check by reference (e.g. AJD-DATA-xxx)
+    if (rawRef && seenRefs.has(rawRef)) {
+      continue;
+    }
+
+    // Check by ID
+    if (rawId && seenIds.has(rawId)) {
+      continue;
+    }
+
+    // Cross-match: if rawRef matches any previous rawId or vice versa
+    if (rawRef && seenIds.has(rawRef)) {
+      continue;
+    }
+    if (rawId && seenRefs.has(rawId)) {
+      continue;
+    }
+
+    // Content signature check for duplicate transactions created with different IDs within short periods
+    const titleNorm = String(tx.title || '').trim().toLowerCase();
+    const recipientNorm = String(tx.recipient || tx.subtitle || '').replace(/[^0-9]/g, '');
+    const amountVal = Number(tx.amount || 0).toFixed(2);
+    const categoryNorm = String(tx.category || '').toLowerCase();
+    const dateNorm = String(tx.date || '').trim();
+
+    if (recipientNorm && amountVal !== '0.00' && titleNorm) {
+      const sig = `${categoryNorm}_${amountVal}_${recipientNorm}_${titleNorm}_${dateNorm}`;
+      if (seenSignatures.has(sig)) {
+        continue;
+      }
+      seenSignatures.add(sig);
+    }
+
+    if (rawId) seenIds.add(rawId);
+    if (rawRef) seenRefs.add(rawRef);
+
+    result.push(tx);
+  }
+
+  return result;
+}
+
+/**
  * Save a new transaction to direct custom backend and local storage
  */
 export async function recordTransactionInDb(
   tx: Transaction,
-  userPhone: string
+  userPhone: string,
+  syncToBackend: boolean = true
 ): Promise<boolean> {
   try {
     const phoneKey = sanitizePhoneKey(userPhone);
@@ -499,27 +562,45 @@ export async function recordTransactionInDb(
       list = [];
     }
 
-    const updated = [tx, ...list.filter((item) => item.id !== tx.id)];
+    const updated = deduplicateTransactions([tx, ...list]);
     safeSetItem(key, JSON.stringify(updated));
     emitEvent(`txs_${phoneKey}`, updated);
 
-    // Sync to direct custom backend
-    apiCall('/api/transactions', {
-      method: 'POST',
-      body: JSON.stringify({
-        id: tx.id,
-        reference: tx.id,
-        userId: phoneKey,
-        title: tx.title,
-        subtitle: tx.subtitle || '',
-        recipient: tx.recipient || phoneKey,
-        amount: tx.amount,
-        type: tx.category || 'VTU',
-        status: tx.status,
-        isCredit: !!tx.isCredit,
-        tokens: (tx as any).tokens || null,
-      })
-    });
+    // Skip redundant /api/transactions POST if transaction was already processed & recorded by backend VTU switch
+    const isVtuPurchase = ['airtime', 'data', 'cable', 'electricity', 'exam', 'recharge-pin', 'data-card'].includes(String(tx.category || '').toLowerCase());
+    const isAlreadyServerRecorded = isVtuPurchase || Boolean(
+      tx.id && (
+        tx.id.startsWith('AJD-') || 
+        tx.id.startsWith('CK-') || 
+        tx.id.startsWith('AIR-') ||
+        tx.id.startsWith('DAT-') ||
+        tx.id.startsWith('TX-') ||
+        tx.id.startsWith('TXN-') ||
+        tx.id.startsWith('TRF-') ||
+        tx.id.startsWith('MNFY-') ||
+        tx.id.startsWith('PV-') ||
+        tx.id.startsWith('REF-')
+      )
+    );
+
+    if (syncToBackend && !isAlreadyServerRecorded) {
+      apiCall('/api/transactions', {
+        method: 'POST',
+        body: JSON.stringify({
+          id: tx.id,
+          reference: tx.reference || tx.id,
+          userId: phoneKey,
+          title: tx.title,
+          subtitle: tx.subtitle || '',
+          recipient: tx.recipient || phoneKey,
+          amount: tx.amount,
+          type: tx.category || 'VTU',
+          status: tx.status,
+          isCredit: !!tx.isCredit,
+          tokens: (tx as any).tokens || null,
+        })
+      }).catch(() => {});
+    }
 
     return true;
   } catch (err) {
@@ -541,21 +622,27 @@ export async function loadUserTransactionsFromDb(userPhone: string): Promise<Tra
     const remote = await apiCall<any>(`/api/transactions?phone=${encodeURIComponent(phoneKey)}`);
     const rawList: any[] = Array.isArray(remote) ? remote : (Array.isArray(remote?.data) ? remote.data : []);
     if (Array.isArray(rawList)) {
-      const list: Transaction[] = rawList.map((t: any) => ({
-        id: t.id || t.reference,
-        title: t.title || (t.type === 'DATA' ? 'Data Bundle' : t.type === 'AIRTIME' ? 'Airtime Purchase' : 'Wallet Funding'),
-        subtitle: t.description || t.subtitle || t.recipient || '',
-        recipient: t.recipient || '',
-        date: t.created_at ? new Date(t.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Today',
-        group: 'Today',
-        amount: parseFloat(t.amount) || 0,
-        isCredit: t.type === 'WALLET_FUNDING' || t.type === 'funding' || !!t.isCredit,
-        status: t.status || 'SUCCESS',
-        category: (t.type || 'vtu').toLowerCase(),
-        iconType: t.type === 'AIRTIME' ? 'phone' : t.type === 'DATA' ? 'wifi' : 'wallet',
-      }));
-      safeSetItem(key, JSON.stringify(list));
-      return list;
+      const list: Transaction[] = rawList.map((t: any) => {
+        const ref = String(t.reference || t.id || '').trim();
+        const id = String(t.reference || t.id || '').trim();
+        return {
+          id: id,
+          reference: ref,
+          title: t.title || (t.type === 'DATA' ? 'Data Bundle' : t.type === 'AIRTIME' ? 'Airtime Purchase' : 'Wallet Funding'),
+          subtitle: t.description || t.subtitle || t.recipient || '',
+          recipient: t.recipient || '',
+          date: t.created_at ? new Date(t.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Today',
+          group: 'Today',
+          amount: parseFloat(t.amount) || 0,
+          isCredit: t.type === 'WALLET_FUNDING' || t.type === 'funding' || !!t.isCredit,
+          status: t.status || 'SUCCESS',
+          category: (t.type || 'vtu').toLowerCase(),
+          iconType: t.type === 'AIRTIME' ? 'phone' : t.type === 'DATA' ? 'wifi' : 'wallet',
+        };
+      });
+      const deduped = deduplicateTransactions(list);
+      safeSetItem(key, JSON.stringify(deduped));
+      return deduped;
     }
   } catch {}
 
@@ -565,8 +652,10 @@ export async function loadUserTransactionsFromDb(userPhone: string): Promise<Tra
     if (raw) {
       const list = JSON.parse(raw);
       if (Array.isArray(list)) {
-        // Strip legacy mock IDs like tx-1, tx-2, etc.
-        const clean = list.filter((item: any) => !/^tx-[0-9]+$/.test(String(item.id)));
+        // Strip legacy mock IDs like tx-1, tx-2, etc. and deduplicate
+        const clean = deduplicateTransactions(
+          list.filter((item: any) => !/^tx-[0-9]+$/.test(String(item.id)))
+        );
         return clean;
       }
     }
@@ -587,6 +676,7 @@ export function subscribeToUserTransactions(
     onUpdate([]);
     return () => {};
   }
+  const key = `${TXS_KEY_PREFIX}${phoneKey}`;
 
   loadUserTransactionsFromDb(userPhone).then((txs) => onUpdate(txs)).catch(() => {});
 
@@ -598,20 +688,27 @@ export function subscribeToUserTransactions(
       const remote = await apiCall<any>(`/api/transactions?phone=${encodeURIComponent(phoneKey)}`);
       const rawList: any[] = Array.isArray(remote) ? remote : (Array.isArray(remote?.data) ? remote.data : []);
       if (Array.isArray(rawList)) {
-        const list: Transaction[] = rawList.map((t: any) => ({
-          id: t.id || t.reference,
-          title: t.title || (t.type === 'DATA' ? 'Data Bundle' : t.type === 'AIRTIME' ? 'Airtime Purchase' : 'Wallet Funding'),
-          subtitle: t.description || t.subtitle || t.recipient || '',
-          recipient: t.recipient || '',
-          date: t.created_at ? new Date(t.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Today',
-          group: 'Today',
-          amount: parseFloat(t.amount) || 0,
-          isCredit: t.type === 'WALLET_FUNDING' || t.type === 'funding' || !!t.isCredit,
-          status: t.status || 'SUCCESS',
-          category: (t.type || 'vtu').toLowerCase(),
-          iconType: t.type === 'AIRTIME' ? 'phone' : t.type === 'DATA' ? 'wifi' : 'wallet',
-        }));
-        onUpdate(list);
+        const list: Transaction[] = rawList.map((t: any) => {
+          const ref = String(t.reference || t.id || '').trim();
+          const id = String(t.reference || t.id || '').trim();
+          return {
+            id: id,
+            reference: ref,
+            title: t.title || (t.type === 'DATA' ? 'Data Bundle' : t.type === 'AIRTIME' ? 'Airtime Purchase' : 'Wallet Funding'),
+            subtitle: t.description || t.subtitle || t.recipient || '',
+            recipient: t.recipient || '',
+            date: t.created_at ? new Date(t.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Today',
+            group: 'Today',
+            amount: parseFloat(t.amount) || 0,
+            isCredit: t.type === 'WALLET_FUNDING' || t.type === 'funding' || !!t.isCredit,
+            status: t.status || 'SUCCESS',
+            category: (t.type || 'vtu').toLowerCase(),
+            iconType: t.type === 'AIRTIME' ? 'phone' : t.type === 'DATA' ? 'wifi' : 'wallet',
+          };
+        });
+        const deduped = deduplicateTransactions(list);
+        safeSetItem(key, JSON.stringify(deduped));
+        onUpdate(deduped);
       }
     } catch {}
   }, 10000);
@@ -674,6 +771,7 @@ export interface PlatformSettingsState {
     whatsapp: string;
     email: string;
     whatsappGroup?: string;
+    officeAddress?: string;
   };
   referralSettings?: {
     enabled: boolean;
@@ -690,10 +788,11 @@ const defaultPlatformSettings: PlatformSettingsState = {
     type: 'info',
   },
   supportContacts: {
-    phone: '+234 814 838 8844',
-    whatsapp: '+234 814 838 8844',
-    email: 'support@alaminjagora.ng',
-    whatsappGroup: 'https://chat.whatsapp.com/JagoraOfficialGroup',
+    phone: '+234 803 898 3334',
+    whatsapp: '+234 803 898 3334',
+    email: 'support@ajdatasub.com.ng',
+    whatsappGroup: 'https://chat.whatsapp.com/AJDATASUBOfficialGroup',
+    officeAddress: 'Kano, Nigeria',
   },
 };
 
@@ -778,7 +877,18 @@ export function subscribeToPlatformSettings(
     }
   };
 
-  // Fetch from direct custom backend
+  let lastStateJson = '';
+
+  const emitIfChanged = (newState: PlatformSettingsState) => {
+    const serialized = JSON.stringify(newState);
+    if (serialized !== lastStateJson) {
+      lastStateJson = serialized;
+      safeSetItem(SETTINGS_KEY, serialized);
+      onUpdate(newState);
+    }
+  };
+
+  // Fetch initial from custom backend
   apiCall<any>('/api/settings/platform').then((remote) => {
     if (remote) {
       const resolvedAnnouncement = sanitizeAnnouncement(extractRemoteAnnouncement(remote), getCurrentStoredAnnouncement());
@@ -788,12 +898,11 @@ export function subscribeToPlatformSettings(
         supportContacts: remote.supportContacts || remote.data?.supportContacts || defaultPlatformSettings.supportContacts,
         referralSettings: remote.referralSettings || remote.data?.referralSettings,
       };
-      safeSetItem(SETTINGS_KEY, JSON.stringify(state));
-      onUpdate(state);
+      emitIfChanged(state);
     }
   });
 
-  const unsubLocal = addEventListener<PlatformSettingsState>('settings', onUpdate);
+  const unsubLocal = addEventListener<PlatformSettingsState>('settings', (s) => emitIfChanged(s));
 
   // Background refresh from direct custom backend
   const intervalId = setInterval(async () => {
@@ -807,11 +916,10 @@ export function subscribeToPlatformSettings(
           supportContacts: remote.supportContacts || remote.data?.supportContacts || defaultPlatformSettings.supportContacts,
           referralSettings: remote.referralSettings || remote.data?.referralSettings,
         };
-        safeSetItem(SETTINGS_KEY, JSON.stringify(state));
-        onUpdate(state);
+        emitIfChanged(state);
       }
     } catch {}
-  }, 5000);
+  }, 10000);
 
   return () => {
     unsubLocal();

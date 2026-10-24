@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   ApiProvider,
   ServiceRouteConfig,
@@ -27,8 +27,9 @@ import { PlatformSettingsTab } from '../admin/PlatformSettingsTab';
 import { BulkPushNotificationsTab } from '../admin/BulkPushNotificationsTab';
 import { StaffManagementTab } from '../admin/StaffManagementTab';
 import { ReferralControlsTab } from '../admin/ReferralControlsTab';
+import { AdminRatingsTab } from '../admin/AdminRatingsTab';
 import { AdminProfileModal } from '../admin/AdminProfileModal';
-import { LayoutDashboard, Users, BarChart3, Layers, Menu as MenuIcon } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart3, Layers, Megaphone, Menu as MenuIcon } from 'lucide-react';
 import { updateUserBalanceInDb, updateTransactionStatusInDb, recordTransactionInDb } from '../../services/dbService';
 import {
   apiGetAdminStats,
@@ -74,14 +75,70 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
     }
   }, [adminProfile]);
 
+  const isMasterCEO = Boolean(
+    currentAdmin?.email?.toLowerCase() === 'bashirabubakar650@gmail.com' ||
+    currentAdmin?.phone === '08123456789' ||
+    currentAdmin?.adminRole === 'super_admin' ||
+    (currentAdmin as any)?.admin_role === 'super_admin' ||
+    currentAdmin?.role === 'super_admin' ||
+    currentAdmin?.role === 'admin' ||
+    currentAdmin?.id === 'usr_admin_01' ||
+    currentAdmin?.id === 9 ||
+    currentAdmin?.id === 1
+  );
+  const currentRole = isMasterCEO
+    ? 'super_admin'
+    : (currentAdmin?.adminRole || (currentAdmin as any)?.admin_role || (currentAdmin?.role === 'admin' ? 'super_admin' : 'support_agent'));
+
+
+  // Backend permission matrix and dynamic dashboard widgets configuration state
+  const [backendRoleConfig, setBackendRoleConfig] = useState<any>(null);
+
+  // Permitted navigation tabs based on assigned staff role (dynamically governed by PHP backend)
+  const allowedTabs: AdminTabType[] = React.useMemo(() => {
+    if (backendRoleConfig?.allowedTabs && Array.isArray(backendRoleConfig.allowedTabs)) {
+      return backendRoleConfig.allowedTabs;
+    }
+    if (isMasterCEO || currentRole === 'super_admin') {
+      return ['dashboard', 'wallets', 'providers', 'pricing', 'transactions', 'users', 'referrals', 'staff', 'broadcast', 'ratings', 'settings'];
+    }
+    if (currentRole === 'finance_agent') {
+      return ['dashboard', 'wallets', 'transactions', 'users'];
+    }
+    // Support agent role: view-only logs, customer support, and push announcements
+    return ['dashboard', 'transactions', 'users', 'broadcast'];
+  }, [backendRoleConfig, isMasterCEO, currentRole]);
+
+  const handleSelectTab = (tab: AdminTabType) => {
+    if (!allowedTabs.includes(tab)) {
+      showToast('🔒 Access Restricted: Your assigned staff role does not have permission for this section.');
+      setActiveTab('dashboard');
+      return;
+    }
+    setActiveTab(tab);
+  };
+
+  useEffect(() => {
+    if (!allowedTabs.includes(activeTab)) {
+      setActiveTab('dashboard');
+    }
+  }, [allowedTabs, activeTab]);
+
   const handleProfileUpdated = (updatedUser: any) => {
-    setCurrentAdmin(updatedUser);
-    onUpdateAdminProfile?.(updatedUser);
+    const enriched = {
+      ...updatedUser,
+      role: updatedUser?.role || currentAdmin?.role || 'admin',
+      adminRole: updatedUser?.adminRole || updatedUser?.admin_role || currentAdmin?.adminRole || 'super_admin',
+      admin_role: updatedUser?.admin_role || updatedUser?.adminRole || 'super_admin'
+    };
+    setCurrentAdmin(enriched);
+    onUpdateAdminProfile?.(enriched);
     // Also update in users list if present
     setUsers((prev) =>
       prev.map((u) => (u.phone === updatedUser.phone || u.id === updatedUser.id ? { ...u, name: updatedUser.name, email: updatedUser.email } : u))
     );
   };
+
 
   // Domain state
   const [providers, setProviders] = useState<ApiProvider[]>(initialApiProviders);
@@ -134,6 +191,19 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
       const res = await apiGetAdminStats();
       const m = res.metrics || res.data;
       if (res.status === 'success' && m) {
+        if (res.allowedTabs || m.allowedTabs) {
+          setBackendRoleConfig({
+            adminRole: res.adminRole || m.adminRole,
+            roleLabel: res.roleLabel || m.roleLabel,
+            roleDescription: res.roleDescription || m.roleDescription,
+            allowedTabs: res.allowedTabs || m.allowedTabs,
+            allowedWidgets: res.allowedWidgets || m.allowedWidgets,
+            quickActions: res.quickActions || m.quickActions,
+            permissions: res.permissions || m.permissions,
+            maskedFields: res.maskedFields || m.maskedFields,
+          });
+        }
+
         setPlatformWallet((prev) => {
           const userWallets = typeof m.totalUserWallets !== 'undefined' ? Number(m.totalUserWallets) : (typeof m.total_user_balance !== 'undefined' ? Number(m.total_user_balance) : 0);
           const salesVol = typeof m.todaySalesVolume !== 'undefined' ? Number(m.todaySalesVolume) : (typeof m.total_volume !== 'undefined' ? Number(m.total_volume) : 0);
@@ -143,17 +213,26 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
           const vendorFloat = typeof m.totalVendorFloat !== 'undefined' ? Number(m.totalVendorFloat) : (prev.totalVendorFloat || 0);
           const ratio = userWallets > 0 ? Number((vendorFloat / userWallets).toFixed(2)) : 1.0;
 
-          return {
-            ...prev,
-            totalUserWallets: userWallets,
-            totalVendorFloat: vendorFloat,
-            todaySalesVolume: salesVol,
-            todayGrossProfit: grossProfit,
-            todayTxCount: txCount,
-            failedTxCount: failedCount,
-            reserveRatio: ratio,
-          };
-        });
+            return {
+              ...prev,
+              totalUserWallets: userWallets,
+              totalVendorFloat: vendorFloat,
+              todaySalesVolume: salesVol,
+              todayGrossProfit: grossProfit,
+              todayProfit: typeof m.todayProfit !== 'undefined' ? Number(m.todayProfit) : grossProfit,
+              todayTxCount: txCount,
+              failedTxCount: failedCount,
+              reserveRatio: ratio,
+              activeUsersToday: m.activeUsersToday || res.activeUsersToday,
+              serviceBreakdown: m.serviceBreakdown || res.serviceBreakdown,
+              profitGrowthPercent: m.profitGrowthPercent,
+              liabilitiesGrowthPercent: m.liabilitiesGrowthPercent,
+              turnoverGrowthPercent: m.turnoverGrowthPercent,
+              floatsGrowthPercent: m.floatsGrowthPercent,
+              customerLiabilities: userWallets,
+              platformTurnover: salesVol,
+            };
+          });
 
         if (typeof m.totalVendorFloat !== 'undefined' && Number(m.totalVendorFloat) > 0) {
           setProviders((prev) =>
@@ -215,8 +294,29 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
             bonusBalance: typeof u.bonusBalance === 'number' ? u.bonusBalance : parseFloat(u.bonus_balance) || 0,
             status: (u.status === 'suspended' ? 'suspended' : 'active') as 'active' | 'suspended',
             registeredDate: u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Recent',
-            totalOrders: Number(u.totalOrders) || 0,
-            totalSpent: Number(u.totalSpent) || 0,
+            totalOrders: (() => {
+              const backendCount = Number(u.totalOrders) || 0;
+              if (backendCount > 0) return backendCount;
+              const uPhone = (u.phone || '').trim();
+              return transactions.filter((t) => {
+                const match = (uPhone && (t.customerPhone === uPhone || t.recipient === uPhone)) || (u.name && t.customerName === u.name);
+                if (!match || t.status !== 'SUCCESS' || t.refunded || t.isCredit) return false;
+                const typeLower = String(t.type || '').toLowerCase();
+                return !['wallet_funding', 'funding', 'bonus_transfer', 'refund', 'credit', 'deposit'].includes(typeLower);
+              }).length;
+            })(),
+            totalSpent: (() => {
+              const backendSpent = Number(u.totalSpent) || 0;
+              if (backendSpent > 0) return backendSpent;
+              const uPhone = (u.phone || '').trim();
+              const txs = transactions.filter((t) => {
+                const match = (uPhone && (t.customerPhone === uPhone || t.recipient === uPhone)) || (u.name && t.customerName === u.name);
+                if (!match || t.status !== 'SUCCESS' || t.refunded || t.isCredit) return false;
+                const typeLower = String(t.type || '').toLowerCase();
+                return !['wallet_funding', 'funding', 'bonus_transfer', 'refund', 'credit', 'deposit'].includes(typeLower);
+              });
+              return Math.round(txs.reduce((sum, t) => sum + Math.abs(Number(t.amount) || 0), 0) * 100) / 100;
+            })(),
             kycTier: (u.kycTier || 2) as 1 | 2 | 3,
             role: u.role || 'user',
             isAdmin: false,
@@ -278,9 +378,18 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
           ...prev,
           todaySalesVolume: 0,
           todayGrossProfit: 0,
+          todayProfit: 0,
           todayTxCount: 0,
           failedTxCount: 0,
-          ...(resetBalances ? { totalUserWallets: 0 } : {}),
+          activeUsersToday: 0,
+          platformTurnover: 0,
+          serviceBreakdown: {
+            airtime: { name: 'Airtime', volume: 0, count: 0, percentage: 0 },
+            data: { name: 'Data', volume: 0, count: 0, percentage: 0 },
+            electricity: { name: 'Electricity', volume: 0, count: 0, percentage: 0 },
+            cable: { name: 'Cable TV', volume: 0, count: 0, percentage: 0 },
+          },
+          ...(resetBalances ? { totalUserWallets: 0, customerLiabilities: 0 } : {}),
         }));
         // 3. Clear user balances if selected
         if (resetBalances) {
@@ -497,6 +606,17 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
     }
     updateTransactionStatusInDb(txId, 'REFUNDED');
 
+    // Update aggregate user liabilities for refund
+    setPlatformWallet((prev) => {
+      const newTotal = prev.totalUserWallets + tx.amount;
+      return {
+        ...prev,
+        totalUserWallets: newTotal,
+        customerLiabilities: newTotal,
+        reserveRatio: newTotal > 0 ? Number((prev.totalVendorFloat / newTotal).toFixed(2)) : 1.0,
+      };
+    });
+
     showToast(`Refunded ₦${tx.amount.toLocaleString()} to customer wallet (${tx.customerName || 'Customer'}).`);
   };
 
@@ -507,6 +627,11 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
     type: 'credit' | 'debit',
     reason: string
   ) => {
+    if (!isMasterCEO && currentRole !== 'finance_agent') {
+      showToast('🔒 Access Restricted: Support agents do not have permission to adjust customer balances. Contact Finance or Super Admin.');
+      return;
+    }
+
     let targetPhone = '';
     let updatedBal = 0;
     setUsers((prev) =>
@@ -539,7 +664,7 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
       isCredit: type === 'credit',
       status: 'SUCCESS',
       category: 'funding',
-      provider: 'Jagora Admin Ledger',
+      provider: 'AJ Admin Ledger',
       gatewayResponse: `ADMIN ADJUSTMENT: Reason: ${reason}`,
       iconType: 'wallet',
     };
@@ -562,11 +687,12 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
     // Update aggregate user liabilities
     setPlatformWallet((prev) => {
       const diff = type === 'credit' ? amount : -amount;
-      const newTotal = prev.totalUserWallets + diff;
+      const newTotal = Math.max(0, prev.totalUserWallets + diff);
       return {
         ...prev,
         totalUserWallets: newTotal,
-        reserveRatio: Number((prev.totalVendorFloat / newTotal).toFixed(2)),
+        customerLiabilities: newTotal,
+        reserveRatio: newTotal > 0 ? Number((prev.totalVendorFloat / newTotal).toFixed(2)) : 1.0,
       };
     });
 
@@ -577,6 +703,11 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
 
   // 8. Toggle user suspension status (with strict protection against self or admin suspension)
   const handleToggleUserStatus = async (userId: string) => {
+    if (!isMasterCEO && currentRole !== 'support_agent') {
+      showToast('🔒 Access Restricted: Your assigned staff role does not have permission to freeze customer accounts.');
+      return;
+    }
+
     const targetUser = users.find((u) => u.id === userId);
     if (!targetUser) return;
 
@@ -622,15 +753,31 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
     );
   };
 
+  // Real-time synchronization of customer liabilities with customer accounts
+  const synchronizedPlatformWallet = useMemo(() => {
+    // If customer users are loaded, exact sum of customer balances is the authoritative liability
+    const calculatedLiabilities = users.reduce((acc, u) => acc + (Number(u.balance) || 0), 0);
+    const effectiveLiabilities = users.length > 0 ? calculatedLiabilities : (platformWallet.totalUserWallets || 0);
+    const vendorFloat = platformWallet.totalVendorFloat || 0;
+    const ratio = effectiveLiabilities > 0 ? Number((vendorFloat / effectiveLiabilities).toFixed(2)) : 1.0;
+
+    return {
+      ...platformWallet,
+      totalUserWallets: effectiveLiabilities,
+      customerLiabilities: effectiveLiabilities,
+      reserveRatio: ratio,
+    };
+  }, [platformWallet, users]);
+
   return (
     <div
       id="admin-dashboard-container"
-      className="min-h-screen bg-slate-50 dark:bg-[#070b16] text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white overflow-x-hidden max-w-full"
+      className="min-h-screen bg-[#f3f6fc] dark:bg-[#070b16] text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white overflow-x-hidden max-w-full"
     >
       {/* 1. Left Executive Navigation Drawer */}
       <AdminSidebar
         activeTab={activeTab}
-        onSelectTab={setActiveTab}
+        onSelectTab={handleSelectTab}
         adminProfile={currentAdmin}
         isOpenMobile={isSidebarOpenMobile}
         onCloseMobile={() => setIsSidebarOpenMobile(false)}
@@ -682,9 +829,10 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
             <AdminOverviewTab
               users={users}
               transactions={transactions}
-              platformWallet={platformWallet}
+              platformWallet={synchronizedPlatformWallet}
               providers={providers}
               adminProfile={currentAdmin}
+              roleConfig={backendRoleConfig}
               onNavigateTab={setActiveTab}
               onAdjustUserWallet={handleAdjustUserWallet}
               onToggleUserStatus={handleToggleUserStatus}
@@ -701,7 +849,7 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
 
           {activeTab === 'wallets' && (
             <WalletBalancesTab
-              platformWallet={platformWallet}
+              platformWallet={synchronizedPlatformWallet}
               providers={providers}
               onRefreshGatewayBalances={handlePingAllProviders}
               isRefreshingGateways={isPinging}
@@ -728,6 +876,7 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
             <PricingPlansTab
               isLightMode={isLightMode}
               showToast={showToast}
+              onNavigateTab={handleSelectTab}
             />
           )}
 
@@ -772,6 +921,14 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
             />
           )}
 
+          {activeTab === 'ratings' && (
+            <AdminRatingsTab
+              isLightMode={isLightMode}
+              showToast={showToast}
+              adminProfile={currentAdmin}
+            />
+          )}
+
           {activeTab === 'broadcast' && (
             <BulkPushNotificationsTab
               isLightMode={isLightMode}
@@ -784,6 +941,7 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
               isLightMode={isLightMode}
               showToast={showToast}
               onResetStatistics={handleResetStatistics}
+              onNavigateTab={handleSelectTab}
             />
           )}
         </main>
@@ -836,19 +994,35 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
           <span className="text-[10px] mt-0.5 font-medium tracking-tight">Orders</span>
         </button>
 
-        <button
-          onClick={() => setActiveTab('wallets')}
-          className={`flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 rounded-xl transition-all cursor-pointer ${
-            activeTab === 'wallets'
-              ? 'text-blue-600 dark:text-blue-400 font-bold'
-              : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-          }`}
-        >
-          <div className={`p-1 rounded-lg ${activeTab === 'wallets' ? 'bg-blue-50 dark:bg-blue-950/60' : ''}`}>
-            <Layers size={19} />
-          </div>
-          <span className="text-[10px] mt-0.5 font-medium tracking-tight">Wallets</span>
-        </button>
+        {currentRole === 'support_agent' ? (
+          <button
+            onClick={() => setActiveTab('broadcast')}
+            className={`flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 rounded-xl transition-all cursor-pointer ${
+              activeTab === 'broadcast'
+                ? 'text-blue-600 dark:text-blue-400 font-bold'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+            }`}
+          >
+            <div className={`p-1 rounded-lg ${activeTab === 'broadcast' ? 'bg-blue-50 dark:bg-blue-950/60' : ''}`}>
+              <Megaphone size={19} />
+            </div>
+            <span className="text-[10px] mt-0.5 font-medium tracking-tight">Broadcast</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => setActiveTab('wallets')}
+            className={`flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 rounded-xl transition-all cursor-pointer ${
+              activeTab === 'wallets'
+                ? 'text-blue-600 dark:text-blue-400 font-bold'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+            }`}
+          >
+            <div className={`p-1 rounded-lg ${activeTab === 'wallets' ? 'bg-blue-50 dark:bg-blue-950/60' : ''}`}>
+              <Layers size={19} />
+            </div>
+            <span className="text-[10px] mt-0.5 font-medium tracking-tight">Wallets</span>
+          </button>
+        )}
 
         <button
           onClick={() => setIsSidebarOpenMobile(true)}

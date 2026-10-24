@@ -7,7 +7,7 @@ import {
 
 interface TelecomLogoProps {
   network: string;
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   className?: string;
   alt?: string;
 }
@@ -31,6 +31,7 @@ export const TelecomLogo: React.FC<TelecomLogoProps> = ({
     md: 'w-10 h-10 text-xs rounded-xl',
     lg: 'w-12 h-12 text-sm rounded-2xl',
     xl: 'w-14 h-14 text-base rounded-2xl',
+    '2xl': 'w-16 h-16 text-lg rounded-2xl',
   }[size];
 
   const getNetworkInitials = (id: string) => {

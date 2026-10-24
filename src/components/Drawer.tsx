@@ -67,24 +67,24 @@ export const Drawer: React.FC<DrawerProps> = ({
         <div className="p-5 flex items-center justify-between border-b bg-[#0047cc] dark:bg-slate-950 dark:border-slate-800 text-white">
           <div className="flex items-center space-x-3">
             {/* Logo Badge */}
-            <div className="w-11 h-11 rounded-xl bg-[#0055ff] border border-white/30 flex items-center justify-center shadow-md shrink-0 overflow-hidden p-0.5">
+            <div className="w-11 h-11 rounded-xl bg-white border border-white/40 flex items-center justify-center shadow-md shrink-0 overflow-hidden p-0.5">
               <img
                 src="/logo.png"
-                alt="Al'amin Jagora Data"
+                alt="AJDATASUB"
                 className="w-full h-full object-contain"
               />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-heading text-sm font-extrabold uppercase tracking-wide text-white block">
-                  Al'amin Jagora
+                  AJDATA
                 </span>
                 <span className="px-1.5 py-0.2 rounded-xs bg-amber-400 text-[#002f8a] text-[9px] font-black uppercase">
                   VTU
                 </span>
               </div>
-              <span className="text-[11px] text-blue-100/90 font-medium block mt-0.5">
-                Premier VTU & Bills
+              <span className="text-[10px] text-blue-100/90 font-semibold block mt-0.5 truncate max-w-[150px]">
+                ALAMIN JAGORA DATA
               </span>
             </div>
           </div>
@@ -158,29 +158,6 @@ export const Drawer: React.FC<DrawerProps> = ({
                   : 'bg-slate-800 text-slate-300'
               }`}>
                 {isLightMode ? 'Off' : 'On'}
-              </span>
-            </button>
-          )}
-
-          {isSimulationAllowed() && onOpenApiSettings && (
-            <button
-              id="drawer-link-api"
-              onClick={() => {
-                onOpenApiSettings();
-                onClose();
-              }}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all text-left text-sm font-medium ${
-                isLightMode
-                  ? 'text-slate-700 hover:bg-slate-100 hover:text-slate-950 font-semibold'
-                  : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <Server size={19} className="stroke-[1.75] text-[#0047cc] dark:text-blue-400" />
-                <span>Backend API</span>
-              </div>
-              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                Active
               </span>
             </button>
           )}
